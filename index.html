@@ -4738,6 +4738,124 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
   #missionHud { left: calc(8px + var(--sal)); }
 }
 
+/* ══════════════════════════════════════════════
+   MILESTONE BANNER — hitos de nivel (10/25/50/100)
+   Mismo sistema visual que wave banners, posición
+   idéntica al wavePill para mantener coherencia HUD
+   ══════════════════════════════════════════════ */
+@keyframes msBannerIn{
+  from{opacity:0;transform:translateX(-50%) translateY(-10px) scale(0.94);}
+  to{opacity:1;transform:translateX(-50%) translateY(0) scale(1);}
+}
+@keyframes msBannerOut{
+  from{opacity:1;transform:translateX(-50%) translateY(0) scale(1);}
+  to{opacity:0;transform:translateX(-50%) translateY(-8px) scale(0.95);}
+}
+@keyframes msGlow{
+  0%,100%{box-shadow:0 0 18px var(--ms-color,#8b5cf6),0 4px 24px rgba(0,0,0,0.6);}
+  50%{box-shadow:0 0 32px var(--ms-color,#8b5cf6),0 4px 24px rgba(0,0,0,0.6);}
+}
+@keyframes msScan{
+  from{top:0;}to{top:100%;}
+}
+@keyframes msIconPop{
+  0%{transform:scale(0.6) rotate(-10deg);opacity:0;}
+  60%{transform:scale(1.18) rotate(3deg);opacity:1;}
+  100%{transform:scale(1) rotate(0deg);opacity:1;}
+}
+@keyframes msBarFill{
+  from{width:0%;}to{width:100%;}
+}
+#milestoneBanner{
+  position:fixed;
+  /* alineado con wavePill — mismo eje horizontal centrado */
+  left:50%;transform:translateX(-50%);
+  /* se posiciona ENCIMA del wavePill con espacio claro */
+  bottom:calc(120px + var(--sab,0px));
+  top:auto;
+  z-index:20;
+  pointer-events:none;
+  display:none;
+  min-width:240px;max-width:min(88vw,360px);
+  background:rgba(6,6,20,0.92);
+  border:1px solid rgba(139,92,246,0.45);
+  border-radius:14px;
+  padding:10px 16px 8px;
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  overflow:hidden;
+  contain:layout style paint;
+  --ms-color:#8b5cf6;
+}
+#milestoneBanner.ms-show{
+  display:flex;
+  flex-direction:column;gap:4px;
+  animation:msBannerIn 0.48s cubic-bezier(0.22,1,0.36,1) forwards,
+             msGlow 2s ease-in-out 0.5s infinite;
+}
+#milestoneBanner.ms-hide{
+  animation:msBannerOut 0.32s ease-in forwards;
+}
+/* scanline decorativo */
+#milestoneBanner .ms-scan{
+  position:absolute;left:0;right:0;height:28px;
+  background:linear-gradient(to bottom,rgba(139,92,246,0.07),transparent);
+  pointer-events:none;top:0;
+  animation:msScan 2.4s linear infinite;
+}
+/* fila superior: icono + textos */
+#milestoneBanner .ms-row{
+  display:flex;align-items:center;gap:10px;position:relative;z-index:1;
+}
+#milestoneBanner .ms-icon{
+  font-size:22px;line-height:1;
+  animation:msIconPop 0.5s cubic-bezier(0.22,1,0.36,1) 0.08s both;
+  flex-shrink:0;
+}
+#milestoneBanner .ms-texts{
+  display:flex;flex-direction:column;gap:1px;flex:1;min-width:0;
+}
+#milestoneBanner .ms-title{
+  font-family:'Space Grotesk',system-ui,sans-serif;
+  font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;
+  color:var(--ms-color,#8b5cf6);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+#milestoneBanner .ms-sub{
+  font-size:9.5px;font-weight:600;letter-spacing:0.6px;
+  color:rgba(255,255,255,0.55);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+/* barra de progreso decorativa */
+#milestoneBanner .ms-bar-track{
+  height:2px;border-radius:2px;
+  background:rgba(255,255,255,0.08);
+  overflow:hidden;position:relative;z-index:1;
+  margin-top:2px;
+}
+#milestoneBanner .ms-bar-fill{
+  height:100%;border-radius:2px;
+  background:linear-gradient(90deg,var(--ms-color,#8b5cf6),rgba(255,255,255,0.6));
+  width:0%;
+  animation:msBarFill 2.8s linear forwards;
+}
+/* variantes por hito */
+#milestoneBanner.ms-10{ --ms-color:#8b5cf6; border-color:rgba(139,92,246,0.45); }
+#milestoneBanner.ms-25{ --ms-color:#ef4444; border-color:rgba(239,68,68,0.50); }
+#milestoneBanner.ms-50{ --ms-color:#f97316; border-color:rgba(249,115,22,0.55); }
+#milestoneBanner.ms-100{--ms-color:#fbbf24; border-color:rgba(251,191,36,0.60); }
+/* móvil — subir un poco más para no tapar el wavePill */
+@media (max-width:767px){
+  #milestoneBanner{ bottom:calc(130px + var(--sab,0px)); min-width:200px; padding:9px 14px 7px; }
+  #milestoneBanner .ms-icon{ font-size:19px; }
+  #milestoneBanner .ms-title{ font-size:10px; }
+  #milestoneBanner .ms-sub{ font-size:9px; }
+}
+/* landscape compacto */
+@media (orientation:landscape) and (max-height:480px){
+  #milestoneBanner{ bottom:calc(86px + var(--sab,0px)); padding:7px 14px 6px; }
+}
+
 /* ── SMALL PHONES (≤ 430px) — menu compact overrides ── */
 @media (max-width: 430px) {
   .screen {
@@ -5443,6 +5561,19 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
 
 <!-- WAVE -->
 <div id="wavePill" class="hidden"><div id="waveDot"></div><span id="waveLbl">CALMA</span></div>
+
+<!-- ══ MILESTONE BANNER — hitos de nivel ══ -->
+<div id="milestoneBanner">
+  <div class="ms-scan"></div>
+  <div class="ms-row">
+    <span class="ms-icon" id="msIcon">🌌</span>
+    <div class="ms-texts">
+      <div class="ms-title" id="msTitle">ZONA DE PELIGRO</div>
+      <div class="ms-sub" id="msSub">La órbita se desestabiliza</div>
+    </div>
+  </div>
+  <div class="ms-bar-track"><div class="ms-bar-fill" id="msBarFill"></div></div>
+</div>
 
 <!-- COMBO -->
 <div id="comboBar" class="hidden">
@@ -9251,6 +9382,81 @@ const SKINS = {
     diff:4, rarity:'Premium', type:'Temporal',
     reqs:['💎 Premium skin'], rid:'chrono_bastion', renderer:'renderChronoBastion',
     ability:{id:'chrono_field',icon:'⏳',name:'Campo Chrono',nameEn:'Chrono Field',desc:'Congela el tiempo para todos los peligros 6 segundos. Cada meteoro/tóxico congelado absorbido vale +500 pts. Invencibilidad total mientras activo.',descEn:'Freezes time for all dangers for 6 seconds. Each frozen meteor/toxic absorbed grants +500 pts. Full invincibility while active.',effect:'chrono_field',dur:6}
+  },
+
+  // ── WEEKLY CHALLENGE SKINS ────────────────────────────────────────────────
+  // Skins temporales desbloqueables por desafío semanal (14 días).
+  // Definidas aquí para que el Hangar las renderice correctamente y el
+  // sanitizer no las elimine (las wc_ pasan por return true en el sanitizer).
+  wc_zen_skin:{
+    id:'wc_zen_skin', name:'Espectro Zen', nameEn:'Zen Specter',
+    desc:'Satélite de meditación orbital. Su aura esmeralda absorbe el caos y lo transforma en calma.',
+    descEn:'Orbital meditation satellite. Its emerald aura absorbs chaos and transforms it into calm.',
+    color:'#10b981', glow:'#34d399', accent:'#059669',
+    diff:2, rarity:'Weekly', type:'Zen',
+    reqs:['Desafío Semanal'], rid:'wc_zen_skin', renderer:'renderStandard',
+    ability:{id:'calibration',icon:'☯️',name:'Pulso Orbital',nameEn:'Orbital Pulse',
+      desc:'Duplica el radio de succión 10s.',descEn:'Doubles suction radius for 10s.',effect:'safe_field',dur:10}
+  },
+  wc_blaze_skin:{
+    id:'wc_blaze_skin', name:'Llama Orbital', nameEn:'Orbital Blaze',
+    desc:'Motor de plasma sobrealimentado. Deja un rastro de fuego que incinerará cualquier obstrucción.',
+    descEn:'Overclocked plasma engine. Leaves a fire trail that incinerates any obstruction.',
+    color:'#f97316', glow:'#fb923c', accent:'#ea580c',
+    diff:3, rarity:'Weekly', type:'Combat',
+    reqs:['Desafío Semanal'], rid:'wc_blaze_skin', renderer:'renderStandard',
+    ability:{id:'nova_burst',icon:'🔥',name:'Erupción Solar',nameEn:'Solar Burst',
+      desc:'Vaporiza debris y x5 pts 10s.',descEn:'Vaporizes debris and x5 pts 10s.',effect:'nova_burst',dur:10}
+  },
+  wc_ancient_skin:{
+    id:'wc_ancient_skin', name:'Reliquia Ancestral', nameEn:'Ancient Relic',
+    desc:'Artefacto de una civilización orbital olvidada. Resuena con el debris Ancestral.',
+    descEn:'Artifact from a forgotten orbital civilization. Resonates with Ancient debris.',
+    color:'#a855f7', glow:'#c084fc', accent:'#7c3aed',
+    diff:3, rarity:'Weekly', type:'Mystic',
+    reqs:['Desafío Semanal'], rid:'wc_ancient_skin', renderer:'renderStandard',
+    ability:{id:'mirror_veil',icon:'✦',name:'Velo Espejo',nameEn:'Mirror Veil',
+      desc:'x2 pts todo debris 8s.',descEn:'x2 pts all debris 8s.',effect:'mirror_veil',dur:8}
+  },
+  wc_slayer_skin:{
+    id:'wc_slayer_skin', name:'Cazador de Jefes', nameEn:'Boss Slayer',
+    desc:'Diseñado para cazar entidades de clase jefe. Blindaje anti-impacto de grado militar.',
+    descEn:'Engineered to hunt boss-class entities. Military-grade impact armor.',
+    color:'#ef4444', glow:'#f87171', accent:'#b91c1c',
+    diff:4, rarity:'Weekly', type:'Heavy Assault',
+    reqs:['Desafío Semanal'], rid:'wc_slayer_skin', renderer:'renderStandard',
+    ability:{id:'titan_salvo',icon:'💀',name:'Salva Titán',nameEn:'Titan Salvo',
+      desc:'Destruye amenazas y x4 pts 10s.',descEn:'Destroys threats and x4 pts 10s.',effect:'titan_salvo',dur:10}
+  },
+  wc_titan_skin:{
+    id:'wc_titan_skin', name:'Titán Temporal', nameEn:'Temporal Titan',
+    desc:'Satélite endurecido por miles de horas de vuelo ininterrumpido.',
+    descEn:'Satellite hardened by thousands of hours of non-stop flight.',
+    color:'#fbbf24', glow:'#fcd34d', accent:'#d97706',
+    diff:3, rarity:'Weekly', type:'Endurance',
+    reqs:['Desafío Semanal'], rid:'wc_titan_skin', renderer:'renderStandard',
+    ability:{id:'calibration',icon:'⌛',name:'Pulso Orbital',nameEn:'Orbital Pulse',
+      desc:'Duplica el radio de succión 10s.',descEn:'Doubles suction radius for 10s.',effect:'safe_field',dur:10}
+  },
+  wc_pure_skin:{
+    id:'wc_pure_skin', name:'Puro Orbital', nameEn:'Pure Orbital',
+    desc:'Sin modificaciones. Sin adornos. Solo la habilidad del piloto.',
+    descEn:'No modifications. No ornaments. Just the pilot\'s skill.',
+    color:'#06b6d4', glow:'#22d3ee', accent:'#0891b2',
+    diff:2, rarity:'Weekly', type:'Reconnaissance',
+    reqs:['Desafío Semanal'], rid:'wc_pure_skin', renderer:'renderStandard',
+    ability:{id:'calibration',icon:'🏹',name:'Pulso Orbital',nameEn:'Orbital Pulse',
+      desc:'Duplica el radio de succión 10s.',descEn:'Doubles suction radius for 10s.',effect:'safe_field',dur:10}
+  },
+  wc_crown_skin:{
+    id:'wc_crown_skin', name:'Corona Estelar', nameEn:'Stellar Crown',
+    desc:'Solo los que han absorbido lo Legendario merecen esta corona.',
+    descEn:'Only those who have absorbed the Legendary deserve this crown.',
+    color:'#ffd700', glow:'#fef08a', accent:'#b8860b',
+    diff:4, rarity:'Weekly', type:'Divine',
+    reqs:['Desafío Semanal'], rid:'wc_crown_skin', renderer:'renderStandard',
+    ability:{id:'celestial_nova',icon:'👑',name:'Corona Divina',nameEn:'Divine Corona',
+      desc:'Absorción auto y x6 pts 10s.',descEn:'Auto-absorb and x6 pts 10s.',effect:'celestial_nova',dur:10}
   }
 };
 
@@ -9287,6 +9493,14 @@ const SAT_VR_BY_SKIN = {
   aurora_prism:  20,  // hexágono cristalino r=22px; halos/rayos decorativos desde r*1.05+
   chrono_bastion:19, // escudo temporal cilíndrico. Anillos de tiempo decorativos desde r*1.1+
   shadow_mirror: 19,  // esfera de obsidiana r=19px; fragmentos cristalinos orbitales decorativos
+  // Weekly challenge skins — todos usan renderStandard (esfera base)
+  wc_zen_skin:    19,
+  wc_blaze_skin:  19,
+  wc_ancient_skin:19,
+  wc_slayer_skin: 19,
+  wc_titan_skin:  19,
+  wc_pure_skin:   19,
+  wc_crown_skin:  19,
 };
 
 // Devuelve SAT_VR calibrado para la skin activa
@@ -35951,6 +36165,8 @@ const WeeklyChallenge = {
     if(!saved || saved.weekId !== weekId){
       const fresh = { weekId, prog:0, done:false, completions:0 };
       Store.set(this._KEY, fresh);
+      // Nueva semana — resetear el contador de jefes semanales
+      try{ Store.set('orb_weekly_boss_kills', 0); }catch(_){}
       return fresh;
     }
     return saved;
@@ -35972,6 +36188,13 @@ const WeeklyChallenge = {
         data.prog = (data.prog||0) + (snap.sc||0);
       } else {
         data.prog = Math.max(data.prog||0, val);
+      }
+      // FIX: wc_nozen_l20 — verificar que el jugador usó SOLO la skin Default
+      if(ch.id==='wc_nozen_l20' && (snap.skinUsed||0)===1){
+        // Usó una skin no-default — desafío no completable esta partida
+        this._saveProgress(data);
+        this.renderMenuCard();
+        return;
       }
       if(data.prog >= ch.goal && !data.done){
         data.done = true;
@@ -37052,6 +37275,8 @@ BossWave = Object.assign(BossWave, {
     try{ if(navigator.vibrate) navigator.vibrate(vibPat); }catch(_){}
 
     try{ Store.set('orb_boss_kills',(Store.get('orb_boss_kills',0)+1)); }catch(_){}
+    // FIX: weekly challenge boss counter — sincronizado con WeeklyChallenge key:'_boss'
+    try{ Store.set('orb_weekly_boss_kills',(Store.get('orb_weekly_boss_kills',0)+1)); }catch(_){}
     try{
       const defeated = Store.get('orb_boss_defeated_ids',[]);
       if(!defeated.includes(data.id)){ defeated.push(data.id); Store.set('orb_boss_defeated_ids',defeated); }
@@ -40373,6 +40598,342 @@ const NewPlayerOnboarding = (function(){
       if(sanitized.indexOf(cur) === -1){ Store.set('orb_cskin','default'); }
     }
   }catch(e){}
+})();
+</script>
+
+<!-- ══════════════════════════════════════════════
+     MILESTONE SYSTEM — hitos visuales por nivel
+     Sincronizado con wave phases para no coincidir
+     con banners de oleada. Explosión de debris desde
+     el centro al alcanzar cada hito.
+     ══════════════════════════════════════════════ -->
+<script>
+const MilestoneSystem = (function(){
+
+  // ── Definición de hitos ──────────────────────────────────────────
+  const MILESTONES = {
+    10:  { icon:'🌌', titleES:'ZONA DE PELIGRO',       titleEN:'DANGER ZONE',
+           subES:'La órbita se desestabiliza',          subEN:'The orbit destabilizes',
+           cls:'ms-10', debrisColor:'#8b5cf6', debrisN:28 },
+    25:  { icon:'🔴', titleES:'ZONA CRÍTICA',           titleEN:'CRITICAL ZONE',
+           subES:'El sistema colapsa',                  subEN:'The system is collapsing',
+           cls:'ms-25', debrisColor:'#ef4444', debrisN:36 },
+    50:  { icon:'☄️', titleES:'MODO CRÍTICO ACTIVADO', titleEN:'CRITICAL MODE ACTIVATED',
+           subES:'Sobrevivir es el único objetivo',     subEN:'Survival is the only goal',
+           cls:'ms-50', debrisColor:'#f97316', debrisN:48 },
+    100: { icon:'👑', titleES:'LEYENDA ORBITAL',        titleEN:'ORBITAL LEGEND',
+           subES:'Nadie llega tan lejos',               subEN:'Nobody gets this far',
+           cls:'ms-100',debrisColor:'#fbbf24', debrisN:60 },
+  };
+
+  // Hitos ya disparados esta sesión de juego (se limpia al reiniciar)
+  let _fired = {};
+  // Timer de ocultado
+  let _hideT = null;
+  // Bandera: ¿banner visible ahora mismo?
+  let _visible = false;
+
+  // ── Fondo dinámico del canvas ────────────────────────────────────
+  // Niveles 1–100: lerp suave hacia etapas fijas
+  // Nivel 100+: ciclo infinito cada 25 niveles entre paletas
+  const BG_STAGES = [
+    { level:0,  color:[8,8,16]  },   // #080810 — espacio azul oscuro (base)
+    { level:10, color:[10,5,20] },   // violeta oscuro profundo
+    { level:25, color:[18,5,8]  },   // zona roja peligrosa
+    { level:50, color:[4,4,14]  },   // negro profundo estelar
+    { level:100,color:[2,2,8]   },   // negro absoluto — umbral leyenda
+  ];
+
+  // Paleta de ciclo post-nivel-100 (cada 25 niveles rota en orden infinito)
+  const BG_CYCLE = [
+    [2,2,8],    // negro absoluto
+    [12,3,3],   // rojo sangre profundo
+    [3,8,3],    // verde estelar oscuro
+    [3,3,14],   // azul abismo
+    [10,2,12],  // púrpura oscuro
+    [12,8,2],   // ámbar cósmico
+    [2,10,10],  // cian abismal
+    [14,3,8],   // magenta profundo
+  ];
+  let _cycleIdx = 0; // índice actual dentro de BG_CYCLE
+
+  let _bgCurrent = [8,8,16];
+  let _bgTarget  = [8,8,16];
+  let _bgLerping = false;
+
+  function _lerpColor(a, b, t){
+    return [
+      Math.round(a[0] + (b[0]-a[0])*t),
+      Math.round(a[1] + (b[1]-a[1])*t),
+      Math.round(a[2] + (b[2]-a[2])*t),
+    ];
+  }
+  function _toHex(rgb){
+    return '#'+rgb.map(v=>v.toString(16).padStart(2,'0')).join('');
+  }
+
+  // Llamado cada frame desde el game loop — actualiza el color de fondo
+  function tickBg(){
+    if(!_bgLerping) return;
+    _bgCurrent = _lerpColor(_bgCurrent, _bgTarget, 0.012); // lerp lento y suave
+    const delta = Math.abs(_bgCurrent[0]-_bgTarget[0])+Math.abs(_bgCurrent[1]-_bgTarget[1])+Math.abs(_bgCurrent[2]-_bgTarget[2]);
+    if(delta < 1){ _bgCurrent = _bgTarget.slice(); _bgLerping = false; }
+  }
+
+  // Devuelve el hex actual para que render() lo use como fillStyle
+  function getBgColor(){
+    return _toHex(_bgCurrent);
+  }
+
+  // Actualiza el target de fondo cuando cambia de nivel
+  function _updateBgTarget(level){
+    if(level < 100){
+      // Etapas fijas pre-100
+      let stage = BG_STAGES[0];
+      for(const s of BG_STAGES){ if(level >= s.level) stage = s; else break; }
+      _bgTarget = stage.color.slice();
+    } else {
+      // Post-100: ciclo cada 25 niveles
+      // nivel 100→124: idx 0, 125→149: idx 1, 150→174: idx 2 …
+      const cyclePos = Math.floor((level - 100) / 25);
+      const newIdx = cyclePos % BG_CYCLE.length;
+      if(newIdx !== _cycleIdx){
+        _cycleIdx = newIdx;
+        _bgTarget = BG_CYCLE[_cycleIdx].slice();
+      } else if(level === 100){
+        // Primera entrada al modo ciclo
+        _cycleIdx = 0;
+        _bgTarget = BG_CYCLE[0].slice();
+      } else {
+        return; // mismo color, no relerpear
+      }
+    }
+    _bgLerping = true;
+  }
+
+  // ── Verificar si hay oleada activa (para no coincidir) ──────────
+  function _waveActive(){
+    try{
+      if(!G || !G.wave) return false;
+      const ph = G.wave.phase;
+      return ph === 'SURGE' || ph === 'PRE_SURGE' || ph === 'COOLDOWN';
+    }catch(_){ return false; }
+  }
+
+  // ── Explosión de debris desde el centro ─────────────────────────
+  function _triggerDebrisExplosion(color, n){
+    try{
+      if(!G || !G.particles) return;
+      const cx = W/2, cy = H/2;
+      // Onda de choque expansiva
+      G.shocks.push({x:cx, y:cy, r:5, spd:320, life:0.65, color:color, lw:2.5});
+      G.shocks.push({x:cx, y:cy, r:2, spd:180, life:0.50, color:'#ffffff', lw:1.5});
+      // Partículas radiales densas
+      for(let i=0;i<n;i++){
+        const a = Math.random()*Math.PI*2;
+        const spd = 80 + Math.random()*220;
+        G.particles.push({
+          x:cx, y:cy,
+          vx:Math.cos(a)*spd, vy:Math.sin(a)*spd,
+          life:0.35 + Math.random()*0.40,
+          color: i%4===0 ? '#ffffff' : color,
+          r: 1.6 + Math.random()*2.8,
+          isText:false
+        });
+      }
+      // Segunda ola de partículas más lentas y grandes
+      for(let i=0;i<Math.floor(n*0.4);i++){
+        const a = Math.random()*Math.PI*2;
+        const spd = 30 + Math.random()*90;
+        G.particles.push({
+          x:cx + (Math.random()-0.5)*40,
+          y:cy + (Math.random()-0.5)*40,
+          vx:Math.cos(a)*spd, vy:Math.sin(a)*spd,
+          life:0.50 + Math.random()*0.35,
+          color:color,
+          r: 2.5 + Math.random()*3.5,
+          isText:false
+        });
+      }
+    }catch(_){}
+  }
+
+  // ── Mostrar el banner ────────────────────────────────────────────
+  function _showBanner(cfg, isEN){
+    const el    = document.getElementById('milestoneBanner');
+    const icon  = document.getElementById('msIcon');
+    const title = document.getElementById('msTitle');
+    const sub   = document.getElementById('msSub');
+    const bar   = document.getElementById('msBarFill');
+    if(!el) return;
+
+    // Limpiar clases de variante anteriores
+    el.classList.remove('ms-10','ms-25','ms-50','ms-100','ms-show','ms-hide');
+
+    if(icon)  icon.textContent  = cfg.icon;
+    if(title) title.textContent = isEN ? cfg.titleEN : cfg.titleES;
+    if(sub)   sub.textContent   = isEN ? cfg.subEN   : cfg.subES;
+
+    // Reiniciar barra de animación
+    if(bar){ bar.style.animation='none'; void bar.offsetWidth; bar.style.animation=''; }
+
+    el.classList.add(cfg.cls, 'ms-show');
+    _visible = true;
+
+    // Auto-ocultar tras 3.2s
+    clearTimeout(_hideT);
+    _hideT = setTimeout(()=>_hideBanner(), 3200);
+  }
+
+  function _hideBanner(){
+    const el = document.getElementById('milestoneBanner');
+    if(!el || !_visible) return;
+    el.classList.remove('ms-show');
+    el.classList.add('ms-hide');
+    _visible = false;
+    setTimeout(()=>{
+      if(el){ el.classList.remove('ms-hide'); el.style.display='none'; el.style.display=''; }
+    }, 350);
+  }
+
+  // ── Disparar un hito (con delay si hay oleada activa) ───────────
+  function _fire(level){
+    const cfg = MILESTONES[level];
+    if(!cfg) return;
+    const isEN = typeof Lang !== 'undefined' && Lang.cur === 'en';
+
+    // Si hay oleada activa, esperar a que termine (máx 6s de espera)
+    if(_waveActive()){
+      let waited = 0;
+      const poll = setInterval(()=>{
+        waited += 250;
+        if(!_waveActive() || waited >= 6000){
+          clearInterval(poll);
+          if(typeof STATE !== 'undefined' && STATE === 'playing'){
+            _showBanner(cfg, isEN);
+            _triggerDebrisExplosion(cfg.debrisColor, cfg.debrisN);
+          }
+        }
+      }, 250);
+    } else {
+      _showBanner(cfg, isEN);
+      _triggerDebrisExplosion(cfg.debrisColor, cfg.debrisN);
+    }
+  }
+
+  // ── API pública ──────────────────────────────────────────────────
+  return {
+    // Llamar desde levelUp() cada vez que sube de nivel
+    check(level){
+      if(typeof STATE !== 'undefined' && STATE !== 'playing') return;
+      if(typeof Practice !== 'undefined' && Practice.active) return;
+      // Zen: solo actualizar fondo, sin banners ni explosión
+      if(typeof G !== 'undefined' && G._zenMode){
+        _updateBgTarget(level);
+        return;
+      }
+      if(_fired[level]) return;
+      if(MILESTONES[level]){
+        _fired[level] = true;
+        _updateBgTarget(level);
+        // Pequeño delay para que el toast de level-up ya haya aparecido
+        setTimeout(()=> _fire(level), 2000);
+      } else {
+        // Aunque no sea hito, actualizar fondo gradualmente
+        _updateBgTarget(level);
+      }
+    },
+    // Limpiar al reiniciar partida
+    reset(){
+      _fired = {};
+      _cycleIdx  = 0;
+      _bgTarget  = [8,8,16];
+      _bgCurrent = [8,8,16];
+      _bgLerping = false;
+      _visible   = false;
+      clearTimeout(_hideT);
+      const el = document.getElementById('milestoneBanner');
+      if(el){ el.classList.remove('ms-show','ms-hide','ms-10','ms-25','ms-50','ms-100'); }
+    },
+    tickBg,
+    getBgColor,
+  };
+})();
+
+// ── Hook en levelUp() ────────────────────────────────────────────
+// Envuelve la función original para inyectar MilestoneSystem.check
+(function(){
+  const _origLevelUp = levelUp;
+  window.levelUp = function(){
+    _origLevelUp();
+    try{ MilestoneSystem.check(G.level); }catch(_){}
+  };
+})();
+
+// ── Hook en render() para fondo dinámico ─────────────────────────
+(function(){
+  const _origRender = render;
+  window.render = function(){
+    // Tick del lerp de color
+    try{ MilestoneSystem.tickBg(); }catch(_){}
+    // Aplicar color de fondo dinámico al canvas
+    try{
+      const bg = MilestoneSystem.getBgColor();
+      ctx.fillStyle = bg;
+      ctx.fillRect(0,0,W,H);
+      // Llamar render original pero parchar su primera línea
+      // (render() vuelve a hacer fillRect internamente — lo neutralizamos
+      //  con una trampa temporal en fillStyle)
+      const _origFS = Object.getOwnPropertyDescriptor(CanvasRenderingContext2D.prototype,'fillStyle');
+      let _patched = false;
+      const _origSet = _origFS.set;
+      Object.defineProperty(ctx,'fillStyle',{
+        set(v){ if(!_patched && v==='#080810'){ _patched=true; return; } _origSet.call(this,v); },
+        get(){ return _origFS.get.call(this); },
+        configurable:true
+      });
+      _origRender();
+      // Restaurar descriptor nativo
+      Object.defineProperty(ctx,'fillStyle',_origFS);
+    }catch(_){ _origRender(); }
+  };
+})();
+
+// ── Hook en startGame / OrbitaDelDia._doStart / ChaosMode / ZenMode ─
+// Cubre TODOS los puntos de entrada de partida para limpiar milestone state
+(function(){
+  // Esperar a que todas las funciones estén definidas
+  const _watchStart = setInterval(()=>{
+    const ready =
+      typeof startGame  === 'function' &&
+      typeof OrbitaDelDia !== 'undefined' && typeof OrbitaDelDia._doStart === 'function';
+    if(!ready) return;
+    clearInterval(_watchStart);
+
+    // Hook startGame (modo normal, zen, práctica)
+    const _origStart = startGame;
+    window.startGame = function(){
+      try{ MilestoneSystem.reset(); }catch(_){}
+      _origStart.apply(this, arguments);
+    };
+
+    // Hook OrbitaDelDia._doStart — importante: este modo NO pasa por startGame
+    const _origOrbStart = OrbitaDelDia._doStart.bind(OrbitaDelDia);
+    OrbitaDelDia._doStart = function(){
+      try{ MilestoneSystem.reset(); }catch(_){}
+      _origOrbStart();
+    };
+
+    // Hook ChaosMode.start si existe
+    if(typeof ChaosMode !== 'undefined' && typeof ChaosMode.start === 'function'){
+      const _origChaos = ChaosMode.start.bind(ChaosMode);
+      ChaosMode.start = function(){
+        try{ MilestoneSystem.reset(); }catch(_){}
+        _origChaos.apply(this, arguments);
+      };
+    }
+
+  }, 300);
 })();
 </script>
 
