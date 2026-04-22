@@ -35603,6 +35603,10 @@ const MenuBg = {
     var manifestData=document.getElementById('pwa-manifest-data');
     if(manifestData){
       var manifest=JSON.parse(manifestData.textContent);
+      // Forzar start_url absoluta — necesario porque el manifest se sirve
+      // como blob: URL y los paths relativos son inválidos en ese contexto
+      manifest.start_url = 'https://nyxarion-ctrl.github.io/Debris-surge/';
+      manifest.scope     = 'https://nyxarion-ctrl.github.io/Debris-surge/';
       var png512=_mkIcon(512); var png192=_mkIcon(192); var png180=_mkIcon(180);
       if(png512) manifest.icons=[
         {src:png512,sizes:'512x512',type:'image/png',purpose:'any maskable'},
