@@ -21914,10 +21914,13 @@ const Tut = (function(){
       _tutDangers=[]; _spawnPaused=false; _step1LockedDebris=null;
       _isEN = typeof Lang!=='undefined' && Lang.cur==='en'; // legacy compat
 
-      // Bloquear salida al menú y ocultar botón skip SOLO si es la primera vez
-      // Si el usuario ya completó el tutorial antes (replay), no bloquear nada
+      // Bloquear salida al menú y ocultar botón skip SOLO si es la primera vez.
+      // Si el usuario ya completó el tutorial antes (replay), limpiar cualquier
+      // clase tut-locked residual de sesiones anteriores y no volver a bloquear
       if(!window._tutorialIsReplay){
         try{ document.body.classList.add('tut-locked'); }catch(_){}
+      } else {
+        try{ document.body.classList.remove('tut-locked'); }catch(_){}
       }
 
       if(G){
@@ -81194,6 +81197,7 @@ if(typeof DirectDuel !== 'undefined'){
 (function(){
   const LOCKED_IDS = [
     'startBtn','blitzBtn','chaosBtn','practiceBtn','zenBtn','orbitaDiaBtn',
+    'startBtn_d','blitzBtn_d','chaosBtn_d','practiceBtn_d','zenBtn_d','orbitaDiaBtn_d',
     'menuAchBtn','menuAchBtn_d',
     'menuMissionBtn','menuMissionBtn_d',
     'menuProfileBtn','menuProfileBtn_d',
