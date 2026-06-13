@@ -30716,8 +30716,8 @@ function levelUp(){
 
     // Oleada forzada de meteoros cada 5 niveles (solo en modo normal — chaos tiene su propio sistema)
     if(!G._chaosMode && G.level % 5 === 0) G.wave.forceMeteor = true;
-    // Boss wave cada 10 niveles (solo en modo normal — chaos y órbita del día excluidos explícitamente)
-    if(!G._chaosMode && !G._orbitaDay) try{ BossWave.trigger(G.level); }catch(_){}
+    // Boss wave cada 10 niveles (solo en modo normal)
+    if(!G._chaosMode) try{ BossWave.trigger(G.level); }catch(_){}
   }
 
   // ── OBJETIVO DE PUNTUACIÓN para siguiente nivel — escala exponencial suave ──
@@ -82827,16 +82827,10 @@ const MilestoneSystem = (function(){
       spObs.observe(spSource, { childList: true, subtree: true, attributes: true });
     }
 
-    // Sync weeklyChallengCard
-    var wcSource = document.getElementById('weeklyChallengCard_m');
-    var wcTarget = document.getElementById('weeklyChallengCard');
-    if (wcSource && wcTarget) {
-      var wcObs = new MutationObserver(function() {
-        wcTarget.innerHTML = wcSource.innerHTML;
-        wcTarget.style.display = wcSource.style.display;
-      });
-      wcObs.observe(wcSource, { childList: true, subtree: true, attributes: true });
-    }
+    // Nota: weeklyChallengCard (desktop) y weeklyChallengCard_m (mobile) se llenan
+    // ambos directamente por WeeklyChallenge.renderMenuCard() — no se necesita
+    // sincronización vía MutationObserver. El observer anterior reiniciaba las
+    // animaciones CSS cada segundo (por el timer live), causando parpadeo en desktop.
 
     // Sync weeklyEventCard
     var weSource = document.getElementById('weeklyEventCard_m');
@@ -84592,7 +84586,6 @@ html[lang="ja"] #orbitaDiaStats_d > span[style*="font-size:8px"] {
     margin: 10px 0 5px !important;
     font-size: 9px !important;
     letter-spacing: 2.5px !important;
-    color: rgba(255,255,255,0.28) !important;
     text-transform: uppercase !important;
     font-weight: 700 !important;
   }
