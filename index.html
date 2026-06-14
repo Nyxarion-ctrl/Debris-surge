@@ -20834,7 +20834,7 @@ const SKINS = {
   shadow_mirror: {
     id:'shadow_mirror', name:'Shadow Mirror', descEn:'A sentient obsidian sphere that reflects the void between stars. Its crystalline shards orbit in perfect silence, bending light into colors that do not exist.', descPt:'Esfera de obsidiana sensível que reflete o vazio entre estrelas. Seus fragmentos cristalinos orbitam em silêncio perfeito, dobrando a luz em cores que não existem.', descJa:'星々の間の虚空を映す感覚を持つ黒曜石の球体。結晶の破片は完全な静寂の中で軌道を描き、存在しない色に光を曲げる。', desc:'Esfera de obsidiana sensible que refleja el vacío entre estrellas. Sus fragmentos cristalinos orbitan en silencio perfecto, doblando la luz en colores que no existen.',
     color:'#c084fc', glow:'#e879f9', accent:'#7c3aed',
-    diff:3, rarity:'Mystic', type:'Espejo',
+    diff:4, rarity:'Mystic', type:'Espejo',
     reqs:['Absorb 80 Ancient debris in one game','Reach Level 18 in one game'], rid:'shadow_mirror', renderer:'renderShadowMirror'
  ,
     ability:{id:'mirror_veil',icon:'🪞',name:'Velo Espejo',nameEn:'Mirror Veil',desc:'Duplica los puntos de todo debris absorbido durante 8 segundos. Los fragmentos cristalinos orbitan y desvían meteoros.',descEn:'Doubles points from all debris for 8 seconds. Crystalline shards orbit and deflect meteors.', namePt:'Véu Espelho', nameJa:'ミラーベール', descPt:'Dobra os pontos de todos os destroços por 8s. Fragmentos cristalinos deflectem meteoros.', descJa:'8秒間全デブリのポイント2倍。結晶の破片が隕石を偏向させる。', descPt:'Esfera de obsidiana sensível que reflete o vazio entre estrelas. Seus fragmentos cristalinos orbitam em silêncio perfeito, dobrando a luz em cores que não existem.', descJa:'星々の間の虚空を映す感覚を持つ黒曜石の球体。結晶の破片は完全な静寂の中で軌道を描き、存在しない色に光を曲げる。',effect:'mirror_veil',dur:8} },
@@ -21234,6 +21234,19 @@ const Skin={
     // ── Skins bloqueadas: al cargar, limpiar cualquier skin auto-concedida.
     // Solo se conservan: 'default', skins premium pagadas (orb_pp_owned),
     // skins de desafío semanal (wc_) y skins ganadas legítimamente (orb_earned).
+
+    // FIX v291+: phantom/nova/titan se concedian erroneamente por misiones de baja
+    // dificultad. Se purgan de orb_earned_skins y orb_skins para que solo se puedan
+    // ganar cumpliendo los requisitos reales verificados en checks[] al terminar partida.
+    const _missionGranted = ['phantom','nova','titan'];
+    const _earnedRaw = Store.get('orb_earned_skins', []);
+    const _skRaw     = Store.get('orb_skins', ['default']);
+    if(_missionGranted.some(id => _earnedRaw.includes(id))){
+      Store.set('orb_earned_skins', _earnedRaw.filter(id => !_missionGranted.includes(id)));
+      const _skClean = _skRaw.filter(id => !_missionGranted.includes(id));
+      Store.set('orb_skins', _skClean.length ? _skClean : ['default']);
+    }
+
     const ppOwned  = Store.get('orb_pp_owned', []);
     const earned   = Store.get('orb_earned_skins', []);
     const sk       = Store.get('orb_skins', ['default']);
@@ -54485,7 +54498,35 @@ const SkinPanel = {
       typeEl.textContent=(lang==='en'?sk.type:(typeES2[sk.type]||sk.type))||'';
       body.appendChild(typeEl);
 
-      // Fix 7: Mini progress bar for hard locked skins (Quantum/Celestial)
+      // Fix 7: Mini progress bar for hard locked skins (Quantum/Celestial/Phantom/Nova/Titan)
+      // Progress bars for phantom/nova/titan when locked
+      if(!isUnlocked && (id==='phantom'||id==='nova'||id==='titan') && sk.reqs){
+        const lbAll3=LB.load(); const myUid3=(typeof PlayerID!=='undefined')?PlayerID.getUid():null;
+        const myScores3=lbAll3.filter(e=>e.uid===myUid3);
+        const bestScore3=myScores3.length?Math.max(...myScores3.map(e=>e.score)):0;
+        const gsData3=(typeof GS!=='undefined'&&GS.data)?GS.data:{};
+        const progMapPNT={
+          phantom:{
+            'Absorb 5,000 total debris':      [Math.min(gsData3.totalDebris||0,5000),5000],
+            'Reach Level 15 in one game':      [Math.min(Store.get('orb_max_level',0),15),15],
+          },
+          nova:{
+            'Absorb 300 Ancient debris total': [Math.min(Store.get('orb_total_ancient',0),300),300],
+            'Score 50,000 pts in one game':    [Math.min(bestScore3,50000),50000],
+          },
+          titan:{
+            'Score 120,000 pts in one game':   [Math.min(bestScore3,120000),120000],
+            'Survive at least 20 meteor waves':[Math.min(Store.get('orb_waves_survived',0),20),20],
+          },
+        };
+        const pm2=progMapPNT[id]||{};
+        const done2=sk.reqs.filter(r=>{ const m=pm2[r]; return m&&m[0]>=m[1]; }).length;
+        const pct2=Math.round(done2/sk.reqs.length*100);
+        const miniBar2=document.createElement('div');
+        miniBar2.style.cssText='margin-top:4px;width:100%;';
+        miniBar2.innerHTML=`<div style="height:2px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;"><div style="height:100%;width:${pct2}%;background:${skColor};border-radius:2px;"></div></div><div style="font-size:10px;color:rgba(255,255,255,0.65);margin-top:2px;text-align:center;">${done2}/${sk.reqs.length} req.</div>`;
+        body.appendChild(miniBar2);
+      }
       // Premium badge for paid skins
       if(id==='void_specter'||id==='aurora_prism'||id==='chrono_bastion'){
         const premBadge=document.createElement('div');
