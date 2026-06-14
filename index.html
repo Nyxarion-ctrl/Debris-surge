@@ -17428,7 +17428,12 @@ var BlitzMode = {
     G.speedM=1.4;
 
     const pb=document.getElementById('practiceBadge');
-    if(pb){ pb.textContent=Lang.l('⚡ MODO BLITZ — ¡60 seg al máximo!','⚡ BLITZ MODE — 60 sec max!','⚡ MODO BLITZ — 60 seg máx!','⚡ BLITZモード — 最大60秒！'); pb.classList.add('on'); }
+    if(pb){
+      pb.classList.remove('auto-hide');
+      pb.textContent=Lang.l('⚡ MODO BLITZ — ¡60 seg al máximo!','⚡ BLITZ MODE — 60 sec max!','⚡ MODO BLITZ — 60 seg máx!','⚡ BLITZモード — 最大60秒！');
+      pb.classList.add('on');
+      setTimeout(()=>{ if(pb){ pb.classList.add('auto-hide'); setTimeout(()=>{ pb.classList.remove('on','auto-hide'); }, 650); } }, 5000);
+    }
 
     // Show blitz timer
     const bt=document.getElementById('blitzTimer');
@@ -20638,13 +20643,13 @@ const M_TMPL=[
   // ── Misiones de desbloqueo (especiales) ──
   {id:'m_phantom', icon:'👻', title:'Cazador Phantom',  titleEn:'Phantom Hunter',  titlePt:'Caçador Phantom',    titleJa:'ファントムハンター',
    desc:'Absorbe 150 debris en una partida',  descEn:'Absorb 150 debris in one game',  descPt:'Absorva 150 destroços numa partida', descJa:'1ゲームで150個吸収',
-   target:150,  key:'d',   reward:'🔓 Phantom Recon', rid:'phantom'},
+   target:150,  key:'d',   reward:'+3,500 XP', rid:null},
   {id:'m_nova',    icon:'🔥', title:'Buscador Nova',    titleEn:'Nova Seeker',     titlePt:'Buscador Nova',      titleJa:'ノヴァシーカー',
    desc:'Absorbe 18 Ancestral en una partida',descEn:'Absorb 18 Ancient in one game',  descPt:'Absorva 18 Ancestral numa partida',  descJa:'1ゲームで古代18個吸収',
-   target:18,   key:'anc', reward:'🔓 Solar Nova',    rid:'nova'},
+   target:18,   key:'anc', reward:'+4,500 XP',    rid:null},
   {id:'m_titan',   icon:'⚔️', title:'Titán Dorado',     titleEn:'Golden Titan',    titlePt:'Titã Dourado',       titleJa:'ゴールデンタイタン',
    desc:'Alcanza 35,000 puntos en una partida',descEn:'Reach 35,000 points in one game',descPt:'Alcance 35.000 pontos numa partida', descJa:'1ゲームで35,000pts',
-   target:35000,key:'sc',  reward:'🔓 Golden Titan', rid:'titan'},
+   target:35000,key:'sc',  reward:'+6,000 XP', rid:null},
   {id:'m_shadow_mirror', icon:'🪞', title:'Reflejo Místico',  titleEn:'Mystic Reflection', titlePt:'Reflexo Místico',  titleJa:'神秘の反射',
    desc:'Absorbe 80 Ancestral en una partida',descEn:'Absorb 80 Ancient in one game',  descPt:'Absorva 80 Ancestral numa partida',  descJa:'1ゲームで古代80個吸収',
    target:80,   key:'anc', reward:'🔓 Shadow Mirror', rid:'shadow_mirror'},
@@ -21197,7 +21202,12 @@ const Missions={
         m.done=true;
         const sk=Store.get('orb_skins',['default']);
         const _premiumIds=['void_specter','aurora_prism','chrono_bastion'];
-        if(m.rid && !_premiumIds.includes(m.rid) && !sk.includes(m.rid)){sk.push(m.rid);Store.set('orb_skins',sk);}
+        if(m.rid && !_premiumIds.includes(m.rid) && !sk.includes(m.rid)){
+          sk.push(m.rid); Store.set('orb_skins',sk);
+          // Persist to earned skins so Skin.load() doesn't strip it on next session
+          const _mEarned=Store.get('orb_earned_skins',[]);
+          if(!_mEarned.includes(m.rid)){ _mEarned.push(m.rid); Store.set('orb_earned_skins',_mEarned); }
+        }
         // Award XP — parse numeric value from reward string e.g. "+3,500 XP"
         // Skip XP if player is currently in tutorial mode
         const xpMatch=(m.reward||'').replace(/,/g,'').match(/\+?(\d+)\s*XP/i);
@@ -79967,11 +79977,13 @@ OrbitaDelDia = Object.assign(OrbitaDelDia, {
     const pb = document.getElementById('practiceBadge');
     if (pb) {
       const _lc_od = typeof Lang !== 'undefined' ? Lang.cur : 'es';
+      pb.classList.remove('auto-hide');
       pb.textContent = '🌍 ' + (_lc_od==='en'?'ORBIT OF THE DAY':_lc_od==='pt'?'ÓRBITA DO DIA':_lc_od==='ja'?'本日の軌道':'ÓRBITA DEL DÍA');
       pb.style.background = 'rgba(6,182,212,0.2)';
       pb.style.borderColor = 'rgba(6,182,212,0.5)';
       pb.style.color = '#06b6d4';
       pb.classList.add('on');
+      setTimeout(()=>{ if(pb){ pb.classList.add('auto-hide'); setTimeout(()=>{ pb.classList.remove('on','auto-hide'); pb.style.background=''; pb.style.borderColor=''; pb.style.color=''; }, 650); } }, 5000);
     }
 
     if (typeof showScreen === 'function') showScreen('playing');
