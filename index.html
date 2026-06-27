@@ -40641,11 +40641,7 @@ function renderSatVoidSpecter(s,r,t,spd,sk){
   }
 
   // ══ CUERPO — horizonte de eventos, negro con tinte rojo ultraleve ══
-  const bodyG=ctx.createRadialGradient(-r*0.12,-r*0.12,r*0.01,0,0,r);
-  bodyG.addColorStop(0,'rgba(12,2,0,1)');
-  bodyG.addColorStop(0.25,'rgba(4,0,0,1)');
-  bodyG.addColorStop(0.65,'rgba(1,0,0,1)');
-  bodyG.addColorStop(1,'rgba(0,0,0,1)');
+  const bodyG=_getCachedGrad('vs_body_'+(r|0),()=>{const g=ctx.createRadialGradient(-r*0.12,-r*0.12,r*0.01,0,0,r);g.addColorStop(0,'rgba(12,2,0,1)');g.addColorStop(0.25,'rgba(4,0,0,1)');g.addColorStop(0.65,'rgba(1,0,0,1)');g.addColorStop(1,'rgba(0,0,0,1)');return g;});
   ctx.beginPath();ctx.arc(0,0,Math.max(0.01,r),0,PI2);ctx.fillStyle=bodyG;ctx.fill();
   // Micro-highlight de oclusión atmosférica
   ctx.beginPath();
@@ -40678,10 +40674,7 @@ function renderSatVoidSpecter(s,r,t,spd,sk){
   // Anillo de alta temperatura
   ctx.beginPath();ctx.arc(0,0,Math.max(0.01,r*0.48),0,PI2);
   ctx.strokeStyle=`rgba(255,180,80,${(flare*0.22).toFixed(3)})`;ctx.lineWidth=r*0.018;ctx.stroke();
-  const innerG=ctx.createRadialGradient(0,0,0,0,0,r*0.42);
-  innerG.addColorStop(0,'rgba(255,255,215,1)');innerG.addColorStop(0.10,'rgba(255,230,90,0.97)');
-  innerG.addColorStop(0.26,'rgba(255,115,0,0.90)');innerG.addColorStop(0.52,'rgba(200,18,0,0.60)');
-  innerG.addColorStop(0.84,'rgba(50,0,0,0.22)');innerG.addColorStop(1,'rgba(0,0,0,0)');
+  const innerG=_getCachedGrad('vs_inner_'+(r|0),()=>{const g=ctx.createRadialGradient(0,0,0,0,0,r*0.42);g.addColorStop(0,'rgba(255,255,215,1)');g.addColorStop(0.10,'rgba(255,230,90,0.97)');g.addColorStop(0.26,'rgba(255,115,0,0.90)');g.addColorStop(0.52,'rgba(200,18,0,0.60)');g.addColorStop(0.84,'rgba(50,0,0,0.22)');g.addColorStop(1,'rgba(0,0,0,0)');return g;});
   ctx.beginPath();ctx.arc(0,0,Math.max(0.01,r*0.42),0,PI2);ctx.fillStyle=innerG;ctx.fill();
   ctx.beginPath();ctx.arc(0,0,Math.max(0.01,r*0.36),0,PI2);
   ctx.strokeStyle=`rgba(255,108,0,${(flare*0.55).toFixed(3)})`;ctx.lineWidth=r*0.034;ctx.stroke();
@@ -40707,15 +40700,11 @@ function renderSatVoidSpecter(s,r,t,spd,sk){
   ctx.restore();
   // Cruz de difracción — 6 puntas, rotación lenta, sello premium
   ctx.save();ctx.rotate(t*0.055+Math.PI/12);ctx.globalAlpha=qp*0.46;
+  const _vsFlG=_getCachedGrad('vs_fl_'+(r|0),()=>{const g=ctx.createLinearGradient(-r*0.32,0,r*0.32,0);g.addColorStop(0,'rgba(255,210,90,0)');g.addColorStop(0.42,'rgba(255,248,200,0.92)');g.addColorStop(0.58,'rgba(255,248,200,0.92)');g.addColorStop(1,'rgba(255,210,90,0)');return g;});
   for(let ri2=0;ri2<6;ri2++){
     ctx.save();ctx.rotate(ri2*Math.PI/3);
-    const flG=ctx.createLinearGradient(-r*0.32,0,r*0.32,0);
-    flG.addColorStop(0,'rgba(255,210,90,0)');
-    flG.addColorStop(0.42,'rgba(255,248,200,0.92)');
-    flG.addColorStop(0.58,'rgba(255,248,200,0.92)');
-    flG.addColorStop(1,'rgba(255,210,90,0)');
     ctx.beginPath();ctx.rect(-r*0.32,-r*0.0065,r*0.64,r*0.013);
-    ctx.fillStyle=flG;ctx.fill();
+    ctx.fillStyle=_vsFlG;ctx.fill();
     ctx.restore();
   }
   ctx.globalAlpha=1;ctx.restore();
@@ -40873,14 +40862,7 @@ function renderSatAuroraPrism(s,r,t,spd,sk){
     i===0?ctx.moveTo(Math.cos(a)*R,Math.sin(a)*R):ctx.lineTo(Math.cos(a)*R,Math.sin(a)*R);
   }
   // Fill con gradiente cónico simulado por capas
-  const bodyG=ctx.createRadialGradient(-R*0.12,-R*0.12,0,0,0,R);
-  bodyG.addColorStop(0,'rgba(255,255,255,0.82)');
-  bodyG.addColorStop(0.12,'rgba(255,95,160,0.55)');
-  bodyG.addColorStop(0.28,'rgba(255,159,68,0.44)');
-  bodyG.addColorStop(0.44,'rgba(240,224,64,0.36)');
-  bodyG.addColorStop(0.60,'rgba(78,220,120,0.30)');
-  bodyG.addColorStop(0.76,'rgba(56,200,240,0.28)');
-  bodyG.addColorStop(1,'rgba(176,106,250,0.30)');
+  const bodyG=_getCachedGrad('ap_body_'+(R|0),()=>{const g=ctx.createRadialGradient(-R*0.12,-R*0.12,0,0,0,R);g.addColorStop(0,'rgba(255,255,255,0.82)');g.addColorStop(0.12,'rgba(255,95,160,0.55)');g.addColorStop(0.28,'rgba(255,159,68,0.44)');g.addColorStop(0.44,'rgba(240,224,64,0.36)');g.addColorStop(0.60,'rgba(78,220,120,0.30)');g.addColorStop(0.76,'rgba(56,200,240,0.28)');g.addColorStop(1,'rgba(176,106,250,0.30)');return g;});
   ctx.fillStyle=bodyG; ctx.fill();
   // Bordes del dodecágono con color espectral por faceta
   ctx.beginPath();
@@ -41024,10 +41006,7 @@ function renderSatAuroraPrism(s,r,t,spd,sk){
     const ang=i/6*PI2+t*0.05;
     const [rr,rg,rb]=hx(SPEC[i]);
     ctx.save(); ctx.rotate(ang);
-    const flG=ctx.createLinearGradient(-R*0.35,0,R*0.35,0);
-    flG.addColorStop(0,`rgba(${rr},${rg},${rb},0)`);
-    flG.addColorStop(0.5,`rgba(${rr},${rg},${rb},0.95)`);
-    flG.addColorStop(1,`rgba(${rr},${rg},${rb},0)`);
+    const flG=_getCachedGrad('ap_fl_'+i+'_'+(R|0),()=>{const g=ctx.createLinearGradient(-R*0.35,0,R*0.35,0);g.addColorStop(0,`rgba(${rr},${rg},${rb},0)`);g.addColorStop(0.5,`rgba(${rr},${rg},${rb},0.95)`);g.addColorStop(1,`rgba(${rr},${rg},${rb},0)`);return g;});
     ctx.beginPath(); ctx.rect(-R*0.35,-R*0.0055,R*0.70,R*0.011); ctx.fillStyle=flG; ctx.fill();
     ctx.restore();
   }
@@ -48265,13 +48244,15 @@ const PlayerID = {
   },
   // Pide el nombre la primera vez con modal elegante, luego guarda
   ensureName(cb){
+    // Migración silenciosa: si ya tiene nombre válido guardado, marcar el flag
     const stored = Store.get('orb_player_name',null);
-    if(stored&&stored.trim()!==''&&stored!=='Orbitador'&&stored!=='Pilot'){
+    if(stored&&stored.trim()!==''){
+      if(!Store.get('orb_has_name',false)) Store.set('orb_has_name',true);
       this._name=stored;
       if(cb) cb(this._name);
       return;
     }
-    // Primera vez — mostrar modal
+    // Sin nombre guardado — mostrar modal
     this._showModal(cb);
   },
   _showModal(cb){
@@ -48297,6 +48278,7 @@ const PlayerID = {
       if(n.length>18) n=n.slice(0,18);
       this._name=n;
       Store.set('orb_player_name',n);
+      Store.set('orb_has_name',true);
       modal.classList.remove('on');
       this._updateUI();
       SaveIndicator.show();
@@ -48359,7 +48341,8 @@ const PlayerID = {
 // Sin meteoros, sin tóxicos, sin pérdida de vidas. Solo absorción y puntos.
 function startZen(){
   const stored = Store.get('orb_player_name', null);
-  if(!stored || stored.trim()==='' || stored==='Orbitador'||stored==='Pilot'){
+  if(stored&&stored.trim()!=='') Store.set('orb_has_name',true);
+  if(!Store.get('orb_has_name',false)){
     PlayerID.ensureName(()=>{ _doZen(); });
   } else { _doZen(); }
 }
@@ -49001,7 +48984,8 @@ function showScreen(s){
 function startGame(practiceMode){
   // Mejora 2: pedir nombre al jugador la primera vez, luego arrancar
   const stored = Store.get('orb_player_name', null);
-  if(!stored || stored.trim()==='' || stored==='Orbitador'||stored==='Pilot'){
+  if(stored&&stored.trim()!=='') Store.set('orb_has_name',true);
+  if(!Store.get('orb_has_name',false)){
     PlayerID.ensureName(()=>{ _doStartGame(practiceMode); });
   } else {
     _doStartGame(practiceMode);
@@ -49217,7 +49201,7 @@ function pauseGame(){
      'skinAbilityHud','saReadyPrompt','blitzTimer','chaosTimer','chaosBadge','wavePill',
      'comboBar','puBar'].forEach(id=>{
       const el=document.getElementById(id);
-      if(el) el.style.opacity='0';
+      if(el){ el.style.opacity='0'; el.style.pointerEvents='none'; }
     });
     // bossHud: usar clase para ocultar — evita conflictos con la transición CSS y la clase .on
     const _bh=document.getElementById('bossHud');
@@ -49265,7 +49249,7 @@ function resumeGame(){
      'skinAbilityHud','saReadyPrompt','blitzTimer','chaosTimer','chaosBadge',
      'wavePill','comboBar','puBar'].forEach(id=>{
       const el=document.getElementById(id);
-      if(el) el.style.opacity='';
+      if(el){ el.style.opacity=''; el.style.pointerEvents=''; }
     });
     // bossHud: quitar la clase de pausa — la clase .on controla la visibilidad real
     const _bh=document.getElementById('bossHud');
@@ -63222,7 +63206,8 @@ const ProfileNameEditor = {
 (function(){
   try{
     const stored=Store.get('orb_player_name',null);
-    const isFirstTime=!stored||stored.trim()===''||stored==='Orbitador'||stored==='Pilot';
+    if(stored&&stored.trim()!=='') Store.set('orb_has_name',true);
+    const isFirstTime=!Store.get('orb_has_name',false);
     if(isFirstTime){
       // Show after a short delay so the menu animation settles
       setTimeout(()=>{ try{ PlayerID.ensureName(()=>{}); }catch(_){} }, 900);
@@ -81383,7 +81368,8 @@ OrbitaDelDia = Object.assign(OrbitaDelDia, {
     }
     // Ensure player has a name
     const stored = typeof Store !== 'undefined' ? Store.get('orb_player_name', null) : null;
-    if (!stored || stored.trim() === '' || stored === 'Orbitador' || stored === 'Pilot') {
+    if(stored&&stored.trim()!=='') Store.set('orb_has_name',true);
+    if (!Store.get('orb_has_name',false)) {
       if (typeof PlayerID !== 'undefined') {
         PlayerID.ensureName(() => this._doStart());
       } else { this._doStart(); }
