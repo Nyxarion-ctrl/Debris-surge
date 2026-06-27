@@ -534,49 +534,27 @@ body{-webkit-tap-highlight-color:transparent;touch-action:none;overscroll-behavi
 })();
 
 // ── SERVICE WORKER REGISTRATION — offline support ──
+// FIX v341: antes se registraba desde un Blob URL, lo que los navegadores
+// rechazan (TypeError: "The URL protocol of the script ('blob:...') is not
+// supported"), confirmado con un registro real — el SW nunca se instalaba y
+// el modo offline nunca funcionó. Ahora se registra desde un archivo real
+// './sw.js' (incluido junto a este HTML — ver sw.js), con rutas relativas en
+// vez de la URL de GitHub Pages hardcodeada, para que funcione igual en
+// localhost, en otro dominio, o en GitHub Pages.
 if('serviceWorker' in navigator){
   window.addEventListener('load',function(){
-    var swCode=[
-      'const CACHE_NAME="debris-surge-v2.90";',
-      'const BASE="https://nyxarion-ctrl.github.io/Debris-surge/";',
-      'const ASSETS=[BASE,BASE+"index.html"];',
-      'self.addEventListener("install",e=>{',
-      '  e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(ASSETS)).catch(()=>{}).then(()=>self.skipWaiting()));',
-      '});',
-      'self.addEventListener("activate",e=>{',
-      '  e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE_NAME).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));',
-      '});',
-      'self.addEventListener("fetch",e=>{',
-      '  if(e.request.method!=="GET") return;',
-      '  if(!e.request.url.startsWith("https://nyxarion-ctrl.github.io")) return;',
-      '  e.respondWith(fetch(e.request).then(r=>{',
-      '    if(r&&r.ok){const c=r.clone();caches.open(CACHE_NAME).then(ca=>ca.put(e.request,c)).catch(()=>{});}',
-      '    return r;',
-      '  }).catch(()=>caches.match(e.request).then(c=>c||new Response("Offline",{status:503}))));',
-      '});',
-      'self.addEventListener("message",e=>{',
-      '  if(e.data&&e.data.type==="SKIP_WAITING") self.skipWaiting();',
-      '});'
-    ].join('\n');
-    try{
-      var blob=new Blob([swCode],{type:'application/javascript'});
-      var blobUrl=URL.createObjectURL(blob);
-      navigator.serviceWorker.register(blobUrl,{scope:'./'})
-        .then(function(reg){
-          try{ URL.revokeObjectURL(blobUrl); }catch(_){}
-          reg.addEventListener('updatefound',function(){
-            var nw=reg.installing;
-            if(!nw) return;
-            nw.addEventListener('statechange',function(){
-              if(nw.state==='installed'&&navigator.serviceWorker.controller){
-                nw.postMessage({type:'SKIP_WAITING'});
-              }
-            });
+    navigator.serviceWorker.register('./sw.js',{scope:'./'})
+      .then(function(reg){
+        reg.addEventListener('updatefound',function(){
+          var nw=reg.installing;
+          if(!nw) return;
+          nw.addEventListener('statechange',function(){
+            if(nw.state==='installed'&&navigator.serviceWorker.controller){
+              nw.postMessage({type:'SKIP_WAITING'});
+            }
           });
-        }).catch(function(){
-          try{ URL.revokeObjectURL(blobUrl); }catch(_){}
         });
-    }catch(e){}
+      }).catch(function(e){ try{ console.warn('SW register failed:', e); }catch(_){} });
   });
 }
 </script>
@@ -5711,10 +5689,10 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
   background:linear-gradient(90deg,transparent,rgba(6,182,212,0.5),rgba(245,158,11,0.4),transparent);
 }
 #surgeX25.on #surgeX25Inner{transform:scale(1) translateY(0);}
-#surgeX25Sat{
-  font-size:36px;line-height:1;
+#surgeX25Icon{
+  width:40px;height:40px;line-height:1;
   animation:surgeSatSpin 0.7s cubic-bezier(0.34,1.56,0.64,1) both;
-  filter:drop-shadow(0 0 12px rgba(6,182,212,0.95)) drop-shadow(0 0 24px rgba(245,158,11,0.5));
+  filter:drop-shadow(0 0 12px rgba(6,182,212,0.95)) drop-shadow(0 0 20px rgba(245,158,11,0.45));
 }
 #surgeX25Word{
   font-family:'Space Grotesk','Trebuchet MS',system-ui,sans-serif;
@@ -5748,8 +5726,8 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
 }
 
 /* ══════════════════════════════════════════════
-   COMBO x25 — VIZ A: ORBIT CLEANSED
-   Caja centrada y acotada, texto escalado con control
+   COMBO x25 — VIZ A: ÓRBITA LIMPIA
+   Caja centrada y acotada, ícono orbital + checkmark
 ════════════════════════════════════════════════ */
 #x25VizOrbit{
   position:fixed;inset:0;z-index:22;pointer-events:none;
@@ -5765,47 +5743,66 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
   position:relative;z-index:2;
   display:flex;flex-direction:column;align-items:center;gap:2px;
   text-align:center;
-  background:rgba(6,8,20,0.72);
-  border:1px solid rgba(6,182,212,0.30);
+  background:rgba(8,9,22,0.80);
+  border:1px solid rgba(245,158,11,0.30);
   border-radius:20px;
   padding:20px 40px 18px;
   max-width:min(320px,78vw);
-  box-shadow:0 0 32px rgba(6,182,212,0.12), inset 0 1px 0 rgba(255,255,255,0.05);
+  box-shadow:0 0 36px rgba(245,158,11,0.14), 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06);
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
   animation:x25OrbitIn .30s cubic-bezier(.22,1.5,.5,1) both;
+}
+#x25OrbitIcon{
+  width:46px;height:46px;margin-bottom:4px;
+  animation:x25OrbitIconIn .4s cubic-bezier(.22,1.5,.5,1) .05s both;
+  filter:drop-shadow(0 0 10px rgba(245,158,11,0.6));
+}
+#x25OrbitIconSpinGroup{
+  transform-origin:22px 22px;
+  animation:x25OrbitIconSpin 1.7s linear .1s infinite;
 }
 #x25OrbitBig{
   font-family:'Space Grotesk','Trebuchet MS',system-ui,sans-serif;
-  font-size:72px;font-weight:900;
+  font-size:64px;font-weight:900;
   letter-spacing:-3px;line-height:.88;
-  color:#fff;
-  -webkit-text-stroke:1px rgba(255,255,255,0.12);
-  animation:x25OrbitPulse 1.6s ease-in-out infinite alternate;
+  color:#fbbf24;
+  text-shadow:0 0 26px rgba(245,158,11,0.85),0 0 60px rgba(245,158,11,0.3);
+  animation:x25OrbitPulse 0.8s ease-in-out infinite;
 }
 #x25OrbitNum{
   font-family:'Space Grotesk',system-ui,sans-serif;
   font-size:13px;font-weight:800;
-  letter-spacing:7px;text-transform:uppercase;
-  color:rgba(6,182,212,0.85);
-  margin-top:6px;
+  letter-spacing:6px;text-transform:uppercase;
+  color:rgba(110,231,249,0.90);
+  margin-top:8px;
 }
 #x25OrbitSub{
   font-size:9px;font-weight:700;
   letter-spacing:3px;text-transform:uppercase;
-  color:rgba(180,220,255,0.60);
-  margin-top:6px;
+  color:rgba(180,220,255,0.55);
+  margin-top:5px;
 }
 @keyframes x25OrbitIn{
   0%{transform:scale(.60) translateY(14px);opacity:0;}
   100%{transform:scale(1) translateY(0);opacity:1;}
 }
+@keyframes x25OrbitIconIn{
+  0%{transform:scale(0) rotate(-90deg);opacity:0;}
+  70%{transform:scale(1.15) rotate(8deg);opacity:1;}
+  100%{transform:scale(1) rotate(0deg);opacity:1;}
+}
+@keyframes x25OrbitIconSpin{
+  0%{transform:rotate(0deg);}
+  100%{transform:rotate(360deg);}
+}
 @keyframes x25OrbitPulse{
-  0%{filter:drop-shadow(0 0 16px rgba(6,182,212,.8));}
-  100%{filter:drop-shadow(0 0 32px rgba(245,158,11,.75));}
+  0%,100%{text-shadow:0 0 22px rgba(245,158,11,0.8),0 0 50px rgba(245,158,11,0.25);}
+  50%{text-shadow:0 0 32px rgba(251,191,36,0.95),0 0 70px rgba(6,182,212,0.25);}
 }
 
 /* ══════════════════════════════════════════════
-   COMBO x25 — VIZ B: YOU ARE THE DEBRIS NOW
-   Meme glitch dentro de caja acotada, sin desborde
+   COMBO x25 — VIZ B: SURGELORD
+   Sello de rango con corona SVG — sin emojis ni glitch
 ════════════════════════════════════════════════ */
 #x25VizMeme{
   position:fixed;inset:0;z-index:22;pointer-events:none;
@@ -5813,17 +5810,21 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
   opacity:0;transition:opacity .10s ease-in;
 }
 #x25VizMeme.on{opacity:1;}
-/* Caja contenedora — todo el contenido meme va aquí */
 #x25MemeBox{
   display:flex;flex-direction:column;align-items:center;gap:0;
-  background:rgba(6,4,18,0.88);
-  border:1px solid rgba(239,68,68,0.30);
-  border-radius:16px;
-  padding:18px 32px 16px;
+  background:rgba(10,7,4,0.86);
+  border:1px solid rgba(245,158,11,0.32);
+  border-radius:18px;
+  padding:18px 34px 18px;
   max-width:min(310px,82vw);
-  box-shadow:0 0 28px rgba(239,68,68,0.10), inset 0 1px 0 rgba(255,255,255,0.04);
+  position:relative;overflow:hidden;
+  box-shadow:0 0 30px rgba(245,158,11,0.14), 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
   animation:x25MemeBoxIn .26s cubic-bezier(.22,1.5,.5,1) both;
-  overflow:hidden;
+}
+#x25MemeBox::before{
+  content:'';position:absolute;top:0;left:10%;right:10%;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(253,224,71,0.4),transparent);
 }
 @keyframes x25MemeBoxIn{
   0%{transform:scale(0.68) translateY(12px);opacity:0;}
@@ -5831,81 +5832,141 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
 }
 #x25MemeTop{
   font-family:'Space Grotesk',system-ui,sans-serif;
-  font-size:11px;font-weight:700;
-  letter-spacing:3px;text-transform:uppercase;
-  color:rgba(200,235,255,0.70);
+  font-size:10.5px;font-weight:700;
+  letter-spacing:3.5px;text-transform:uppercase;
+  color:rgba(110,231,249,0.75);
   animation:x25MemeSlideDown .22s cubic-bezier(.22,1.5,.5,1) both;
-  margin-bottom:8px;text-align:center;
+  margin-bottom:6px;text-align:center;
   white-space:nowrap;
+}
+#x25MemeCrown{
+  width:52px;height:52px;margin:2px 0 6px;
+  animation:x25CrownPop .36s cubic-bezier(.34,1.56,.64,1) .08s both, x25CrownGlow 0.9s ease-in-out .44s infinite;
 }
 #x25MemeMain{
   font-family:'Space Grotesk',system-ui,sans-serif;
-  font-size:clamp(24px,6vw,46px);font-weight:900;
-  letter-spacing:-0.5px;line-height:1.05;
-  text-align:center;color:#fff;
-  animation:x25MemeGlitch 2.2s steps(1) infinite;
-  position:relative;
+  font-size:clamp(26px,6vw,40px);font-weight:900;
+  letter-spacing:1px;line-height:1.05;
+  text-align:center;color:#fde68a;
+  text-shadow:0 0 24px rgba(245,158,11,0.7),0 0 48px rgba(245,158,11,0.25);
   width:100%;
-}
-#x25MemeMain::before,#x25MemeMain::after{
-  content:attr(data-text);
-  position:absolute;inset:0;
-  font-family:inherit;font-size:inherit;font-weight:inherit;
-  letter-spacing:inherit;text-align:center;
-}
-#x25MemeMain::before{
-  color:#06b6d4;
-  clip-path:polygon(0 18%,100% 18%,100% 38%,0 38%);
-  animation:x25GlitchA 2.2s steps(1) infinite;
-}
-#x25MemeMain::after{
-  color:#f59e0b;
-  clip-path:polygon(0 62%,100% 62%,100% 80%,0 80%);
-  animation:x25GlitchB 2.2s steps(1) infinite;
+  animation:x25MemeMainIn .3s cubic-bezier(.22,1.5,.5,1) .12s both;
 }
 #x25MemeSub{
-  font-family:monospace;
-  font-size:11px;font-weight:700;letter-spacing:2px;
-  color:rgba(6,182,212,0.80);
-  margin-top:10px;text-align:center;
-  animation:x25MemeBlinkSub 0.8s step-end infinite;
+  font-family:'Space Grotesk',system-ui,sans-serif;
+  font-size:10px;font-weight:700;letter-spacing:2.5px;
+  text-transform:uppercase;
+  color:rgba(252,211,77,0.65);
+  margin-top:9px;text-align:center;
   white-space:nowrap;
-}
-#x25MemeIcon{
-  font-size:28px;margin-top:6px;text-align:center;
-  animation:x25MemeFloat 1.3s ease-in-out infinite alternate;
-  filter:drop-shadow(0 0 8px rgba(6,182,212,.7));
-  line-height:1;
 }
 @keyframes x25MemeSlideDown{
   0%{transform:translateY(-16px);opacity:0;}
   100%{transform:translateY(0);opacity:1;}
 }
-@keyframes x25MemeGlitch{
-  0%,88%,96%,100%{transform:none;}
-  89%{transform:skewX(-3deg) translateX(2px);}
-  91%{transform:skewX(2deg) translateX(-2px);}
-  93%{transform:none;}
-  95%{transform:skewX(-1.5deg);}
+@keyframes x25CrownPop{
+  0%{transform:scale(0) rotate(-25deg);opacity:0;}
+  70%{transform:scale(1.18) rotate(4deg);opacity:1;}
+  100%{transform:scale(1) rotate(0deg);opacity:1;}
 }
-@keyframes x25GlitchA{
-  0%,86%,92%,100%{transform:none;opacity:0;}
-  87%{transform:translateX(-3px);opacity:1;}
-  90%{transform:translateX(2px);opacity:1;}
-  91%{opacity:0;}
+@keyframes x25CrownGlow{
+  0%,100%{filter:drop-shadow(0 0 6px rgba(245,158,11,0.55));}
+  50%{filter:drop-shadow(0 0 16px rgba(253,224,71,0.85));}
 }
-@keyframes x25GlitchB{
-  0%,89%,94%,100%{transform:none;opacity:0;}
-  90%{transform:translateX(3px);opacity:1;}
-  93%{transform:translateX(-2px);opacity:1;}
+@keyframes x25MemeMainIn{
+  0%{transform:translateY(6px);opacity:0;}
+  100%{transform:translateY(0);opacity:1;}
 }
-@keyframes x25MemeBlinkSub{
-  0%,48%{opacity:1;}
-  50%,100%{opacity:0;}
+
+/* ══════════════════════════════════════════════
+   COMBO x25 — VIZ C: VERIFICADO
+   Sello de telemetría O.R.B.I.T. — check trazado + barra de progreso
+════════════════════════════════════════════════ */
+#x25VizReport{
+  position:fixed;inset:0;z-index:22;pointer-events:none;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;transition:opacity .10s ease-in;
 }
-@keyframes x25MemeFloat{
-  0%{transform:translateY(0) rotate(-4deg);}
-  100%{transform:translateY(-6px) rotate(4deg);}
+#x25VizReport.on{opacity:1;}
+#x25ReportBox{
+  display:flex;flex-direction:column;align-items:center;gap:0;
+  background:rgba(6,10,18,0.84);
+  border:1px solid rgba(6,182,212,0.32);
+  border-radius:18px;
+  padding:18px 34px 18px;
+  max-width:min(300px,80vw);
+  position:relative;overflow:hidden;
+  box-shadow:0 0 30px rgba(6,182,212,0.14), 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  animation:x25ReportBoxIn .26s cubic-bezier(.22,1.5,.5,1) both;
+}
+#x25ReportBox::before{
+  content:'';position:absolute;top:0;left:10%;right:10%;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(103,232,249,0.45),transparent);
+}
+@keyframes x25ReportBoxIn{
+  0%{transform:scale(0.68) translateY(12px);opacity:0;}
+  100%{transform:scale(1) translateY(0);opacity:1;}
+}
+#x25ReportTop{
+  font-family:'Space Grotesk',monospace,system-ui,sans-serif;
+  font-size:10px;font-weight:700;
+  letter-spacing:3px;text-transform:uppercase;
+  color:rgba(110,231,249,0.70);
+  animation:x25MemeSlideDown .22s cubic-bezier(.22,1.5,.5,1) both;
+  margin-bottom:8px;text-align:center;
+  white-space:nowrap;
+}
+#x25ReportSeal{
+  width:50px;height:50px;margin:2px 0 8px;
+  animation:x25SealPop .34s cubic-bezier(.34,1.56,.64,1) .06s both;
+  filter:drop-shadow(0 0 10px rgba(6,182,212,0.5));
+}
+#x25ReportCheck{
+  stroke-dasharray:34;stroke-dashoffset:34;
+  animation:x25CheckDraw .35s ease-out .32s both;
+}
+#x25ReportMain{
+  font-family:'Space Grotesk',system-ui,sans-serif;
+  font-size:clamp(22px,5.5vw,32px);font-weight:900;
+  letter-spacing:2px;line-height:1.05;
+  text-align:center;color:#a5f3fc;
+  text-shadow:0 0 22px rgba(6,182,212,0.65),0 0 44px rgba(6,182,212,0.22);
+  width:100%;
+  animation:x25MemeMainIn .3s cubic-bezier(.22,1.5,.5,1) .12s both;
+}
+#x25ReportBarWrap{
+  width:170px;height:4px;margin-top:12px;
+  border-radius:3px;overflow:hidden;
+  background:rgba(110,231,249,0.14);
+  border:1px solid rgba(110,231,249,0.20);
+}
+#x25ReportBarFill{
+  width:0%;height:100%;border-radius:3px;
+  background:linear-gradient(90deg,#06b6d4,#67e8f9,#fde68a);
+  box-shadow:0 0 8px rgba(103,232,249,0.7);
+  animation:x25BarFill .7s cubic-bezier(.2,.8,.3,1) .18s both;
+}
+#x25ReportSub{
+  font-family:'Space Grotesk',system-ui,sans-serif;
+  font-size:9px;font-weight:700;letter-spacing:2.2px;
+  text-transform:uppercase;
+  color:rgba(165,243,252,0.55);
+  margin-top:9px;text-align:center;
+  white-space:nowrap;
+}
+@keyframes x25SealPop{
+  0%{transform:scale(0) rotate(-20deg);opacity:0;}
+  70%{transform:scale(1.15) rotate(3deg);opacity:1;}
+  100%{transform:scale(1) rotate(0deg);opacity:1;}
+}
+@keyframes x25CheckDraw{
+  0%{stroke-dashoffset:34;}
+  100%{stroke-dashoffset:0;}
+}
+@keyframes x25BarFill{
+  0%{width:0%;}
+  100%{width:100%;}
 }
 
 /* ══════════════════════════════════════════════
@@ -6461,6 +6522,7 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
     max-width: min(240px, 72vw);
   }
   #x25OrbitBig  { font-size: 48px; }
+  #x25OrbitIcon { width: 36px; height: 36px; margin-bottom: 2px; }
   #x25OrbitNum  { font-size: 10px; letter-spacing: 5px; margin-top: 4px; }
   #x25OrbitSub  { font-size: 7.5px; letter-spacing: 2px; margin-top: 4px; }
 
@@ -6470,10 +6532,22 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
     border-radius: 12px;
     max-width: min(230px, 72vw);
   }
-  #x25MemeTop  { font-size: 9px; letter-spacing: 2px; margin-bottom: 5px; }
-  #x25MemeMain { font-size: clamp(18px, 5vw, 32px); }
-  #x25MemeSub  { font-size: 9px; letter-spacing: 1.5px; margin-top: 7px; }
-  #x25MemeIcon { font-size: 20px; margin-top: 4px; }
+  #x25MemeTop   { font-size: 9px; letter-spacing: 2px; margin-bottom: 5px; }
+  #x25MemeCrown { width: 38px; height: 38px; margin: 1px 0 4px; }
+  #x25MemeMain  { font-size: clamp(18px, 5vw, 32px); }
+  #x25MemeSub   { font-size: 9px; letter-spacing: 1.5px; margin-top: 7px; }
+
+  /* ── Combo x25 — Report viz ── */
+  #x25ReportBox {
+    padding: 11px 22px 10px;
+    border-radius: 12px;
+    max-width: min(220px, 72vw);
+  }
+  #x25ReportTop     { font-size: 9px; letter-spacing: 2px; margin-bottom: 5px; }
+  #x25ReportSeal    { width: 36px; height: 36px; margin: 1px 0 5px; }
+  #x25ReportMain    { font-size: clamp(16px, 5vw, 26px); }
+  #x25ReportBarWrap { width: 130px; margin-top: 8px; }
+  #x25ReportSub     { font-size: 7.5px; letter-spacing: 1.5px; margin-top: 7px; }
 
   /* ── Wave pill (CALMA / OLEADA) ── */
   #waveLabel {
@@ -6503,7 +6577,12 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
   .btn-icon       { width: 34px; height: 34px; }
   #cmvX5Mult,#cmvX10Mult,#cmvX15Mult,#cmvX20Mult { font-size: 26px; }
   #x25OrbitBig    { font-size: 40px; }
+  #x25OrbitIcon   { width: 32px; height: 32px; }
   #x25MemeMain    { font-size: clamp(16px,4.5vw,28px); }
+  #x25MemeCrown   { width: 34px; height: 34px; }
+  #x25ReportMain    { font-size: clamp(14px,4.5vw,24px); }
+  #x25ReportSeal    { width: 32px; height: 32px; }
+  #x25ReportBarWrap { width: 110px; }
   .cmvBox         { max-width: min(200px,70vw); padding: 8px 16px 7px; }
   .cmvIcon        { width: 24px; height: 24px; }
 }
@@ -6661,9 +6740,15 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
   .cmvLabel { font-size: 8px; letter-spacing: 2px; }
   .cmvSub   { font-size: 6.5px; }
   #x25OrbitBig { font-size: 36px; }
+  #x25OrbitIcon { width: 30px; height: 30px; margin-bottom: 1px; }
   #x25OrbitText { padding: 9px 18px 8px; }
   #x25MemeBox   { padding: 8px 16px 7px; }
+  #x25MemeCrown { width: 32px; height: 32px; margin: 1px 0 3px; }
   #x25MemeMain  { font-size: clamp(14px,4vw,24px); }
+  #x25ReportBox     { padding: 8px 16px 7px; }
+  #x25ReportSeal    { width: 30px; height: 30px; margin: 1px 0 4px; }
+  #x25ReportMain    { font-size: clamp(13px,3.8vw,22px); }
+  #x25ReportBarWrap { width: 110px; margin-top: 6px; }
   #milestoneBanner { bottom: calc(52px + var(--sab)); }
   :root {
     --combo-bottom: calc(72px + var(--sab));
@@ -13614,7 +13699,14 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
 <!-- ══ SURGE ×25 — Grito de victoria ══ -->
 <div id="surgeX25">
   <div id="surgeX25Inner">
-    <div id="surgeX25Sat">🛰️</div>
+    <svg id="surgeX25Icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="20" cy="20" r="6.5" fill="#fde68a" opacity="0.95"/>
+      <circle cx="20" cy="20" r="3" fill="#fff7e0"/>
+      <ellipse cx="20" cy="20" rx="17.5" ry="6.5" fill="none" stroke="#f59e0b" stroke-width="1.4"/>
+      <ellipse cx="20" cy="20" rx="17.5" ry="6.5" fill="none" stroke="#06b6d4" stroke-width="0.6" stroke-dasharray="2 3" opacity="0.7" transform="rotate(58 20 20)"/>
+      <circle cx="36.2" cy="20" r="1.7" fill="#fbbf24"/>
+      <circle cx="3.8" cy="20" r="1.2" fill="#67e8f9" opacity="0.85"/>
+    </svg>
     <div id="surgeX25Word">SURGE</div>
     <div id="surgeX25Mult">× 25</div>
     <div id="surgeX25Divider"></div>
@@ -13622,23 +13714,59 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
   </div>
 </div>
 
-<!-- ══ COMBO x25 — VIZ A: ORBIT CLEANSED ══ -->
+<!-- ══ COMBO x25 — VIZ A: ÓRBITA LIMPIA ══ -->
 <div id="x25VizOrbit">
   <canvas id="x25OrbitCanvas"></canvas>
   <div id="x25OrbitText">
+    <svg id="x25OrbitIcon" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <g id="x25OrbitIconSpinGroup">
+        <ellipse cx="22" cy="22" rx="19.5" ry="19.5" fill="none" stroke="#06b6d4" stroke-width="1" opacity="0.30"/>
+        <ellipse cx="22" cy="22" rx="19.5" ry="7.5" fill="none" stroke="#f59e0b" stroke-width="1.5"/>
+        <ellipse cx="22" cy="22" rx="19.5" ry="7.5" fill="none" stroke="#a78bfa" stroke-width="0.7" stroke-dasharray="2.5 3.5" opacity="0.65" transform="rotate(62 22 22)"/>
+        <circle cx="41" cy="22" r="2" fill="#fbbf24"/>
+      </g>
+      <circle cx="22" cy="22" r="5.5" fill="#fde68a"/>
+      <circle cx="22" cy="22" r="2.4" fill="#fff7e0"/>
+      <path d="M16 30 L19 33 L28 24" stroke="#34d399" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.92"/>
+    </svg>
     <div id="x25OrbitBig">×25</div>
-    <div id="x25OrbitNum">ORBIT CLEANSED</div>
-    <div id="x25OrbitSub">MAXIMUM COMBO ACHIEVED</div>
+    <div id="x25OrbitNum">ÓRBITA LIMPIA</div>
+    <div id="x25OrbitSub">COMBO MÁXIMO ALCANZADO</div>
   </div>
 </div>
 
-<!-- ══ COMBO x25 — VIZ B: YOU ARE THE DEBRIS NOW ══ -->
+<!-- ══ COMBO x25 — VIZ B: SURGELORD ══ -->
 <div id="x25VizMeme">
   <div id="x25MemeBox">
-    <div id="x25MemeTop">bro just hit ×25 what</div>
-    <div id="x25MemeMain" data-text="YOU ARE THE DEBRIS NOW">YOU ARE THE DEBRIS NOW</div>
-    <div id="x25MemeSub">▸ SURGELORD · COMBO ×25 ◂</div>
-    <div id="x25MemeIcon">🛰️💀</div>
+    <div id="x25MemeTop">RANGO DESBLOQUEADO</div>
+    <svg id="x25MemeCrown" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M8 44 L8 24 L18 33 L32 16 L46 33 L56 24 L56 44 Z" fill="rgba(245,158,11,0.16)" stroke="#f59e0b" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M8 44 L8 24 L18 33 L32 16 L46 33 L56 24 L56 44 Z" fill="none" stroke="rgba(253,224,71,0.55)" stroke-width="0.7" stroke-linejoin="round"/>
+      <rect x="8" y="44" width="48" height="6" rx="1.5" fill="rgba(245,158,11,0.22)" stroke="#f59e0b" stroke-width="1.4"/>
+      <circle cx="32" cy="16" r="3" fill="#fde68a"/>
+      <circle cx="8" cy="24" r="2.2" fill="#fcd34d"/>
+      <circle cx="56" cy="24" r="2.2" fill="#fcd34d"/>
+      <circle cx="32" cy="32" r="2.6" fill="#06b6d4" opacity="0.9"/>
+    </svg>
+    <div id="x25MemeMain">SURGELORD</div>
+    <div id="x25MemeSub">CADENA PERFECTA · COMBO ×25</div>
+  </div>
+</div>
+
+<!-- ══ COMBO x25 — VIZ C: VERIFIED (informe O.R.B.I.T.) ══ -->
+<div id="x25VizReport">
+  <div id="x25ReportBox">
+    <div id="x25ReportTop">INFORME O.R.B.I.T.</div>
+    <svg id="x25ReportSeal" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M30 4 L52 12 L52 30 C52 44 42 53 30 57 C18 53 8 44 8 30 L8 12 Z" fill="rgba(6,182,212,0.14)" stroke="#06b6d4" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M30 4 L52 12 L52 30 C52 44 42 53 30 57 C18 53 8 44 8 30 L8 12 Z" fill="none" stroke="rgba(103,232,249,0.5)" stroke-width="0.6" stroke-linejoin="round"/>
+      <path id="x25ReportCheck" d="M19 30 L27 38 L42 21" stroke="#fde68a" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </svg>
+    <div id="x25ReportMain">VERIFICADO</div>
+    <div id="x25ReportBarWrap">
+      <div id="x25ReportBarFill"></div>
+    </div>
+    <div id="x25ReportSub">MULTIPLICADOR × 25 · CADENA SIN FALLOS</div>
   </div>
 </div>
 
@@ -14860,7 +14988,7 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
   <path d="M17 3h3a1 1 0 0 1 1 1v2c0 2.5-1.5 4.5-4 5" stroke="#fbbf24" stroke-width="1.5" stroke-linecap="round"/>
   <path d="M7 3h10v7a5 5 0 0 1-10 0V3z" fill="rgba(251,191,36,0.15)" stroke="#fbbf24" stroke-width="1.6"/>
   <path d="M12 6l.9 1.8 2 .3-1.45 1.4.34 2L12 10.5l-1.79.94.34-2L9.1 8.1l2-.3L12 6z" fill="#fbbf24"/>
-</svg><span>LOGROS</span></button>
+</svg><span data-i18n="achievements">LOGROS</span></button>
       <button class="menu-icon-btn mib-misiones" id="menuMissionBtn_d"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 0 5px rgba(34,211,238,0.7));">
   <circle cx="12" cy="12" r="9" stroke="rgba(34,211,238,0.3)" stroke-width="1.2" stroke-dasharray="3 2"/>
   <circle cx="12" cy="12" r="5.5" stroke="#22d3ee" stroke-width="1.5"/>
@@ -14870,7 +14998,7 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
   <line x1="2" y1="12" x2="6" y2="12" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/>
   <line x1="18" y1="12" x2="22" y2="12" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/>
   <circle cx="17.5" cy="6.5" r="1.5" fill="rgba(34,211,238,0.5)" stroke="#22d3ee" stroke-width="1"/>
-</svg><span>MISIONES</span></button>
+</svg><span data-i18n="missions">MISIONES</span></button>
       <button class="menu-icon-btn mib-perfil" id="menuProfileBtn_d"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 0 5px rgba(167,139,250,0.7));">
   <path d="M12 2C8.13 2 5 5.13 5 9v1.5C5 13.54 7.24 16 10 16.8V19h4v-2.2C16.76 16 19 13.54 19 10.5V9c0-3.87-3.13-7-7-7z" fill="rgba(167,139,250,0.12)" stroke="#a78bfa" stroke-width="1.5"/>
   <path d="M8 10.5c0 2.21 1.79 4 4 4s4-1.79 4-4V9.5H8v1z" fill="rgba(167,139,250,0.2)" stroke="#a78bfa" stroke-width="1.2"/>
@@ -14889,14 +15017,14 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
   <circle cx="12" cy="12" r="1.2" fill="#34d399"/>
   <circle cx="18" cy="6" r="1.2" fill="rgba(52,211,153,0.6)" stroke="#34d399" stroke-width="0.8"/>
   <line x1="17.2" y1="6.8" x2="14.5" y2="9.5" stroke="rgba(52,211,153,0.5)" stroke-width="0.9" stroke-dasharray="1.5 1"/>
-</svg><span>SKINS</span></button></div>
+</svg><span data-i18n="skins">SKINS</span></button></div>
       <button class="menu-icon-btn mib-ranking" id="menuLbBtn_d"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 0 5px rgba(251,146,60,0.7));">
   <path d="M4 20h4v-6H4v6z" fill="rgba(251,146,60,0.15)" stroke="#fb923c" stroke-width="1.4" stroke-linejoin="round"/>
   <path d="M10 20h4v-9h-4v9z" fill="rgba(251,146,60,0.25)" stroke="#fb923c" stroke-width="1.4" stroke-linejoin="round"/>
   <path d="M16 20h4v-4h-4v4z" fill="rgba(251,146,60,0.12)" stroke="#fb923c" stroke-width="1.4" stroke-linejoin="round"/>
   <path d="M12 4l.7 1.4 1.6.23-1.15 1.12.27 1.57L12 7.48l-1.42.84.27-1.57L9.7 5.63l1.6-.23L12 4z" fill="#fb923c"/>
   <path d="M3 12 Q7 8 12 10 Q17 12 21 8" stroke="rgba(251,146,60,0.45)" stroke-width="1.2" stroke-linecap="round" fill="none"/>
-</svg><span>RANKING</span></button>
+</svg><span data-i18n="ranking">RANKING</span></button>
     </div>
 
     <div class="menu-secondary-row">
@@ -17961,9 +18089,19 @@ var BlitzMode = {
     });
     clearInterval(this._interval);
     this._interval=setInterval(()=>{
-      if(this._sid!==_sessionId){ clearInterval(this._interval); return; }
+      // FIX v337: if session changed but BlitzMode is still active, end it properly
+      if(this._sid!==_sessionId){
+        clearInterval(this._interval);
+        if(this.active && this.timeLeft<=0) this._endBlitz();
+        return;
+      }
       if(STATE==='paused'){ return; } // FIX v96: pausar el timer sin destruirlo
-      if(STATE!=='playing'){ clearInterval(this._interval); return; }
+      if(STATE!=='playing'){
+        clearInterval(this._interval);
+        // FIX v337: if time ran out exactly while non-playing (e.g. paused+tab), still end properly
+        if(this.active && this.timeLeft<=0) this._endBlitz();
+        return;
+      }
       this.timeLeft--;
       const bt2=document.getElementById('blitzTimer');
       if(bt2){
@@ -17980,6 +18118,9 @@ var BlitzMode = {
 
   _endBlitz(){
     if(!this.active) return;
+    // FIX v337b: _L4 is only defined as a local inside other closures — define it here
+    const _lc4=typeof Lang!=='undefined'?Lang.cur:'es';
+    const _L4=(es,en,pt,ja)=>_lc4==='en'?en:_lc4==='pt'?(pt||en):_lc4==='ja'?(ja||en):es;
     const finalScore=(G&&G.score)||0;
     const finalDebris=(G&&G.debrisN)||0;
     const finalCombo=(G&&G.maxCombo)||0;
@@ -18108,18 +18249,33 @@ var BlitzMode = {
       setTimeout(()=>{ if(tusEl.parentNode) tusEl.parentNode.removeChild(tusEl); try{cb();}catch(_){} }, 290);
     }
 
+    // ── SVG icons for buttons — unique, game-themed ──────────────────────────
+    // "Play again" icon: debris orbit ring with a lightning bolt core
+    const _svgBlitz=`<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:inline-block;vertical-align:middle;margin-right:8px;flex-shrink:0;">
+      <circle cx="9" cy="9" r="7.2" stroke="rgba(255,255,255,0.55)" stroke-width="1.2" stroke-dasharray="3 2.2" stroke-linecap="round"/>
+      <polygon points="9.8,2.5 5.5,9.8 8.6,9.8 8.0,15.5 12.5,8.2 9.3,8.2" fill="#fff" opacity="0.95"/>
+    </svg>`;
+    // "Menu" icon: satellite silhouette (game's iconic shape)
+    const _svgMenu=`<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:inline-block;vertical-align:middle;margin-right:8px;flex-shrink:0;">
+      <rect x="6.5" y="7" width="5" height="4" rx="1" fill="rgba(255,255,255,0.75)"/>
+      <rect x="1.5" y="8" width="4" height="1.8" rx="0.9" fill="rgba(255,255,255,0.5)"/>
+      <rect x="12.5" y="8" width="4" height="1.8" rx="0.9" fill="rgba(255,255,255,0.5)"/>
+      <rect x="8.1" y="4" width="1.8" height="2.5" rx="0.7" fill="rgba(255,255,255,0.5)"/>
+      <rect x="8.1" y="11.5" width="1.8" height="2.5" rx="0.7" fill="rgba(255,255,255,0.5)"/>
+    </svg>`;
+
     // ⚡ Play again (Blitz)
     const btnAgain=document.createElement('button');
-    btnAgain.style.cssText='width:100%;padding:14px 20px;background:linear-gradient(135deg,#ef4444,#dc2626);border:none;border-radius:13px;font-family:"Space Grotesk",sans-serif;font-size:14px;font-weight:800;color:#fff;letter-spacing:.8px;cursor:pointer;touch-action:manipulation;box-shadow:0 4px 20px rgba(239,68,68,0.45);transition:transform .12s,box-shadow .12s;';
-    btnAgain.textContent=_L4('⚡ JUGAR DE NUEVO','⚡ PLAY AGAIN','⚡ JOGAR NOVAMENTE','⚡ もう一度プレイ');
+    btnAgain.style.cssText='width:100%;padding:14px 20px;background:linear-gradient(135deg,#ef4444,#dc2626);border:none;border-radius:13px;font-family:"Space Grotesk",sans-serif;font-size:14px;font-weight:800;color:#fff;letter-spacing:.8px;cursor:pointer;touch-action:manipulation;box-shadow:0 4px 20px rgba(239,68,68,0.45);transition:transform .12s,box-shadow .12s;display:flex;align-items:center;justify-content:center;';
+    btnAgain.innerHTML=_svgBlitz+_L4('JUGAR DE NUEVO','PLAY AGAIN','JOGAR NOVAMENTE','もう一度プレイ');
     btnAgain.onmouseenter=()=>{ btnAgain.style.transform='scale(1.03)'; btnAgain.style.boxShadow='0 6px 28px rgba(239,68,68,0.65)'; };
     btnAgain.onmouseleave=()=>{ btnAgain.style.transform=''; btnAgain.style.boxShadow='0 4px 20px rgba(239,68,68,0.45)'; };
     btnAgain.onclick=()=>{ _closeTUS(()=>{ try{ BlitzMode.start(); }catch(_){} }); };
 
-    // 🏠 Main menu
+    // 🛰 Main menu
     const btnMenu=document.createElement('button');
-    btnMenu.style.cssText='width:100%;padding:13px 20px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.20);border-radius:13px;font-family:"Space Grotesk",sans-serif;font-size:13px;font-weight:700;color:rgba(255,255,255,0.85);letter-spacing:.6px;cursor:pointer;touch-action:manipulation;transition:background .15s,border-color .15s,color .15s;';
-    btnMenu.textContent=_L4('🏠 MENÚ PRINCIPAL','🏠 MAIN MENU','🏠 MENU PRINCIPAL','🏠 メインメニュー');
+    btnMenu.style.cssText='width:100%;padding:13px 20px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.20);border-radius:13px;font-family:"Space Grotesk",sans-serif;font-size:13px;font-weight:700;color:rgba(255,255,255,0.85);letter-spacing:.6px;cursor:pointer;touch-action:manipulation;transition:background .15s,border-color .15s,color .15s;display:flex;align-items:center;justify-content:center;';
+    btnMenu.innerHTML=_svgMenu+_L4('MENÚ PRINCIPAL','MAIN MENU','MENU PRINCIPAL','メインメニュー');
     btnMenu.onmouseenter=()=>{ btnMenu.style.background='rgba(255,255,255,0.11)'; btnMenu.style.borderColor='rgba(255,255,255,0.32)'; btnMenu.style.color='rgba(255,255,255,1)'; };
     btnMenu.onmouseleave=()=>{ btnMenu.style.background='rgba(255,255,255,0.06)'; btnMenu.style.borderColor='rgba(255,255,255,0.20)'; btnMenu.style.color='rgba(255,255,255,0.85)'; };
     btnMenu.onclick=()=>{ _closeTUS(()=>{ try{ goToMenu(); }catch(_){} }); };
@@ -19724,10 +19880,25 @@ const Lang = {
     const b=document.getElementById('langToggle'); if(b) b.classList.add('lang-visible');
   },
   hideBtn(){
+    // FIX v342: antes esta función le quitaba la clase 'ls-open' directo por DOM
+    // sin avisarle a LangSelector, que sigue creyendo que el dropdown está abierto
+    // (_open=true) y mantiene vivo su listener de outside-click. Si el jugador
+    // abría el selector de idioma y le daba "Jugar" sin cerrarlo antes, al volver
+    // del juego LangSelector._open quedaba trabado en true — el primer click en
+    // el botón de idioma no hacía nada visible (creía que tenía que cerrar algo
+    // que ya se veía cerrado), y recién el segundo click abría de verdad.
+    try{ if(typeof LangSelector!=='undefined') LangSelector.close(); }catch(_){}
     const b=document.getElementById('langToggle');
     if(b){ b.classList.remove('lang-visible','ls-open'); }
-    const dd=document.getElementById('langDropdown');
-    if(dd){ dd.style.pointerEvents='none'; }
+    // FIX v343: se quitó el "dd.style.pointerEvents='none';" que había acá.
+    // Un estilo inline siempre gana por encima de cualquier regla CSS de clase,
+    // así que ese inline dejaba el dropdown con pointer-events:none CLAVADO para
+    // siempre — showBtn() nunca lo limpiaba. Resultado: tras volver de una
+    // partida, el selector podía abrirse (visualmente), pero ningún click en
+    // las opciones de idioma llegaba a los botones — quedaba fijo en el idioma
+    // actual sin poder cambiarlo. La regla CSS #langToggle.ls-open #langDropdown
+    // ya controla pointer-events correctamente vía la clase 'ls-open' — el
+    // inline era redundante y, al no limpiarse nunca, rompía todo.
     const btn=document.getElementById('langToggleBtn');
     if(btn) btn.setAttribute('aria-expanded','false');
   },
@@ -19908,6 +20079,22 @@ const Lang = {
     _hw('combo5Suf',' — los puntos se multiplican',' — points get multiplied',' — pontos multiplicados',' — ポイント倍増');
     _hw('comboMaxLabel','¡COMBO MÁXIMO!','MAX COMBO!','COMBO MÁXIMO!','最大コンボ！');
     _hw('comboMaxDesc','Todos los puntos ×25','All points ×25','Todos os pontos ×25','全ポイント ×25');
+    _hw('cmvX5Label','IGNICIÓN','IGNITION','IGNIÇÃO','点火');
+    _hw('cmvX5Sub','CADENA DE COMBO · 5','COMBO CHAIN · 5','CADEIA DE COMBO · 5','コンボチェーン・5');
+    _hw('cmvX10Label','IMPARABLE','UNSTOPPABLE','IMPARÁVEL','止められない');
+    _hw('cmvX10Sub','CADENA ELÉCTRICA · 10','ELECTRIC CHAIN · 10','CADEIA ELÉTRICA · 10','電気チェーン・10');
+    _hw('cmvX15Label','MODO ÉLITE','ELITE MODE','MODO ELITE','エリートモード');
+    _hw('cmvX15Sub','PLASMA ARDIENTE · 15','BLAZING PLASMA · 15','PLASMA ARDENTE · 15','灼熱プラズマ・15');
+    _hw('cmvX20Label','DIVINO','GODLIKE','DIVINO','神がかり');
+    _hw('cmvX20Sub','¿ERES HUMANO? · 20','ARE YOU HUMAN? · 20','VOCÊ É HUMANO? · 20','あなたは人間？・20');
+    _hw('x25OrbitNum','ÓRBITA LIMPIA','ORBIT CLEANSED','ÓRBITA LIMPA','軌道クリア');
+    _hw('x25OrbitSub','COMBO MÁXIMO ALCANZADO','MAXIMUM COMBO ACHIEVED','COMBO MÁXIMO ALCANÇADO','最大コンボ達成');
+    _hw('x25MemeTop','RANGO DESBLOQUEADO','RANK UNLOCKED','PATENTE DESBLOQUEADA','称号解除');
+    _hw('x25MemeMain','SURGELORD','SURGELORD','SURGELORD','サージロード');
+    _hw('x25MemeSub','CADENA PERFECTA · COMBO ×25','PERFECT CHAIN · COMBO ×25','CADEIA PERFEITA · COMBO ×25','完全連鎖 · コンボ×25');
+    _hw('x25ReportTop','INFORME O.R.B.I.T.','O.R.B.I.T. REPORT','RELATÓRIO O.R.B.I.T.','O.R.B.I.T.レポート');
+    _hw('x25ReportMain','VERIFICADO','VERIFIED','VERIFICADO','確認済み');
+    _hw('x25ReportSub','MULTIPLICADOR × 25 · CADENA SIN FALLOS','× 25 MULTIPLIER · FLAWLESS CHAIN','MULTIPLICADOR × 25 · CADEIA SEM FALHAS','× 25倍率 · 完璧な連鎖');
     const comboTimerLabelEl=document.getElementById('comboTimerLabel');
     if(comboTimerLabelEl) comboTimerLabelEl.textContent=_L(
       '← temporizador de combo (se resetea si tardas en absorber)',
@@ -21112,7 +21299,11 @@ const M_TMPL=[
    target:80,   key:'anc', reward:'🔓 Shadow Mirror', rid:'shadow_mirror'},
   {id:'m_quantum', icon:'🌀', title:'Vínculo Cuántico', titleEn:'Quantum Link',    titlePt:'Vínculo Quântico',   titleJa:'量子リンク',
    desc:'Alcanza combo x10 en una partida',   descEn:'Reach combo x10 in one game',    descPt:'Alcance combo x10 numa partida',    descJa:'1ゲームでコンボx10',
-   target:10,   key:'c',   reward:'🔓 Quantum Void', rid:'quantum'},
+   // FIX v344: rid:'quantum' quitado — otorgaba la skin con combo x10 en
+   // UNA sola partida, mucho más fácil que su requisito real (combo x10 en
+   // 20 partidas distintas + nivel 22, ver checks[] en el guardado de partida).
+   // Mismo patrón ya aplicado a m_phantom/m_nova/m_titan.
+   target:10,   key:'c',   reward:'+3,500 XP', rid:null},
   {id:'m_celestial',icon:'✨',title:'Héroe Celestial',  titleEn:'Celestial Hero',  titlePt:'Herói Celestial',    titleJa:'天体ヒーロー',
    desc:'Sobrevive 20 oleadas de meteoros',   descEn:'Survive 20 meteor waves',        descPt:'Sobreviva 20 ondas de meteoros',    descJa:'隕石ウェーブ20回突破',
    target:20,   key:'mw',  reward:'🔓 Celestial',    rid:'celestial'},
@@ -21699,7 +21890,13 @@ const Skin={
     // fix (reqs[] reales, verificados al terminar partida). Ahora la purga corre
     // una sola vez por dispositivo, marcada con orb_skin_purge_v316_done; tras
     // ejecutarse, las 4 skins pueden ganarse y conservarse con normalidad.
-    if(!Store.get('orb_skin_purge_v316_done', false)){
+    //
+    // FIX v344: a 'quantum' se le había quitado el rid de la purga v316 en la
+    // lista, pero su misión (m_quantum) seguía teniendo rid:'quantum' — seguía
+    // otorgando la skin con combo x10 en UNA partida en vez del requisito real
+    // (20 partidas + nivel 22). Se vuelve a correr la purga una vez más (nuevo
+    // flag v344) para limpiar cualquier 'quantum' ya otorgado de esa forma.
+    if(!Store.get('orb_skin_purge_v316_done', false) || !Store.get('orb_skin_purge_v344_done', false)){
       const _missionGranted = ['phantom','nova','titan','quantum'];
       const _earnedRaw = Store.get('orb_earned_skins', []);
       const _skRaw     = Store.get('orb_skins', ['default']);
@@ -21720,6 +21917,7 @@ const Skin={
         }catch(_){}
       }
       Store.set('orb_skin_purge_v316_done', true);
+      Store.set('orb_skin_purge_v344_done', true);
     }
 
     const ppOwned  = Store.get('orb_pp_owned', []);
@@ -27606,7 +27804,7 @@ let _dynQTier = _QTIER;   // tier dinámico, puede subir de _QTIER
 // v253d: Mi Browser arranca en tier 2 inmediatamente — no esperar al FPS probe
 // v253e: todos los WebViews OEM arrancan en tier 2
 if(_IS_OEM_WEBVIEW && _dynQTier < 2) _dynQTier = 2;
-let _fpsProbe = { frames:0, elapsed:0, lastCheck:0, degraded:false };
+let _fpsProbe = { frames:0, elapsed:0, lastCheck:0, degraded:false, lowStreak:0 };
 // v209: FPS target realista para móvil — 60 es inalcanzable en gama media, apuntar a 55/48/42
 // v253d: Mi Browser apunta a 40fps — su WebView es más lento que Chrome estándar
 // v253e: WebViews OEM apuntan a 40fps — sus motores son más lentos que Chrome estándar
@@ -27617,10 +27815,25 @@ const _FPS_PROBE_INTERVAL = _IS_OEM_WEBVIEW ? 300 : ((_LOW_MID||_MID_MOBILE) ? 3
 
 function _probePerf(ts, rawDt){
   if(!loopOn || STATE !== 'playing') return;
+  // FIX v341: restaurado tal cual estaba en v266 — el FPS probe (y por lo tanto el
+  // truncado dinámico de G.stars) NUNCA corría en desktop/PC. Entre v266 y v338 se
+  // quitó este guard (etiquetado como mejora "v311"), lo cual reactivó el truncado
+  // de estrellas en PC y fue la causa real de que el bug persistiera en el preview
+  // de escritorio incluso después del warm-up y el debounce de abajo.
+  if(!_IS_MOBILE) return; // v209b: PC siempre full, no probe necesario
   // v311: desktop ya no se salta el probe — usa su propio _FPS_TARGET (58) y
   // _FPS_PROBE_INTERVAL (1200ms), más laxos que móvil. Esto activa los if(_dynQTier<N)
   // de reducción de detalle que ya existían en el motor pero nunca corrían en PC
   // porque _dynQTier estaba congelado en 0.
+  // FIX v339: warm-up — ignorar los primeros frames de CADA partida. El arranque
+  // (init de audio, HUD, primer GC) genera un pico de lag puntual que no refleja
+  // el rendimiento real, y antes de este fix ese pico hacía que _probePerf degradara
+  // la calidad y truncara G.stars (de 380 a 8) justo en la 1ª partida — bug reportado
+  // como "las estrellas desaparecen en la primera partida y vuelven en la segunda".
+  // En la 2ª partida el bug "se arreglaba solo" solo porque _dynQTier ya había
+  // tocado techo (3) y el truncado queda bloqueado por el gate _dynQTier<3 de abajo,
+  // no porque el rendimiento mejorara. Con este warm-up el probe ya no ve ese pico.
+  if(_framesSinceStart < 90){ _fpsProbe.frames = 0; _fpsProbe.elapsed = 0; return; }
   _fpsProbe.frames++;
   _fpsProbe.elapsed += rawDt * 1000;
   if(_fpsProbe.elapsed >= _FPS_PROBE_INTERVAL){
@@ -27629,6 +27842,16 @@ function _probePerf(ts, rawDt){
     _fpsProbe.elapsed = 0;
     const _fpsDrop = _dynQTier >= 2 ? 8 : ((_LOW_MID||_MID_MOBILE) ? 4 : 6);
     if(avgFps < _FPS_TARGET - _fpsDrop && _dynQTier < 3){
+      // FIX v340: el warm-up de 90 frames no alcanzaba a cubrir TODA la sobrecarga
+      // real de arranque (1ª oleada de debris, reveal del satélite, etc.), así que
+      // una sola lectura mala justo después del warm-up seguía truncando G.stars por
+      // ~1 intervalo de probe (lo que el usuario reportó como "dura 2 segundos").
+      // Ahora se exigen 2 lecturas malas CONSECUTIVAS antes de degradar de verdad —
+      // un pico transitorio ya no alcanza, pero un dispositivo realmente lento sigue
+      // leyendo mal en la 2ª lectura y se degrada igual.
+      _fpsProbe.lowStreak = (_fpsProbe.lowStreak || 0) + 1;
+      if(_fpsProbe.lowStreak < 2) return;
+      _fpsProbe.lowStreak = 0;
       _dynQTier = Math.min(_dynQTier + 1, 3);
       if(G && G.particles){
         const ptCap=_dynQTier>=3?6:_dynQTier>=2?12:24;
@@ -27647,7 +27870,22 @@ function _probePerf(ts, rawDt){
         }
       }
     } else if(avgFps >= _FPS_TARGET + 8 && _dynQTier > _QTIER){
+      _fpsProbe.lowStreak = 0;
       _dynQTier = Math.max(_dynQTier - 1, _QTIER);
+      // FIX v339: restaurar estrellas si quedaron truncadas de una degradación previa.
+      // mkStars() siempre genera según el tier ESTÁTICO (_QTIER), así que esto repone
+      // el conteo natural del dispositivo en vez de dejarlo achicado para siempre.
+      if(G && G.stars){
+        const _savedNeb    = G.stars._nebulae;
+        const _savedShoots = G.stars._shoots;
+        const _savedTimer  = G.stars._shootTimer;
+        G.stars = mkStars();
+        G.stars._nebulae    = _savedNeb || null;
+        G.stars._shoots     = _savedShoots || [];
+        G.stars._shootTimer = _savedTimer || 0;
+      }
+    } else {
+      _fpsProbe.lowStreak = 0;
     }
   }
 }
@@ -30808,43 +31046,57 @@ const X25Orbit = (function(){
 })();
 
 // ══════════════════════════════════════════════════════
-// COMBO x25 — VIZ B: YOU ARE THE DEBRIS NOW (meme)
-// Glitch + fragmentación + sonido chiptune cómico
+// COMBO x25 — VIZ B: SURGELORD
+// Sello de rango con corona — sonido jingle + partículas
 // ══════════════════════════════════════════════════════
 const X25Meme = (function(){
   let _fragRaf = null;
 
-  // Sonido: chiptune jingle chistoso (melodía de "tú perdiste pero ganaste")
+  // Sonido: fanfarria épica — tríada ascendente + acorde final con armónicos
   function _playSound(){
     try{
       const ac = Audio.ctx || new (window.AudioContext||window.webkitAudioContext)(_IS_MOBILE ? {latencyHint:'playback',sampleRate:44100} : {});
       const mg = Audio.mg || ac.destination;
-      // Melodía: Do Re Mi Do - Mi Sol - arpeggio caótico final
+      // Melodía: Do-Mi-Sol ascendente (tríada mayor) → Do octava sostenida con shimmer
       const seq = [
-        [523,0,0.10], [587,0.11,0.09], [659,0.21,0.09], [523,0.31,0.10],
-        [659,0.42,0.08], [784,0.51,0.08],
-        [1047,0.62,0.06],[987,0.69,0.05],[880,0.75,0.05],[784,0.81,0.05],
-        [523,0.88,0.18]
+        [523,0,0.16],     // Do4
+        [659,0.15,0.16],  // Mi4
+        [784,0.30,0.18],  // Sol4
+        [1047,0.47,0.62], // Do5 — nota de resolución, sostenida
       ];
       seq.forEach(([f,dt,dur])=>{
         const o = ac.createOscillator(), g = ac.createGain();
-        o.type = 'square';
+        o.type = 'triangle';
         o.frequency.value = f;
         const t = ac.currentTime + dt;
-        g.gain.setValueAtTime(0.07, t);
-        g.gain.setValueAtTime(0.07, t+dur-0.01);
-        g.gain.linearRampToValueAtTime(0, t+dur);
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(0.10, t+0.02);
+        g.gain.setValueAtTime(0.10, t+dur-0.08);
+        g.gain.exponentialRampToValueAtTime(0.0008, t+dur);
         o.connect(g); g.connect(mg);
         o.start(t); o.stop(t+dur+0.02);
       });
-      // Wobble bass chistoso
+      // Armónico superior — quinta + octava sobre la nota de resolución (efecto coro/fanfarria)
+      [[1568,0.49,0.58,0.045],[2094,0.51,0.54,0.03]].forEach(([f,dt,dur,vol])=>{
+        const o = ac.createOscillator(), g = ac.createGain();
+        o.type = 'sine';
+        o.frequency.value = f;
+        const t = ac.currentTime + dt;
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(vol, t+0.05);
+        g.gain.exponentialRampToValueAtTime(0.0006, t+dur);
+        o.connect(g); g.connect(mg);
+        o.start(t); o.stop(t+dur+0.02);
+      });
+      // Bajo profundo y estable — peso y gravedad, sin portamento cómico
       const bass = ac.createOscillator(), bassG = ac.createGain();
-      bass.type = 'sawtooth'; bass.frequency.setValueAtTime(110, ac.currentTime);
-      bass.frequency.linearRampToValueAtTime(55, ac.currentTime+0.5);
-      bassG.gain.setValueAtTime(0.09, ac.currentTime);
-      bassG.gain.exponentialRampToValueAtTime(0.001, ac.currentTime+0.55);
+      bass.type = 'sine'; bass.frequency.setValueAtTime(65.4, ac.currentTime); // Do2
+      bassG.gain.setValueAtTime(0, ac.currentTime);
+      bassG.gain.linearRampToValueAtTime(0.13, ac.currentTime+0.05);
+      bassG.gain.setValueAtTime(0.13, ac.currentTime+0.78);
+      bassG.gain.exponentialRampToValueAtTime(0.0008, ac.currentTime+1.05);
       bass.connect(bassG); bassG.connect(mg);
-      bass.start(); bass.stop(ac.currentTime+0.6);
+      bass.start(); bass.stop(ac.currentTime+1.08);
     }catch(_){}
   }
 
@@ -30854,6 +31106,63 @@ const X25Meme = (function(){
       if(!ov) return;
       _playSound();
       ov.classList.remove('on');
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        ov.classList.add('on');
+        clearTimeout(ov._t);
+        ov._t = setTimeout(()=>{ ov.classList.remove('on'); }, 1900);
+      }));
+    }
+  };
+})();
+
+// ══════════════════════════════════════════════════════
+// COMBO x25 — VIZ C: VERIFICADO
+// Sello de telemetría O.R.B.I.T. — sonido de confirmación digital
+// ══════════════════════════════════════════════════════
+const X25Report = (function(){
+  // Sonido: bip de escáner/confirmación — dos tonos limpios ascendentes + click final
+  function _playSound(){
+    try{
+      const ac = Audio.ctx || new (window.AudioContext||window.webkitAudioContext)(_IS_MOBILE ? {latencyHint:'playback',sampleRate:44100} : {});
+      const mg = Audio.mg || ac.destination;
+      // Dos bips de escaneo ascendentes (sine puro, muy digital)
+      [[1100,0,0.08,0.09],[1568,0.10,0.10,0.10]].forEach(([f,dt,dur,vol])=>{
+        const o = ac.createOscillator(), g = ac.createGain();
+        o.type = 'sine';
+        o.frequency.value = f;
+        const t = ac.currentTime + dt;
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(vol, t+0.012);
+        g.gain.setValueAtTime(vol, t+dur-0.02);
+        g.gain.exponentialRampToValueAtTime(0.0006, t+dur);
+        o.connect(g); g.connect(mg);
+        o.start(t); o.stop(t+dur+0.02);
+      });
+      // Click de confirmación final (tono limpio breve, sincronizado con el llenado de la barra)
+      const o2 = ac.createOscillator(), g2 = ac.createGain();
+      o2.type = 'triangle'; o2.frequency.value = 1976;
+      const t2 = ac.currentTime + 0.30;
+      g2.gain.setValueAtTime(0, t2);
+      g2.gain.linearRampToValueAtTime(0.12, t2+0.012);
+      g2.gain.exponentialRampToValueAtTime(0.0006, t2+0.22);
+      o2.connect(g2); g2.connect(mg);
+      o2.start(t2); o2.stop(t2+0.24);
+    }catch(_){}
+  }
+
+  return {
+    trigger(){
+      const ov = document.getElementById('x25VizReport');
+      const fill = document.getElementById('x25ReportBarFill');
+      if(!ov) return;
+      _playSound();
+      ov.classList.remove('on');
+      if(fill){
+        // Reinicia la animación de llenado de barra en cada disparo
+        fill.style.animation = 'none';
+        void fill.offsetWidth;
+        fill.style.animation = '';
+      }
       requestAnimationFrame(()=>requestAnimationFrame(()=>{
         ov.classList.add('on');
         clearTimeout(ov._t);
@@ -30888,6 +31197,9 @@ function _dismissAllX25(){
     // Meme viz
     const mv = document.getElementById('x25VizMeme');
     if(mv){ clearTimeout(mv._t); mv.classList.remove('on'); }
+    // Report viz
+    const rv = document.getElementById('x25VizReport');
+    if(rv){ clearTimeout(rv._t); rv.classList.remove('on'); }
     // Cancel any pending viz setTimeout from triggerComboMilestone
     // (handled by _sessionId guard — but force-clear canvas too)
     const canvas = document.getElementById('x25OrbitCanvas');
@@ -30908,26 +31220,26 @@ const ComboMidViz = (function(){
   const CFG = {
     5:{
       id:'cmvX5', dur:1450, freq:523, type:'sine', vol:0.13,
-      labelES:'IGNICIÓN',            labelEN:'IGNITION',
-      subES:'CADENA DE COMBO · 5',   subEN:'COMBO CHAIN · 5',
+      labelES:'IGNICIÓN',            labelEN:'IGNITION',          labelPT:'IGNIÇÃO',           labelJA:'点火',
+      subES:'CADENA DE COMBO · 5',   subEN:'COMBO CHAIN · 5',     subPT:'CADEIA DE COMBO · 5', subJA:'コンボチェーン・5',
       labelId:'cmvX5Label', subId:'cmvX5Sub'
     },
     10:{
       id:'cmvX10', dur:1600, freq:880, type:'square', vol:0.10,
-      labelES:'IMPARABLE',           labelEN:'UNSTOPPABLE',
-      subES:'CADENA ELÉCTRICA · 10', subEN:'ELECTRIC CHAIN · 10',
+      labelES:'IMPARABLE',           labelEN:'UNSTOPPABLE',       labelPT:'IMPARÁVEL',          labelJA:'止められない',
+      subES:'CADENA ELÉCTRICA · 10', subEN:'ELECTRIC CHAIN · 10', subPT:'CADEIA ELÉTRICA · 10', subJA:'電気チェーン・10',
       labelId:'cmvX10Label', subId:'cmvX10Sub'
     },
     15:{
       id:'cmvX15', dur:1550, freq:660, type:'triangle', vol:0.12,
-      labelES:'MODO ÉLITE',          labelEN:'ELITE MODE',
-      subES:'PLASMA ARDIENTE · 15',  subEN:'BURNING PLASMA · 15',
+      labelES:'MODO ÉLITE',          labelEN:'ELITE MODE',        labelPT:'MODO ELITE',         labelJA:'エリートモード',
+      subES:'PLASMA ARDIENTE · 15',  subEN:'BLAZING PLASMA · 15', subPT:'PLASMA ARDENTE · 15',  subJA:'灼熱プラズマ・15',
       labelId:'cmvX15Label', subId:'cmvX15Sub'
     },
     20:{
       id:'cmvX20', dur:1700, freq:220, type:'sawtooth', vol:0.11,
-      labelES:'DIVINO',              labelEN:'GODLIKE',
-      subES:'¿ERES HUMANO? · 20',    subEN:'ARE YOU EVEN HUMAN? · 20',
+      labelES:'DIVINO',              labelEN:'GODLIKE',           labelPT:'DIVINO',             labelJA:'神がかり',
+      subES:'¿ERES HUMANO? · 20',    subEN:'ARE YOU HUMAN? · 20', subPT:'VOCÊ É HUMANO? · 20',  subJA:'あなたは人間？・20',
       labelId:'cmvX20Label', subId:'cmvX20Sub',
       dataText:{ es:'×20', en:'×20' }
     },
@@ -30961,12 +31273,13 @@ const ComboMidViz = (function(){
     const el = document.getElementById(cfg.id);
     if(!el) return;
 
-    // Actualizar textos según idioma
-    const isEN = typeof Lang!=='undefined' && Lang.cur==='en';
+    // Actualizar textos según idioma — soporta los 4 idiomas del juego
+    const _cur = (typeof Lang!=='undefined') ? Lang.cur : 'es';
     const lbl = document.getElementById(cfg.labelId);
     const sub = document.getElementById(cfg.subId);
-    if(lbl) lbl.textContent = isEN ? cfg.labelEN : cfg.labelES;
-    if(sub) sub.textContent = isEN ? cfg.subEN : cfg.subES;
+    const _pick = (es,en,pt,ja) => _cur==='en'?en:_cur==='pt'?pt:_cur==='ja'?ja:es;
+    if(lbl) lbl.textContent = _pick(cfg.labelES, cfg.labelEN, cfg.labelPT, cfg.labelJA);
+    if(sub) sub.textContent = _pick(cfg.subES, cfg.subEN, cfg.subPT, cfg.subJA);
     // x20: actualizar data-text para el glitch (solo aplica al número ×20)
     if(cfg.dataText && lbl){
       const dt = '×20';
@@ -31122,11 +31435,18 @@ function triggerComboMilestone(level){
         try{
           if(_sessionId !== _vizSid) return; // game ended — don't show viz
           if(STATE !== 'playing') return;    // extra guard
-          if(typeof triggerComboMilestone._vizIdx === 'undefined') triggerComboMilestone._vizIdx = 0;
-          const vizIdx = triggerComboMilestone._vizIdx % 2;
-          triggerComboMilestone._vizIdx++;
-          if(vizIdx === 0){ X25Orbit.trigger(); }
-          else            { X25Meme.trigger();  }
+          // Selección aleatoria entre las 3 variantes de cierre — nunca repite
+          // la misma variante dos veces consecutivas, para que siempre se note variado.
+          const _vizPool = ['orbit','meme','report'];
+          let _vizPick = _vizPool[Math.floor(Math.random()*_vizPool.length)];
+          if(_vizPick === triggerComboMilestone._lastViz && _vizPool.length > 1){
+            const _rest = _vizPool.filter(v=>v!==_vizPick);
+            _vizPick = _rest[Math.floor(Math.random()*_rest.length)];
+          }
+          triggerComboMilestone._lastViz = _vizPick;
+          if(_vizPick === 'orbit')       { X25Orbit.trigger();  }
+          else if(_vizPick === 'meme')   { X25Meme.trigger();   }
+          else                           { X25Report.trigger(); }
         }catch(_){}
       }, 1000);
     }
@@ -50944,6 +51264,11 @@ function endGame(){
   _pendingEnd=false; _dmgLock=false;
   _meteorShakePending=null; _pendingShake=null; _pendingFlash=false;
 
+  // Blitz Mode intercept — FIX v337: route to Blitz result screen instead of normal game over
+  // This covers edge cases where _pendingEnd fires during Blitz (e.g. BlackHole with _zenMode bypass)
+  const _wasBlitz = typeof BlitzMode !== 'undefined' && BlitzMode.active;
+  if(_wasBlitz){ _dismissAllX25(); clearInterval(BlitzMode._interval); BlitzMode._endBlitz(); return; }
+
   // Chaos Mode intercept — custom result screen
   const _wasChaos = ChaosMode && ChaosMode.active;
   if(_wasChaos){ _dismissAllX25(); ChaosMode.onGameOver(); return; }
@@ -59920,6 +60245,9 @@ wire('resetDataBtn', ()=>{
     try{ Missions.load(); }catch(_){}
     try{ EliteChallenge.load(); }catch(_){}
     try{ Skin.cur='default'; }catch(_){}
+    // Usuario "nuevo" tras reset → el idioma vuelve a inglés por defecto al instante
+    // (orb_lang ya se borró arriba; esto sincroniza el estado en memoria sin esperar recarga)
+    try{ if(typeof Lang!=='undefined'){ Lang.cur='en'; Store.set('orb_lang','en'); Lang._apply(); } }catch(_){}
     // Update UI
     const mhs=document.getElementById('menuHS');
     if(mhs) mhs.textContent='0';
@@ -59982,6 +60310,8 @@ wire('resetDataBtn_d', ()=>{
     try{ Missions.load(); }catch(_){}
     try{ EliteChallenge.load(); }catch(_){}
     try{ Skin.cur='default'; }catch(_){}
+    // Usuario "nuevo" tras reset → el idioma vuelve a inglés por defecto al instante
+    try{ if(typeof Lang!=='undefined'){ Lang.cur='en'; Store.set('orb_lang','en'); Lang._apply(); } }catch(_){}
     const mhs=document.getElementById('menuHS');
     if(mhs) mhs.textContent='0';
     const mnp=document.getElementById('menuPlayerName');
@@ -81192,8 +81522,10 @@ OrbitaDelDia = Object.assign(OrbitaDelDia, {
   // Called by endGame() when OrbitaDelDia.active is true
   onGameEnd(score, debris, combo, level, time) {
     if (!this.active) return;
-    // Guard: ignore if a new session has started (e.g. rapid restart)
-    if (typeof _sessionId !== 'undefined' && this._sessionId !== _sessionId) return;
+    // FIX v337: removed _sessionId guard here — endGame() increments _sessionId
+    // BEFORE calling onGameEnd(), so the guard always fired and silently skipped
+    // score saving and the result overlay. The active flag + endGame's own intercept
+    // are sufficient protection against stale calls.
     this.active = false;
     // FIX v302: limpiar flag de modo Órbita
     if (typeof G !== 'undefined' && G) G._orbitaDay = false;
