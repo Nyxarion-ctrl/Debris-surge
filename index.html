@@ -3313,7 +3313,7 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
   transition:opacity .55s cubic-bezier(.4,0,.2,1);
   --tov-cx: 50%;
   --tov-cy: 50%;
-  --tov-r:  22%;
+  --tov-r:  22vmin;
   --tov-clr: 103,232,249;   /* cian — absorb */
 }
 #tutOverlay.dim{
@@ -22665,7 +22665,7 @@ const Tut = (function(){
     ov.style.setProperty('--tov-cx','50%');
     ov.style.setProperty('--tov-cy','52%');
     // Radio por paso: combo más ancho para cubrir 2 debris
-    ov.style.setProperty('--tov-r', mode === 'combo' ? '30%' : '22%');
+    ov.style.setProperty('--tov-r', mode === 'combo' ? '30vmin' : '22vmin');
     ov.classList.remove('tov-absorb','tov-combo');
     ov.classList.add('tov-' + mode, 'dim');
   }
@@ -84714,7 +84714,7 @@ const MilestoneSystem = (function(){
   #nameModalIcon  { font-size: 28px !important; margin-bottom: 8px !important; }
   #nameModalTitle { font-size: 15px !important; }
   #nameModalSub   { font-size: 10px !important; margin-bottom: 14px !important; }
-  #nameInput      { font-size: 14px !important; padding: 10px 12px !important; }
+  #nameInput      { font-size: 14px !important; padding: 10px 12px 10px 36px !important; }
   #nameConfirmBtn { font-size: 12px !important; padding: 11px !important; }
 }
 @media (max-width: 360px) {
