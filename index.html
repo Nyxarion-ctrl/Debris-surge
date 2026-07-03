@@ -896,6 +896,23 @@ body.tut-locked #tutSkip {
   background:rgba(139,92,246,0.18);border:1px solid rgba(139,92,246,0.4);
   border-radius:7px;padding:2px 6px;color:#e9d5ff;text-transform:none;
 }
+/* ── Punto "nuevo dossier" — dossier desbloqueado que el jugador aún no leyó ── */
+.mar-newdot{
+  display:none;flex-shrink:0;width:7px;height:7px;border-radius:50%;
+  background:#f472b6;box-shadow:0 0 6px rgba(244,114,182,0.8);
+  animation:marNewDotPulse 1.6s ease-in-out infinite;
+}
+@keyframes marNewDotPulse{
+  0%,100%{transform:scale(1);opacity:1;}
+  50%{transform:scale(1.35);opacity:0.7;}
+}
+/* ── Pastilla "NUEVO" sobre tarjetas de dossier no leídas ── */
+.arc-new-pill{
+  position:absolute;top:8px;right:8px;font-size:8px;font-weight:800;letter-spacing:.4px;
+  background:rgba(244,114,182,0.2);border:1px solid rgba(244,114,182,0.55);
+  color:#fbcfe8;border-radius:6px;padding:2px 6px;text-transform:uppercase;
+  animation:marNewDotPulse 1.6s ease-in-out infinite;
+}
 
 /* ── Fila secundaria: CÓMO JUGAR + ARCHIVOS, mitad y mitad, sin tocar el grid de 5 íconos ── */
 .menu-secondary-row{
@@ -5268,10 +5285,13 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
   }
 }
 
-/* Botones de juego bloqueados durante onboarding */
+/* Botones de juego bloqueados durante onboarding.
+   FIX v342: pointer-events queda en 'auto' a propósito — el click se intercepta
+   en JS (listener delegado en fase de captura) para mostrar un aviso claro
+   con acceso directo al tutorial, en vez de ser un callejón sin salida mudo. */
 .npob-locked {
   opacity: 0.28 !important;
-  pointer-events: none !important;
+  cursor: not-allowed !important;
   filter: grayscale(0.6) !important;
   user-select: none !important;
 }
@@ -14417,6 +14437,9 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
         <button id="tutFinalBtnReplay">
           <span>🔁</span><span id="tutFinalBtnReplayLabel">Repetir</span>
         </button>
+        <button id="tutFinalBtnHow">
+          <span>📖</span><span id="tutFinalBtnHowLabel">Cómo Jugar</span>
+        </button>
         <button id="tutFinalBtnMenu">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;opacity:0.85;">
             <path d="M3 12L12 4l9 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -15036,6 +15059,7 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;filter:drop-shadow(0 0 5px rgba(139,92,246,0.6));"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="#c4b5fd" stroke-width="1.8" stroke-linejoin="round"/><path d="M14 2v6h6" stroke="#c4b5fd" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 13h8M8 17h5" stroke="rgba(196,181,253,0.65)" stroke-width="1.5" stroke-linecap="round"/></svg>
         <span data-i18n="archives" style="text-shadow:0 0 12px rgba(139,92,246,0.4);">ARCHIVOS</span>
         <span id="menuArchivesCounter_d" class="mar-counter"></span>
+        <span id="menuArchivesNewDot_d" class="mar-newdot"></span>
       </button>
     </div>
 
@@ -15518,6 +15542,7 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;filter:drop-shadow(0 0 5px rgba(139,92,246,0.6));"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="#c4b5fd" stroke-width="1.8" stroke-linejoin="round"/><path d="M14 2v6h6" stroke="#c4b5fd" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 13h8M8 17h5" stroke="rgba(196,181,253,0.65)" stroke-width="1.5" stroke-linecap="round"/></svg>
         <span data-i18n="archives" style="text-shadow:0 0 12px rgba(139,92,246,0.4);">ARCHIVOS</span>
         <span id="menuArchivesCounter" class="mar-counter"></span>
+        <span id="menuArchivesNewDot" class="mar-newdot"></span>
       </button>
     </div>
 
@@ -17438,6 +17463,14 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
         <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;color:var(--p);letter-spacing:-0.5px;" id="goXpAmount">+0 XP</div>
       </div>
 
+      <!-- Season Pass progress teaser -->
+      <div id="goSeasonHint" style="display:none;background:rgba(236,72,153,0.05);border:1px solid rgba(236,72,153,0.16);border-radius:14px;padding:9px 14px;text-align:center;">
+        <div style="font-size:10px;color:#f9a8d4;font-weight:600;" id="goSeasonHintTxt"></div>
+        <div style="margin-top:6px;height:3px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;">
+          <div id="goSeasonHintBar" style="height:100%;width:0%;background:linear-gradient(90deg,#ec4899,#f472b6);border-radius:2px;transition:width .6s ease;"></div>
+        </div>
+      </div>
+
       <!-- Next mission hook -->
       <div id="goNextHook" style="display:none;background:rgba(6,182,212,0.04);border:1px solid rgba(6,182,212,0.15);border-radius:14px;padding:12px 16px;"></div>
 
@@ -17600,6 +17633,19 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
 
     <!-- ── Desafío semanal ── -->
     <div id="weeklyChallengCard_mp" style="display:none;background:linear-gradient(135deg,rgba(20,14,40,0.85),rgba(10,18,40,0.90));border:1px solid rgba(139,92,246,0.22);border-radius:16px;padding:0;margin-bottom:12px;backdrop-filter:blur(8px);box-shadow:0 4px 24px rgba(0,0,0,0.35),0 0 0 1px rgba(255,255,255,0.04) inset;overflow:hidden;"></div>
+
+    <!-- ── Season Pass ── -->
+    <div id="seasonPassCard" style="position:relative;overflow:hidden;background:linear-gradient(135deg,rgba(139,92,246,0.10),rgba(6,182,212,0.06));border:1px solid rgba(139,92,246,0.28);border-radius:16px;padding:12px 14px;margin-bottom:12px;box-shadow:0 0 28px rgba(139,92,246,0.06),inset 0 1px 0 rgba(139,92,246,0.10);transition:opacity .3s;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">
+        <span style="font-size:16px;">🛰️</span>
+        <div id="seasonPassTitle" style="flex:1;font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:700;color:#a78bfa;letter-spacing:.2px;">Temporada 1: Proyecto VELO</div>
+        <span id="seasonPassTier" style="font-size:11px;font-weight:700;color:var(--tx3);">0/8</span>
+      </div>
+      <div style="width:100%;height:4px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;">
+        <div id="seasonPassBar" style="height:100%;width:0%;background:linear-gradient(90deg,#8b5cf6,#06b6d4);border-radius:2px;transition:width .5s;"></div>
+      </div>
+      <div id="seasonPassSub" style="font-size:11px;color:var(--tx3);margin-top:4px;"></div>
+    </div>
 
     <!-- Elite Daily Challenge card -->
     <div id="eliteCard" style="position:relative;overflow:hidden;background:linear-gradient(135deg,rgba(245,158,11,0.09),rgba(239,68,68,0.05));border:1px solid rgba(245,158,11,0.25);border-radius:16px;padding:14px 16px;margin-bottom:12px;box-shadow:0 0 32px rgba(245,158,11,0.05),inset 0 1px 0 rgba(245,158,11,0.12);">
@@ -19840,6 +19886,13 @@ const TRANSLATIONS = {
   },
 };
 
+// ── FIX AUDITORÍA: _bslc ("boss subtitle language code") se usa en ~140
+// notificaciones de ataques de jefes (Corrupto, Tóxico, Meteórico, Chaos,
+// Estelar) pero JAMÁS se declaraba en ningún punto del archivo — cada uso
+// lanzaba ReferenceError: _bslc is not defined en tiempo de ejecución.
+// Se sincroniza dentro de Lang._apply() (el único punto por el que pasan
+// tanto init() como select(), es decir, cualquier cambio de idioma).
+let _bslc = 'en';
 const Lang = {
   cur: 'en',
 
@@ -19904,6 +19957,7 @@ const Lang = {
   },
 
   _apply(){
+    _bslc = this.cur; // mantiene sincronizada la variable global usada por notificaciones de jefes
     const d = TRANSLATIONS[this.cur] || TRANSLATIONS.es;
 
     // Sync html[lang] for SEO and screen readers
@@ -20453,8 +20507,11 @@ const Lang = {
     try{ if(typeof window._updateTutBadges==='function') window._updateTutBadges(); }catch(_){}
 
     // Refresh onboarding modal texts if active (language changed while modal is showing)
+    // FIX v342: el guard original referenciaba `NewPlayerOnboarding`, un objeto
+    // que nunca llegó a definirse en el archivo — este bloque jamás se ejecutaba.
+    // Se reemplaza por una comprobación directa del veil, que es autosuficiente.
     try{
-      if(typeof NewPlayerOnboarding !== 'undefined' && NewPlayerOnboarding.isActive()){
+      {
         const _npobVeil = document.getElementById('npob-veil');
         if(_npobVeil && _npobVeil.classList.contains('on')){
           // Re-render all onboarding texts with new language
@@ -20784,10 +20841,10 @@ const GS={
       const lv=this.data.xpLevel;
       // Milestone rewards table
       // Canonical ES keys (stored key is always ES for ALL_TITLE_DEFS lookup consistency)
-      const TITLE_ES={5:'Piloto',10:'Veterano',15:'Élite',20:'Maestro',25:'Leyenda',30:'Dios Orbital',50:'Eterno'};
-      const TITLE_EN={5:'Pilot',10:'Veteran',15:'Elite',20:'Master',25:'Legend',30:'Orbital God',50:'Eternal'};
-      const TITLE_PT={5:'Piloto',10:'Veterano',15:'Élite',20:'Mestre',25:'Lenda',30:'Deus Orbital',50:'Eterno'};
-      const TITLE_JA={5:'パイロット',10:'ベテラン',15:'エリート',20:'マスター',25:'レジェンド',30:'軌道神',50:'エターナル'};
+      const TITLE_ES={5:'Piloto',10:'Veterano',15:'Élite',20:'Maestro',25:'Leyenda',30:'Dios Orbital',50:'Eterno',75:'Eterno II',100:'Eterno III',150:'Trascendido',200:'Más Allá del Vacío'};
+      const TITLE_EN={5:'Pilot',10:'Veteran',15:'Elite',20:'Master',25:'Legend',30:'Orbital God',50:'Eternal',75:'Eternal II',100:'Eternal III',150:'Transcended',200:'Beyond the Void'};
+      const TITLE_PT={5:'Piloto',10:'Veterano',15:'Élite',20:'Mestre',25:'Lenda',30:'Deus Orbital',50:'Eterno',75:'Eterno II',100:'Eterno III',150:'Transcendido',200:'Além do Vazio'};
+      const TITLE_JA={5:'パイロット',10:'ベテラン',15:'エリート',20:'マスター',25:'レジェンド',30:'軌道神',50:'エターナル',75:'エターナルII',100:'エターナルIII',150:'超越者',200:'虚無の彼方'};
       const _lc=typeof Lang!=='undefined'?Lang.cur:'es';
       const titlesDisplay=_lc==='en'?TITLE_EN:_lc==='pt'?TITLE_PT:_lc==='ja'?TITLE_JA:TITLE_ES;
       // Find highest earned title (for display)
@@ -21955,6 +22012,17 @@ const Tut = (function(){
   let _spawnPaused = false;
   let _spawnTimer = null;    // setTimeout cancelable para spawn de peligros
   let _collapseTimer = null; // setTimeout para auto-colapso de la card (5s)
+  // FIX v343d — antes el spawn/tracking de cada paso arrancaba en el mismo
+  // instante que la tarjeta, dejando ventana para completar el paso sin
+  // haberla leído. _stepReady + _stepReadyTimer dan un breve tiempo de
+  // lectura garantizado antes de que el paso se vuelva interactivo.
+  let _stepReady = false;
+  let _stepReadyTimer = null;
+  // Tiempo de lectura por tipo de paso — ajustado a cuánto texto tiene cada
+  // uno. El paso se activa (spawn + tracking) recién cuando la tarjeta se
+  // colapsa, no en un tiempo fijo genérico para todos.
+  const _STEP_READ_MS = { move:1300, absorb:1500, dodge:1900, combo:1600, powerup:1700 };
+  const _STEP_READ_DEFAULT = 1500;
   let _tutDangers = [];      // debris del tutorial (paso 3)
   let _demoHit = false;      // ya recibió el golpe demo en paso 3
   let _postDemoSpawned = false; // ya se hizo el respawn de peligros post-demo
@@ -21999,14 +22067,14 @@ const Tut = (function(){
       titleEn: 'Satellite Maneuver',
       titlePt: 'Manobra do Satélite',
       titleJa: '衛星の操作',
-      desc:    'Arrastra para desplazarte por la órbita. El campo de absorción sigue al satélite en tiempo real — cuanto menor la distancia al debris, mayor la fuerza de atracción.',
-      descEn:  'Drag to navigate the orbit. Your absorption field tracks the satellite in real time — the shorter the distance to debris, the stronger the pull.',
-      descPt:  'Arrasta para navegar pela órbita. O campo de absorção segue o satélite em tempo real — quanto menor a distância ao destroço, maior a força de atração.',
-      descJa:  'ドラッグして軌道を移動。吸収フィールドがリアルタイムで追従 — デブリに近いほど引力が強まる。',
-      tip:     'Mantén el satélite en movimiento continuo. La inercia cero es el mayor riesgo para el combo.',
-      tipEn:   'Keep the satellite in continuous motion. Zero inertia is the biggest threat to your combo.',
-      tipPt:   'Mantém o satélite em movimento contínuo. A inércia zero é o maior risco para o combo.',
-      tipJa:   '衛星を常に動かし続けよう。静止はコンボの最大の敵。',
+      desc:    'Arrastra para moverte por la órbita. Cuanto más cerca estés del debris, más fuerte lo atraes hacia ti.',
+      descEn:  'Drag to move around the orbit. The closer you get to debris, the stronger you pull it in.',
+      descPt:  'Arrasta para te moveres pela órbita. Quanto mais perto estiveres do destroço, mais forte o atrais.',
+      descJa:  'ドラッグして軌道を移動しよう。デブリに近づくほど、引き寄せる力が強くなる。',
+      tip:     'No te detengas: quedarte quieto es lo más peligroso para tu combo.',
+      tipEn:   'Keep moving — standing still is the biggest threat to your combo.',
+      tipPt:   'Não pares: ficar parado é o maior risco para o teu combo.',
+      tipJa:   '動き続けよう — 止まるのがコンボ最大の敵。',
       tipIcon: '💡',
       hint:    'Mueve el satélite para continuar',
       hintEn:  'Move the satellite to continue',
@@ -22030,14 +22098,14 @@ const Tut = (function(){
       titleEn: 'Debris Capture',
       titlePt: 'Captura de Destroços',
       titleJa: 'デブリ捕捉',
-      desc:    'Acércate a los fragmentos flotantes para absorberlos. Cada rareza tiene un valor distinto: el debris común aporta pocos puntos; el Antiguo ✦ y el Legendario ★ multiplican el marcador significativamente.',
-      descEn:  'Approach floating fragments to absorb them. Each rarity has a distinct value: common debris yields few points; Ancient ✦ and Legendary ★ scale the score significantly.',
-      descPt:  'Aproxima-te dos fragmentos flutuantes para os absorver. Cada raridade tem um valor distinto: o destroço comum dá poucos pontos; o Ancestral ✦ e o Lendário ★ multiplicam a pontuação significativamente.',
-      descJa:  '浮遊する破片に近づいて吸収しよう。レアリティによって価値が異なる：通常は少ない点、古代✦と伝説★はスコアを大幅に上げる。',
-      tip:     'El brillo periférico indica rareza. Prioriza fragmentos de mayor luminosidad para maximizar la eficiencia por pase.',
-      tipEn:   'Peripheral glow indicates rarity. Prioritize higher-luminosity fragments to maximize efficiency per pass.',
-      tipPt:   'O brilho periférico indica raridade. Prioriza fragmentos de maior luminosidade para maximizar a eficiência por passagem.',
-      tipJa:   '外周の光がレアリティを示す。輝きの強い破片を優先して効率を最大化しよう。',
+      desc:    'Acércate a los fragmentos para absorberlos. Los que brillan más (Antiguo ✦ y Legendario ★) valen muchos más puntos.',
+      descEn:  'Get close to fragments to absorb them. The brighter ones (Ancient ✦ and Legendary ★) are worth way more points.',
+      descPt:  'Aproxima-te dos fragmentos para os absorver. Os que brilham mais (Ancestral ✦ e Lendário ★) valem muito mais pontos.',
+      descJa:  '破片に近づいて吸収しよう。強く光るもの（古代✦・伝説★）は得点がずっと高い。',
+      tip:     'Fíjate en el brillo: los fragmentos más luminosos son los más valiosos.',
+      tipEn:   'Watch the glow — the brighter the fragment, the more it\'s worth.',
+      tipPt:   'Repara no brilho: os fragmentos mais luminosos são os mais valiosos.',
+      tipJa:   '光の強さに注目 — 明るいほど価値が高い。',
       tipIcon: '⚡',
       hint:    'Absorbe al menos 1 debris',
       hintEn:  'Absorb at least 1 debris',
@@ -22061,14 +22129,14 @@ const Tut = (function(){
       titleEn: 'Orbital Threats',
       titlePt: 'Ameaças Orbitais',
       titleJa: '軌道上の脅威',
-      desc:    'Dos vectores de peligro patrullan la órbita: ☄ Meteoro (rojo) y ☠ Tóxico (verde). El contacto con cualquiera descuenta una vida. Recibirás un impacto de demostración — luego esquiva ambos para continuar.',
-      descEn:  'Two threat vectors patrol the orbit: ☄ Meteor (red) and ☠ Toxic (green). Contact with either costs one life. You will take one demo hit — then dodge both to continue.',
-      descPt:  'Dois vetores de perigo patrulham a órbita: ☄ Meteoro (vermelho) e ☠ Tóxico (verde). O contacto com qualquer um custa uma vida. Receberás um impacto de demonstração — depois esquiva ambos para continuar.',
-      descJa:  '2種の脅威が軌道を巡回：☄ 隕石（赤）と ☠ 毒性（緑）。接触すると1ライフ失う。デモ用に1回被弾した後、両方を回避して続行しよう。',
-      tip:     'Evita la trayectoria lineal: cruza siempre en arco. El retroceso recto coloca al satélite en la ruta de impacto.',
-      tipEn:   'Avoid linear paths — always arc around threats. Straight retreat places the satellite directly in the impact vector.',
-      tipPt:   'Evita trajetórias lineares — contorna sempre em arco. Recuar em linha reta coloca o satélite diretamente na rota de impacto.',
-      tipJa:   '直線移動は禁物 — 常に弧を描いて脅威を回避。直進後退は衝突コースに入る。',
+      desc:    'Dos peligros patrullan la órbita: ☄ Meteoro (rojo) y ☠ Tóxico (verde). Tocarlos te quita una vida. Vas a recibir un golpe de práctica — luego esquiva ambos.',
+      descEn:  'Two hazards patrol the orbit: ☄ Meteor (red) and ☠ Toxic (green). Touching either costs a life. You\'ll take one practice hit — then dodge both.',
+      descPt:  'Dois perigos patrulham a órbita: ☄ Meteoro (vermelho) e ☠ Tóxico (verde). Tocá-los custa uma vida. Vais levar um golpe de prática — depois esquiva ambos.',
+      descJa:  '2つの危険が軌道を巡回：☄ 隕石（赤）と ☠ 毒（緑）。触れるとライフを1失う。まず練習で1回被弾 — その後両方を避けよう。',
+      tip:     'No retrocedas en línea recta: esquiva haciendo un arco hacia un lado.',
+      tipEn:   'Don\'t retreat in a straight line — dodge by curving to one side.',
+      tipPt:   'Não recues em linha reta: esquiva fazendo um arco para o lado.',
+      tipJa:   'まっすぐ後退しないで — 弧を描くように横へ避けよう。',
       tipIcon: '⚠️',
       hint:    'Esquiva los dos peligros',
       hintEn:  'Dodge both threats',
@@ -22092,14 +22160,14 @@ const Tut = (function(){
       titleEn: 'Multiplier Chain',
       titlePt: 'Cadeia de Multiplicadores',
       titleJa: 'コンボチェーン',
-      desc:    'Absorbe sin interrupciones para escalar el multiplicador: ×2 → ×5 → ×10 → ×25. El indicador junto al satélite refleja el estado actual. Un solo escape resetea la cadena a ×1.',
-      descEn:  'Absorb without interruption to scale the multiplier: ×2 → ×5 → ×10 → ×25. The indicator near the satellite reflects the current state. A single escape resets the chain to ×1.',
-      descPt:  'Absorve sem interrupções para escalar o multiplicador: ×2 → ×5 → ×10 → ×25. O indicador perto do satélite reflete o estado atual. Um único escape reinicia a cadeia para ×1.',
-      descJa:  '途切れずに吸収してコンボを積み上げよう：×2 → ×5 → ×10 → ×25。衛星近くの表示が現状を示す。1回でも逃すと×1にリセット。',
-      tip:     'Las trayectorias circulares amplias capturan más fragmentos por pase y reducen la probabilidad de ruptura.',
-      tipEn:   'Wide circular paths capture more fragments per pass and reduce chain-break probability.',
-      tipPt:   'Trajetórias circulares amplas capturam mais fragmentos por passagem e reduzem a probabilidade de quebra de cadeia.',
-      tipJa:   '大きな円弧を描くと1周で多くのデブリを吸収でき、チェーン切れを防ぎやすい。',
+      desc:    'Absorbe sin parar para subir el multiplicador: ×2 → ×5 → ×10 → ×25. Si dejas escapar uno, vuelves a ×1.',
+      descEn:  'Keep absorbing without stopping to raise your multiplier: ×2 → ×5 → ×10 → ×25. Miss one and you\'re back to ×1.',
+      descPt:  'Absorve sem parar para subir o multiplicador: ×2 → ×5 → ×10 → ×25. Se deixares escapar um, voltas a ×1.',
+      descJa:  '止まらず吸収してコンボを上げよう：×2 → ×5 → ×10 → ×25。1つでも逃すと×1に逆戻り。',
+      tip:     'Muévete en círculos amplios: capturas más fragmentos y cortas menos la cadena.',
+      tipEn:   'Move in wide circles — you\'ll catch more fragments and break the chain less.',
+      tipPt:   'Move-te em círculos amplos: capturas mais fragmentos e quebras menos a cadeia.',
+      tipJa:   '大きく円を描いて動こう — より多くの破片を捕まえ、コンボも切れにくい。',
       tipIcon: '🎯',
       hint:    'Absorbe debris seguidos para alcanzar combo ×2',
       hintEn:  'Absorb debris in a row to reach ×2 combo',
@@ -22123,14 +22191,14 @@ const Tut = (function(){
       titleEn: 'Advantage Activation',
       titlePt: 'Ativação de Vantagens',
       titleJa: 'アドバンテージ発動',
-      desc:    'Ciertos debris raros o especiales liberan ventajas al ser absorbidos: 🔵 Campo magnético, 🛡 Escudo (bloquea 1 impacto), 🕐 Tiempo lento y ×2 Puntos dobles. Identifícalos por el halo luminoso persistente.',
-      descEn:  'Certain rare or special debris release advantages when absorbed: 🔵 Magnetic field, 🛡 Shield (blocks 1 hit), 🕐 Slow time and ×2 Double points. Identify them by their persistent luminous halo.',
-      descPt:  'Certos destroços raros ou especiais libertam vantagens ao ser absorvidos: 🔵 Campo magnético, 🛡 Escudo (bloqueia 1 impacto), 🕐 Tempo lento e ×2 Pontos duplos. Identifica-os pelo halo luminoso persistente.',
-      descJa:  '特定のレアまたは特殊デブリを吸収するとアドバンテージが発動：🔵 磁力フィールド、🛡 シールド（1ヒット防御）、🕐 スローモーション、×2 ダブルポイント。持続する光輪で識別できる。',
-      tip:     'Las ventajas se acumulan. Encadenar varias en secuencia genera una ventana de puntuación exponencial.',
-      tipEn:   'Advantages stack. Chaining several in sequence creates an exponential scoring window.',
-      tipPt:   'As vantagens acumulam-se. Encadear várias em sequência cria uma janela de pontuação exponencial.',
-      tipJa:   'アドバンテージは重複する。複数を連続で発動すると指数関数的なスコアウィンドウが生まれる。',
+      desc:    'Algunos debris especiales te dan ventajas al absorberlos: 🔵 Imán, 🛡 Escudo, 🕐 Tiempo lento y ×2 Puntos dobles. Reconócelos por su brillo constante.',
+      descEn:  'Some special debris give you an edge when absorbed: 🔵 Magnet, 🛡 Shield, 🕐 Slow time and ×2 Double points. Spot them by their steady glow.',
+      descPt:  'Alguns destroços especiais dão-te vantagens ao serem absorvidos: 🔵 Íman, 🛡 Escudo, 🕐 Tempo lento e ×2 Pontos duplos. Reconhece-os pelo brilho constante.',
+      descJa:  '特殊デブリを吸収するとボーナスが発動：🔵 マグネット、🛡 シールド、🕐 スロー、×2 ダブルポイント。一定に光るのが目印。',
+      tip:     'Las ventajas se combinan entre sí: encadenarlas dispara tu puntuación.',
+      tipEn:   'Advantages stack — chaining them together sends your score through the roof.',
+      tipPt:   'As vantagens combinam-se: encadeá-las dispara a tua pontuação.',
+      tipJa:   'アドバンテージは重ねがけ可能 — 連続で発動するとスコアが急上昇。',
       tipIcon: '🔋',
       hint:    'Absorbe el debris especial',
       hintEn:  'Absorb the special debris',
@@ -22154,14 +22222,14 @@ const Tut = (function(){
       titleEn: 'Orbital Boss — Level 10',
       titlePt: 'Chefe Orbital — Nível 10',
       titleJa: '軌道ボス — レベル10',
-      desc:    'Cada 10 niveles emerge un Jefe de Órbita: escudos giratorios protegen un núcleo blindado. Fase 1 — elimina los escudos absorbiendo sus fragmentos. Fase 2 — impacta el núcleo para derrotarlo y recuperar vidas.',
-      descEn:  'Every 10 levels an Orbital Boss emerges: spinning shields protect an armored core. Phase 1 — eliminate shields by absorbing their fragments. Phase 2 — strike the core to defeat it and recover lives.',
-      descPt:  'A cada 10 níveis surge um Chefe Orbital: escudos giratórios protegem um núcleo blindado. Fase 1 — elimina os escudos absorvendo os seus fragmentos. Fase 2 — atinge o núcleo para o derrotar e recuperar vidas.',
-      descJa:  '10レベルごとに軌道ボスが出現：回転シールドが装甲コアを守る。フェーズ1 — 破片を吸収してシールドを破壊。フェーズ2 — コアを攻撃して撃破しライフを回収。',
-      tip:     'Mantén el combo activo durante el jefe: cada escudo absorbido alimenta el multiplicador directamente.',
-      tipEn:   'Keep the combo active during the boss: each absorbed shield feeds the multiplier directly.',
-      tipPt:   'Mantém o combo ativo durante o chefe: cada escudo absorvido alimenta o multiplicador diretamente.',
-      tipJa:   'ボス戦中もコンボを維持：シールドを吸収するたびにコンボ倍率が上がる。',
+      desc:    'Cada 10 niveles aparece un Jefe de Órbita con escudos giratorios. Primero destruye los escudos absorbiendo sus fragmentos, luego golpea el núcleo para vencerlo y recuperar vidas.',
+      descEn:  'Every 10 levels an Orbital Boss shows up with spinning shields. Break the shields first by absorbing their fragments, then hit the core to defeat it and recover lives.',
+      descPt:  'A cada 10 níveis aparece um Chefe Orbital com escudos giratórios. Destrói primeiro os escudos absorvendo os fragmentos, depois atinge o núcleo para o vencer e recuperar vidas.',
+      descJa:  '10レベルごとに回転シールドを持つボスが出現。まずシールドの破片を吸収して破壊し、その後コアを攻撃して撃破しライフを回復しよう。',
+      tip:     'No pierdas el combo durante el jefe: cada escudo absorbido lo alimenta.',
+      tipEn:   'Keep your combo alive during the boss — every shield you absorb feeds it.',
+      tipPt:   'Não percas o combo durante o chefe: cada escudo absorvido alimenta-o.',
+      tipJa:   'ボス戦中もコンボを切らさないで — シールドを吸収するたびに倍率が上がる。',
       tipIcon: '👁️',
       hint:    '',
       hintEn:  '',
@@ -22176,14 +22244,14 @@ const Tut = (function(){
       titleEn: 'Systems Nominal',
       titlePt: 'Sistemas Operacionais',
       titleJa: 'システム正常',
-      desc:    'Protocolo de entrenamiento completado. Limpia la órbita, supera tu récord y desbloquea skins con el botín acumulado. La galaxia aguarda — buen vuelo, piloto.',
-      descEn:  'Training protocol complete. Clean the orbit, surpass your record and unlock skins with accumulated loot. The galaxy awaits — good flight, pilot.',
-      descPt:  'Protocolo de treino concluído. Limpa a órbita, supera o teu recorde e desbloqueia skins com o espólio acumulado. A galáxia aguarda — boa viagem, piloto.',
-      descJa:  '訓練プロトコル完了。軌道を清め、記録を塗り替え、集めた戦利品でスキンを解放しよう。銀河が待っている — 出撃、パイロット。',
-      tip:     'El tutorial puede repetirse desde Ajustes en cualquier momento. El marcador global te espera.',
-      tipEn:   'The tutorial can be replayed from Settings at any time. The global leaderboard awaits.',
-      tipPt:   'O tutorial pode ser repetido a partir das Definições a qualquer momento. O ranking global aguarda.',
-      tipJa:   'チュートリアルはいつでも設定から再プレイできる。グローバルリーダーボードが待っている。',
+      desc:    'Listo. Limpia la órbita, supera tu récord y desbloquea skins con lo que ganes. ¡Buen vuelo, piloto!',
+      descEn:  'You\'re ready. Clean the orbit, beat your record, and unlock skins with what you earn. Good flight, pilot!',
+      descPt:  'Pronto. Limpa a órbita, supera o teu recorde e desbloqueia skins com o que ganhares. Boa viagem, piloto!',
+      descJa:  '準備完了。軌道を清め、記録を更新し、獲得したものでスキンを解放しよう。出撃、パイロット！',
+      tip:     'Puedes repetir el tutorial cuando quieras desde Ajustes.',
+      tipEn:   'You can replay the tutorial anytime from Settings.',
+      tipPt:   'Podes repetir o tutorial quando quiseres nas Definições.',
+      tipJa:   'チュートリアルはいつでも設定から再プレイできる。',
       tipIcon: '🏆',
       hint:    '',
       hintEn:  '',
@@ -22679,110 +22747,150 @@ const Tut = (function(){
     _pauseSpawn(false);
     clearTimeout(_spawnTimer);
     clearTimeout(_collapseTimer);
+    clearTimeout(_stepReadyTimer);
+    _stepReady = false;
 
     const st = STEPS[s];
     if(!st){ _showFinalScreen(); return; }
 
-    if(st.type === 'move'){
-      _pauseSpawn(true);
-      _dim(false); // paso move: sin overlay, visibilidad total
-    }
-
-    if(st.type === 'absorb'){
-      // Limpiar debris anteriores
-      _clearNormalDebris();
-      _dim('absorb'); // overlay con agujero cian — focaliza zona central
-      // Pre-spawnear 1 debris que entra desde fuera del borde izquierdo apuntando al centro.
-      // onScreen:false + onScrT:0 → el engine lo activa al cruzar el borde, igual que spawn normal.
-      if(G && G.debris && typeof T !== 'undefined' && typeof rndShape === 'function'){
-        const margin = 80;
-        const cx = W / 2, cy = H / 2;
-        const sx = -margin;
-        const sy = cy * 0.72 + Math.random() * cy * 0.56;
-        const ddx = cx - sx, ddy = cy - sy;
-        const ddist = Math.sqrt(ddx*ddx + ddy*ddy) || 1;
-        const speed = (typeof CFG !== 'undefined' ? CFG.DEBRIS_SPD : 72) * 0.85;
-        G.debris.push({
-          x: sx, y: sy,
-          vx: (ddx/ddist)*speed,
-          vy: (ddy/ddist)*speed,
-          r: 15,
-          type: T.SATELLITE,
-          rot: 0,
-          rotSpd: 0.9,
-          pulse: 0,
-          shape: rndShape(T.SATELLITE),
-          sucked: false,
-          onScreen: false,
-          onScrT: 0,
-          isMeteorWave:false, meteorTier:0,
-          isToxicWave:false,  toxicTier:0,
-          _tutSpawned: true,
-        });
-      }
-      // Resetear timer al máximo para que el engine no spawne otro debris de inmediato
-      if(G){ G.spawnT = (G.spawnI||1000) * 9999; }
-    }
-
-    if(st.type === 'dodge'){
-      // Limpiar pantalla y spawnear peligros con pequeño delay
+    // FIX v343f — Limpieza y pausa INMEDIATAS (no esperan el tiempo de lectura):
+    // antes, el debris del paso anterior seguía en pantalla y el motor normal
+    // seguía activo durante toda la ventana de lectura de la nueva tarjeta —
+    // eso era lo que se veía "resetearse" de golpe al llegar el spawn real.
+    // Ahora, en cuanto arranca el paso, se limpia y se bloquea el motor de
+    // una vez; el objeto propio del paso aparece recién al colapsar la
+    // tarjeta (ver _activateStepLogic), pero ya no hay nada suelto de por medio.
+    const _interactiveTypes = {move:1, absorb:1, dodge:1, combo:1, powerup:1};
+    if(_interactiveTypes[st.type]){
       _clearNormalDebris();
       _pauseSpawn(true);
-      _dim(false); // dodge: sin overlay — los peligros deben verse con claridad total
-      // Garantizar mínimo 2 vidas: G.sat no tiene hp, las vidas están en G.lives.
-      // Sin este guard, llegar con 1 vida + golpe de demo = game over inmediato.
-      if(G && G.lives < 2){ G.lives = 2; if(typeof hudDirty!=='undefined') hudDirty=true; }
-      _spawnTimer = setTimeout(()=>{
-        _spawnTimer=null;
-        if(_active && _step===2) _spawnDangers();
-      }, 700);
     }
+    // FIX v343g — BUG: el círculo (overlay 'absorb'/'combo') solo se
+    // actualizaba dentro de _activateStepLogic (retrasado), así que el
+    // agujero circular del paso anterior quedaba pegado en pantalla durante
+    // toda la ventana de lectura del paso siguiente — muy notorio al salir
+    // de los pasos 1 (absorb) y 3 (combo), los únicos que usan ese círculo.
+    // Se resetea de inmediato; el modo correcto para el nuevo paso se
+    // aplica después, ya dentro de _activateStepLogic.
+    _dim(false);
 
-    if(st.type === 'combo'){
-      // Limpiar debris y spawnear exactamente 2 debris controlados para el combo
-      _clearNormalDebris();
-      _pauseSpawn(true); // bloquear spawn normal; solo los 2 debris del tutorial
-      if(G){ G.combo=0; G.comboM=1; G.comboT=0; }
-      _dim('combo'); // overlay con agujero amarillo — zona central, radio mayor para 2 debris
-      _spawnComboDebris();
-    }
-
-    if(st.type === 'powerup'){
-      // Limpiar debris y spawnear 1 debris SPECIAL desde el borde garantizando power-up
-      _clearNormalDebris();
-      _pauseSpawn(true); // bloqueamos el spawn normal; solo existe el debris especial
-      _dim(false); // powerup: sin overlay — el debris especial tiene su propio halo
-      if(G && G.debris && typeof T !== 'undefined' && typeof rndShape === 'function'){
-        const margin = 80;
-        const cx = W/2, cy = H/2;
-        const sx = -margin, sy = cy * 0.65;
-        const ddx = cx - sx, ddy = cy*0.9 - sy;
-        const ddist = Math.sqrt(ddx*ddx + ddy*ddy) || 1;
-        const speed = (typeof CFG !== 'undefined' ? CFG.DEBRIS_SPD : 72) * 0.80;
-        G.debris.push({
-          x: sx, y: sy,
-          vx: (ddx/ddist)*speed, vy: (ddy/ddist)*speed,
-          r: 16,
-          type: T.SPECIAL,
-          rot: 0, rotSpd: 1.1,
-          pulse: 0,
-          shape: rndShape(T.SPECIAL),
-          sucked: false,
-          onScreen: false, onScrT: 0,
-          isMeteorWave:false, meteorTier:0,
-          isToxicWave:false,  toxicTier:0,
-          _tutPowerUp: true,  // flag para garantizar drop de power-up al absorber
-          _puType: (typeof _pickPuType==='function') ? _pickPuType(T.SPECIAL) : 'field',
-        });
+    // FIX v343c — Antes, el spawn de objetos y el tracking de cada paso
+    // arrancaban en el MISMO instante en que aparecía la tarjeta, así que el
+    // jugador podía completar el paso mientras aún la estaba leyendo. Cuando
+    // eso ocurría, el estado "completado" aparecía justo cuando la tarjeta
+    // terminaba su propia animación de entrada — se veía como si todo
+    // apareciera de golpe. Ahora la tarjeta se muestra de inmediato (igual
+    // que antes), pero el spawn de objetos y el tracking de cada paso
+    // esperan _STEP_READ_MS tras la aparición de la tarjeta antes de activarse.
+    function _activateStepLogic(){
+      if(!_active || _done || _step !== s) return; // guard: el tutorial pudo cerrarse o avanzar mientras se esperaba
+      if(st.type === 'move'){
+        _pauseSpawn(true);
+        _dim(false); // paso move: sin overlay, visibilidad total
       }
-    }
 
-    if(st.type === 'info'){
-      // Sin dim — la pantalla sigue con su brillo normal
-      _dim(false);
-      if(G) G._tutInfoThrottle = 8.0;
-    } else {
-      if(G) G._tutInfoThrottle = 0;
+      if(st.type === 'absorb'){
+        // Limpiar debris anteriores
+        _clearNormalDebris();
+        // FIX v343e: a diferencia de dodge/combo/powerup, este paso no bloqueaba
+        // el spawn normal del motor (_pauseSpawn) — solo confiaba en un reset
+        // de timer que no cubre otras rutas de spawn (oleadas de meteoro/tóxico).
+        // Con esto queda 100% controlado: un solo debris hasta que se absorba.
+        _pauseSpawn(true);
+        _dim('absorb'); // overlay con agujero cian — focaliza zona central
+        // Pre-spawnear 1 debris que entra desde fuera del borde izquierdo apuntando al centro.
+        // onScreen:false + onScrT:0 → el engine lo activa al cruzar el borde, igual que spawn normal.
+        if(G && G.debris && typeof T !== 'undefined' && typeof rndShape === 'function'){
+          const margin = 80;
+          const cx = W / 2, cy = H / 2;
+          const sx = -margin;
+          const sy = cy * 0.72 + Math.random() * cy * 0.56;
+          const ddx = cx - sx, ddy = cy - sy;
+          const ddist = Math.sqrt(ddx*ddx + ddy*ddy) || 1;
+          const speed = (typeof CFG !== 'undefined' ? CFG.DEBRIS_SPD : 72) * 0.85;
+          G.debris.push({
+            x: sx, y: sy,
+            vx: (ddx/ddist)*speed,
+            vy: (ddy/ddist)*speed,
+            r: 15,
+            type: T.SATELLITE,
+            rot: 0,
+            rotSpd: 0.9,
+            pulse: 0,
+            shape: rndShape(T.SATELLITE),
+            sucked: false,
+            onScreen: false,
+            onScrT: 0,
+            isMeteorWave:false, meteorTier:0,
+            isToxicWave:false,  toxicTier:0,
+            _tutSpawned: true,
+          });
+        }
+        // Resetear timer al máximo para que el engine no spawne otro debris de inmediato
+        if(G){ G.spawnT = (G.spawnI||1000) * 9999; }
+      }
+
+      if(st.type === 'dodge'){
+        // Limpiar pantalla y spawnear peligros. El tiempo de lectura ya se
+        // esperó afuera (_STEP_READ_MS) así que aquí se spawnea directo.
+        _clearNormalDebris();
+        _pauseSpawn(true);
+        _dim(false); // dodge: sin overlay — los peligros deben verse con claridad total
+        // Garantizar mínimo 2 vidas: G.sat no tiene hp, las vidas están en G.lives.
+        // Sin este guard, llegar con 1 vida + golpe de demo = game over inmediato.
+        if(G && G.lives < 2){ G.lives = 2; if(typeof hudDirty!=='undefined') hudDirty=true; }
+        _spawnDangers();
+      }
+
+      if(st.type === 'combo'){
+        // Limpiar debris y spawnear exactamente 2 debris controlados para el combo
+        _clearNormalDebris();
+        _pauseSpawn(true); // bloquear spawn normal; solo los 2 debris del tutorial
+        if(G){ G.combo=0; G.comboM=1; G.comboT=0; }
+        _dim('combo'); // overlay con agujero amarillo — zona central, radio mayor para 2 debris
+        _spawnComboDebris();
+      }
+
+      if(st.type === 'powerup'){
+        // Limpiar debris y spawnear 1 debris SPECIAL desde el borde garantizando power-up
+        _clearNormalDebris();
+        _pauseSpawn(true); // bloqueamos el spawn normal; solo existe el debris especial
+        _dim(false); // powerup: sin overlay — el debris especial tiene su propio halo
+        if(G && G.debris && typeof T !== 'undefined' && typeof rndShape === 'function'){
+          const margin = 80;
+          const cx = W/2, cy = H/2;
+          const sx = -margin, sy = cy * 0.65;
+          const ddx = cx - sx, ddy = cy*0.9 - sy;
+          const ddist = Math.sqrt(ddx*ddx + ddy*ddy) || 1;
+          const speed = (typeof CFG !== 'undefined' ? CFG.DEBRIS_SPD : 72) * 0.80;
+          G.debris.push({
+            x: sx, y: sy,
+            vx: (ddx/ddist)*speed, vy: (ddy/ddist)*speed,
+            r: 16,
+            type: T.SPECIAL,
+            rot: 0, rotSpd: 1.1,
+            pulse: 0,
+            shape: rndShape(T.SPECIAL),
+            sucked: false,
+            onScreen: false, onScrT: 0,
+            isMeteorWave:false, meteorTier:0,
+            isToxicWave:false,  toxicTier:0,
+            _tutPowerUp: true,  // flag para garantizar drop de power-up al absorber
+            _puType: (typeof _pickPuType==='function') ? _pickPuType(T.SPECIAL) : 'field',
+          });
+        }
+      }
+
+      if(st.type === 'info'){
+        // Sin dim — la pantalla sigue con su brillo normal
+        _dim(false);
+        if(G) G._tutInfoThrottle = 8.0;
+      } else {
+        if(G) G._tutInfoThrottle = 0;
+      }
+
+      _stepReady = true;
+      _startTracking();
     }
 
     // ── Transición de contenido: fade-out → actualizar → fade-in ──────────
@@ -22795,8 +22903,9 @@ const Tut = (function(){
       _tutCard.classList.remove('tut-done','tut-collapsed');
     }
 
-    // Timer de auto-colapso: el paso tiene contexto activo, ocultamos la card
-    // tras 5s para que el jugador pueda ver y jugar libremente
+    // Timer de colapso: marca el fin del tiempo de lectura de la tarjeta.
+    // Cuando se cumple, la card se colapsa Y el paso se activa (spawn +
+    // tracking) en el mismo instante — ver _applyStep() más abajo.
     clearTimeout(_collapseTimer);
     // Solo auto-colapsar pasos que requieren acción (no info/boss final)
     const _autoCollapse = st && st.type !== 'info' && st.type !== 'boss';
@@ -22809,15 +22918,26 @@ const Tut = (function(){
         _tutBody.classList.add('tut-in');
         setTimeout(()=>{ if(_tutBody) _tutBody.classList.remove('tut-in'); }, 650);
       }
-      // Iniciar cuenta regresiva de auto-colapso
+      // FIX v343d — el paso (spawn + tracking) se activa en el MISMO momento
+      // en que la tarjeta se colapsa/desaparece de la vista, no antes. Así el
+      // jugador siempre termina de leer y ve la tarjeta irse antes de que
+      // algo empiece a pasar en pantalla — nunca "de golpe" a mitad de lectura.
       if(_autoCollapse){
+        const _readMs = _STEP_READ_MS[st.type] || _STEP_READ_DEFAULT;
         _collapseTimer = setTimeout(()=>{
           const card = $id('tutCard');
           // Solo colapsar si no está ya completado (verde) ni oculto
           if(card && !card.classList.contains('tut-done') && !card.classList.contains('off')){
             card.classList.add('tut-collapsed');
           }
-        }, 4500);
+          _activateStepLogic();
+        }, _readMs);
+      } else {
+        // Pasos sin colapso (info/boss): no hay "desaparición" que esperar,
+        // así que se activan tras una pausa breve — solo para separar
+        // visualmente del instante en que aparece la tarjeta.
+        clearTimeout(_stepReadyTimer);
+        _stepReadyTimer = setTimeout(_activateStepLogic, 300);
       }
     }
 
@@ -22829,8 +22949,6 @@ const Tut = (function(){
     } else {
       _applyStep();
     }
-
-    _startTracking();
   }
 
   // ── Pantalla final — Premium redesign v160 ────────────────────────────────
@@ -22840,6 +22958,7 @@ const Tut = (function(){
     _dim(false);
     _pauseSpawn(false);
     clearTimeout(_spawnTimer);
+    clearTimeout(_stepReadyTimer);
     const fs = $id('tutFinalScreen');
     if(!fs){ _pub.dismiss(); return; }
     if(typeof stopLoop==='function') stopLoop();
@@ -22899,9 +23018,11 @@ const Tut = (function(){
     const btnPlayLbl  = $id('tutFinalBtnPlayLabel');
     const btnMnLbl    = $id('tutFinalBtnMenuLabel');
     const btnRpLbl    = $id('tutFinalBtnReplayLabel');
+    const btnHowLbl   = $id('tutFinalBtnHowLabel');
     if(btnPlayLbl)  btnPlayLbl.textContent  = _L('¡A Jugar!',   'Play Now!',    'Jogar!',   'プレイ！');
     if(btnMnLbl)    btnMnLbl.textContent    = _L('Menú',        'Menu',         'Menu',     'メニュー');
     if(btnRpLbl)    btnRpLbl.textContent    = _L('Repetir',     'Replay',       'Repetir',  '再プレイ');
+    if(btnHowLbl)   btnHowLbl.textContent   = _L('Cómo Jugar',  'How to Play',  'Como Jogar','遊び方');
 
     // Reiniciar animaciones de logros
     try{
@@ -23004,6 +23125,7 @@ const Tut = (function(){
       _done=true; _active=false;
       cancelAnimationFrame(_raf); _raf=null;
       clearTimeout(_spawnTimer);
+      clearTimeout(_stepReadyTimer);
       _clearSpots();
       _clearTutDangers();
       _pauseSpawn(false);
@@ -23025,6 +23147,7 @@ const Tut = (function(){
       _tutDangers=[]; _spawnPaused=false; _step1LockedDebris=null;
       cancelAnimationFrame(_raf); _raf=null;
       clearTimeout(_spawnTimer);
+      clearTimeout(_stepReadyTimer);
       _clearSpots();
       _dim(false);
       _hideCard();
@@ -23042,6 +23165,7 @@ const Tut = (function(){
     _skipToFinal(){
       if(!_active) return;
       clearTimeout(_spawnTimer);
+      clearTimeout(_stepReadyTimer);
       _clearTutDangers();
       _clearNormalDebris();
       _pauseSpawn(false);
@@ -23058,7 +23182,7 @@ const Tut = (function(){
 
     // ── Hooks desde el engine del juego ──────────────────────────────────────
     onSatMoved(){
-      if(_step!==0||_movedSat||!_active||_done) return;
+      if(_step!==0||_movedSat||!_active||_done||!_stepReady) return;
       _movedSat=true;
       _unlockNext();
       const td=$id('tutDesc');
@@ -23088,14 +23212,18 @@ const Tut = (function(){
           'パワーアップ発動！効果を確認してから続行をタップしてトレーニングを終了しよう。'
         );
       }
-      // Forzar spawn del siguiente debris si seguimos en paso absorb o combo
-      if((_step===1||_step===3) && G){
-        if(_step === 3 && !_comboReached){
-          // Respawnear 1 debris combo para mantener siempre 2 en pantalla
-          _spawnOneComboDebris();
-        } else {
-          G.spawnT = (G.spawnI||1000)*2;
-        }
+      // FIX v343e — BUG REAL: antes, tanto al absorber el debris del paso 1
+      // como al llegar al combo del paso 3, este bloque forzaba un spawn
+      // extra del motor normal (G.spawnT = spawnI*2) SIN que el jugador lo
+      // pidiera — ni siquiera importaba si el paso ya estaba completo. Ese
+      // debris de más era justo lo que se veía "resetear" de golpe al pasar
+      // al siguiente paso (_clearNormalDebris lo eliminaba abruptamente).
+      // Ahora: paso 3 solo repone un debris de combo MIENTRAS no se haya
+      // alcanzado el combo (para poder seguir encadenando). Paso 1 ya no
+      // spawnea nada más — un debris, se absorbe, listo, sin sorpresas.
+      if(_step === 3 && !_comboReached && G){
+        // Respawnear 1 debris combo para mantener siempre 2 en pantalla mientras se construye el combo
+        _spawnOneComboDebris();
       }
     },
 
@@ -27155,6 +27283,8 @@ let _meteorShakePending = null;
 let _pendingShake      = null;
 let _pendingFlash      = false;
 let _dmgLock           = false;
+// Hit-stop: segundos restantes de congelamiento de lógica+render en momentos de alto impacto
+let _hitStopT          = 0;
 // Session counter — increments on each game start/end so stale setTimeout
 // callbacks from previous sessions do nothing (prevents freeze on game over)
 let _sessionId         = 0;
@@ -27919,6 +28049,16 @@ function loop(ts){
   const _dtCap = _IS_MOBILE ? (_dynQTier >= 2 ? 0.025 : 0.030) : 0.05;
   const dt    = rawDt <= 0 ? 0.016 : Math.min(rawDt, _dtCap);
   lastTs = ts;
+
+  // ── HIT-STOP — congela lógica y render un instante en golpes de alto impacto ──
+  // (combo x25, derrota de jefe). No se toca update()/render() del frame: el
+  // canvas simplemente conserva el último frame dibujado, dando el "freeze".
+  if(_hitStopT > 0){
+    _hitStopT = Math.max(0, _hitStopT - rawDt);
+    rafId = requestAnimationFrame(loop);
+    return;
+  }
+
   ft     = ts * 0.001;
 
   // Monitoreo de FPS en tiempo real (móvil Y desktop)
@@ -28227,8 +28367,10 @@ function update(dt){
           if(idx !== -1) absorbDebris(d, idx);
         }
         if(typeof notify==='function'){
-          const isEN_q = typeof Lang!=='undefined'&&Lang.cur==='en';
-          notify('🌀','¡Colapso Cuántico!','¡Todo el debris absorbido!');
+          const _qlc=typeof Lang!=='undefined'?Lang.cur:'es';
+          notify('🌀',
+            _qlc==='en'?'Quantum Collapse!':_qlc==='pt'?'Colapso Quântico!':_qlc==='ja'?'量子崩壊！':'¡Colapso Cuántico!',
+            _qlc==='en'?'All debris absorbed!':_qlc==='pt'?'Todos os destroços absorvidos!':_qlc==='ja'?'すべてのデブリを吸収！':'¡Todo el debris absorbido!');
         }
       }catch(_){}
     }
@@ -28394,15 +28536,23 @@ function updateSat(dt){
     // en idle como si los giroscopios internos mantuvieran la actitud.
     case 'default': {
       if(vm > 0.06){
-        // En movimiento: corrección de actitud gradual — los motores de control
-        // de orientación (RCS) trabajan en pulsos cortos, no en giro continuo.
-        // El satélite "nota" el cambio de dirección y corrige despacio.
+        // FIX v343h — BUG: la corrección de rumbo usaba un filtro proporcional
+        // simple de primer orden (dRot * dt*4.5): en cambios de dirección
+        // grandes, el primer frame daba un salto angular notorio y luego se
+        // desaceleraba de golpe — eso es lo que se sentía "rígido" al cambiar
+        // de dirección. Se reemplaza por el mismo smoothDamp con amortiguación
+        // crítica que ya usa la posición del satélite: misma curva real de
+        // aceleración/desaceleración, sin saltos, manteniendo el carácter
+        // deliberado (no instantáneo) del satélite estándar.
         const targetRot = Math.atan2(s.vy, s.vx) + Math.PI*0.5;
         let dRot = targetRot - s.rot;
         while(dRot >  Math.PI) dRot -= Math.PI*2;
         while(dRot < -Math.PI) dRot += Math.PI*2;
-        // dt*4.5 — más lento que Titan en combate, deliberado como maniobra orbital
-        s.rot += dRot * Math.min(dt*4.5, 0.16);
+        const rotSmoothT = 0.16; // deliberado — corrección gradual, no giro instantáneo
+        const maxRotSpd = 6.0;   // rad/s de margen — no se nota el tope en uso normal
+        const rr = smoothDamp(0, dRot, s.rotVel||0, rotSmoothT, maxRotSpd, dt);
+        s.rot += rr.val;
+        s.rotVel = rr.vel;
       } else {
         // Idle: deriva giroscópica casi imperceptible — los giroscopios internos
         // mantienen la actitud con micro-correcciones sinusoidales muy lentas.
@@ -29125,6 +29275,15 @@ function spawnDebris(){
     const nd = G.debris[G.debris.length-1];
     if(nd){ nd._chronoFrozen=true; nd._frozenVx=nd.vx; nd._frozenVy=nd.vy; nd.vx=0; nd.vy=0; }
   }
+
+  // ── TELEGRAPH DE RAREZA — anticipación para Ancestral/Legendario ────────
+  // Aviso de "algo bueno viene" en el punto de entrada: destello + sonido
+  // distintos ANTES de que el jugador note el brillo del debris en sí.
+  if(type.isLegendary || type === T.ANCIENT){
+    const _tgColor = type.isLegendary ? '#ffd700' : '#c084fc';
+    try{ G.shocks.push({x, y, r:6, spd:120, life:0.85, color:_tgColor, lw:2}); }catch(_){}
+    try{ Audio._o(520, 0.16, 'sine', 0.05, 900); }catch(_){}
+  }
 }
 
 // Elige qué tipo de power-up mostrará visualmente un debris bonus al spawnearse
@@ -29643,6 +29802,26 @@ function updateDebris(dt){
       hitDist = SAT_VR + d.r * 0.55;
     }
 
+    // ── NEAR MISS — recompensa por esquivar un peligro de cerca sin colisionar ──
+    // Solo meteoros/tóxicos sueltos (no escudos de jefe, no dangers de tutorial).
+    // Se arma cuando el peligro entra a una zona ~2x el hitbox real; se paga
+    // una sola vez por debris, cuando sale de esa zona sin haber chocado.
+    if((d.type.isMeteor || d.type.isToxic) && d.onScreen && !d._bossShield && !d._tutDanger && !d._nearMissDone){
+      const _nmZone = hitDist * 2.0;
+      if(dist < _nmZone){
+        if(d._nmMin === undefined || dist < d._nmMin) d._nmMin = dist;
+      } else if(d._nmMin !== undefined){
+        d._nearMissDone = true;
+        const _nmCloseness = 1 - (d._nmMin / _nmZone); // 0..1 — qué tan cerca pasó
+        if(_nmCloseness > 0.25){
+          const _nmPts = Math.round(4 + _nmCloseness * 8); // 4–12 pts
+          G.score += _nmPts; G.totalScore = (G.totalScore||0) + _nmPts;
+          try{ mkPopup(d.x, d.y - 12, (Lang&&Lang.cur==='en'?'Close! +':Lang&&Lang.cur==='pt'?'Perto! +':Lang&&Lang.cur==='ja'?'際どい！+':'¡Cerca! +')+_nmPts, {color:'#67e8f9', size:11}); }catch(_){}
+          try{ Audio._o(760 + _nmCloseness*260, 0.09, 'sine', 0.05); }catch(_){}
+        }
+      }
+    }
+
     // Satellite collision — ONLY when debris was genuinely on-screen
     // Guard: skip debris already being absorbed (prevents multi-frame double-scoring)
     const _skipAbsorb = g.pu.overcharge > 0 && g.pu.magnet <= 0 && !d.type.isMeteor && !d.type.isToxic && !d._bossCore && !d._bossShield && !d._voidRay;
@@ -30005,8 +30184,10 @@ function absorbDebris(d,idx){
   if(d._bossGivesLife && g.lives < CFG.LIVES){
     g.lives++;
     hudDirty=true;
-    const isEN_b=typeof Lang!=='undefined'&&Lang.cur==='en';
-    notify('❤️','¡Vida extra!','¡Debris jefe absorbido!');
+    const _blc=typeof Lang!=='undefined'?Lang.cur:'es';
+    notify('❤️',
+      _blc==='en'?'Extra life!':_blc==='pt'?'Vida extra!':_blc==='ja'?'ライフ追加！':'¡Vida extra!',
+      _blc==='en'?'Boss debris absorbed!':_blc==='pt'?'Destroço do chefe absorvido!':_blc==='ja'?'ボスデブリを吸収！':'¡Debris jefe absorbido!');
     try{ if(navigator.vibrate) navigator.vibrate([30,15,60]); }catch(_){}
     // Track boss kills
     try{ Store.set('orb_boss_kills',(Store.get('orb_boss_kills',0)+1)); }catch(_){}
@@ -30124,14 +30305,14 @@ function takeDamage(reason){
 
   // Prism Shield (Aurora Prism ability) — convierte el impacto en puntos
   if(g._prismShield){
-    const isEN_ps=typeof Lang!=='undefined'&&Lang.cur==='en';
+    const _pslc=typeof Lang!=='undefined'?Lang.cur:'es';
     g.score+=300;
     hudDirty=true;
     mkPopup(g.sat.x,g.sat.y-20,'+300',{color:'#e879f9'});
     mkParticles(g.sat.x,g.sat.y,'#e879f9',14);
     _pendingShake='l'; _pendingFlash=true;
     try{ Audio.shieldBreak(); }catch(_){}
-    try{ notify('🔮','¡Prisma absorbió!','+300 pts'); }catch(_){}
+    try{ notify('🔮',_pslc==='en'?'Prism absorbed!':_pslc==='pt'?'Prisma absorveu!':_pslc==='ja'?'プリズムが吸収！':'¡Prisma absorbió!','+300 pts'); }catch(_){}
     _dmgLock=false; return;
   }
 
@@ -30220,6 +30401,11 @@ function shake(t){
   if(!_pendingShake || (priority[t]||0) > (priority[_pendingShake]||0)){
     _pendingShake = t;
   }
+}
+
+// Hit-stop: congela lógica+render `sec` segundos (se queda con el valor más largo pendiente).
+function hitStop(sec){
+  if(sec > _hitStopT) _hitStopT = sec;
 }
 
 function _flushShake(){
@@ -30484,6 +30670,7 @@ function updateParticles(dt){
       p.life-=dt;
       p.vx*=dampP;
       p.vy*=dampP;
+      if(p.rotSpd) p.rot=(p.rot||0)+p.rotSpd*dt;
     }
     if(p.life<=0){
       // swap-remove: O(1) vs splice O(n)
@@ -30499,7 +30686,19 @@ function updateParticles(dt){
   const _effectiveCap = _IS_MOBILE
     ? (_dynQTier >= 3 ? 8 : _dynQTier >= 2 ? 18 : 40)
     : CFG.MAX_P;
-  if(arr.length > _effectiveCap) arr.length = _effectiveCap;
+  if(arr.length > _effectiveCap){
+    // ── PRIORIDAD DE RESIDUO ── En tiers bajos de calidad el cap puede ser tan
+    // chico (8–18) que una sola absorción de partículas redondas ya lo llena,
+    // dejando fuera los fragmentos de residuo (isShard) por pura desventaja
+    // numérica — el jugador terminaba viendo solo círculos aunque el código
+    // de shards se ejecutara bien. Partición estable O(n): los shards pasan
+    // al frente del array antes de truncar, así sobreviven el recorte.
+    let w = 0;
+    for(let r = 0; r < arr.length; r++){
+      if(arr[r].isShard){ const tmp = arr[w]; arr[w] = arr[r]; arr[r] = tmp; w++; }
+    }
+    arr.length = _effectiveCap;
+  }
 }
 
 function updateConfetti(dt){
@@ -30530,6 +30729,54 @@ function mkParticles(x,y,col,n){
   // Shockwave mínima siempre — pequeña y rápida
   G.shocks.push({x,y,r:2,spd:160,life:0.30,color:col,lw:1.4});
 }
+
+// ── FRAGMENTOS DE RESIDUO ────────────────────────────────────────────────
+// A diferencia de mkParticles (chispas/energía redondas), estos son astillas
+// alargadas que rotan al salir despedidas — simulan chatarra/cristal real
+// desprendido del debris, no el brillo de la absorción. Tamaño deliberadamente
+// mayor que las partículas de energía para que se lean como fragmentos sólidos
+// y no se confundan con puntos. Se usan en poca cantidad (dibujo individual,
+// no batched) así que el costo extra es insignificante.
+function mkShards(x,y,colors,n,opts){
+  opts = opts||{};
+  const speedMin = opts.speedMin!=null ? opts.speedMin : 55;
+  const speedMax = opts.speedMax!=null ? opts.speedMax : 160;
+  const sizeMin  = opts.sizeMin!=null  ? opts.sizeMin  : 4.5;
+  const sizeMax  = opts.sizeMax!=null  ? opts.sizeMax  : 8.5;
+  const life     = opts.life!=null     ? opts.life     : 0.55;
+  const lifeV    = opts.lifeV!=null    ? opts.lifeV    : 0.30;
+  const color2   = opts.color2;
+  let _n = n;
+  if(_IS_MOBILE) _n = _dynQTier>=3 ? Math.max(1,n>>2) : _dynQTier>=2 ? Math.max(2,n>>1) : Math.max(2,(n*0.7)|0);
+  for(let i=0;i<_n;i++){
+    const a=Math.random()*Math.PI*2, spd=speedMin+Math.random()*(speedMax-speedMin);
+    const c=colors[Math.floor(Math.random()*colors.length)];
+    G.particles.push({
+      x,y, vx:Math.cos(a)*spd, vy:Math.sin(a)*spd,
+      life:life+Math.random()*lifeV, r:sizeMin+Math.random()*(sizeMax-sizeMin),
+      color:c, color2, rot:Math.random()*Math.PI*2, rotSpd:(Math.random()-0.5)*9,
+      isShard:true, isText:false
+    });
+  }
+}
+
+// ── PALETA DE RESIDUO POR CATEGORÍA ─────────────────────────────────────
+// El material de los fragmentos depende de QUÉ debris se destruyó, no de
+// la skin activa — un Legendario siempre suelta bronce/oro, sin importar
+// si el jugador lleva puesto Phantom, Nova, etc. La skin ya tiene su
+// identidad propia en las partículas de energía y los anillos de choque;
+// el residuo físico es del objeto, no del satélite que lo absorbe.
+function _shardPaletteForCategory(col){
+  if(col==='#ff6b35')      return {colors:['#b45309','#78350f','#fbbf24'], color2:'#ffd700', n:7, speedMin:70,speedMax:190,sizeMin:6.0,sizeMax:11.0,life:.55}; // Legendario — bronce/oro
+  else if(col==='#a855f7') return {colors:['#581c87','#3b0764','#a855f7'], color2:'#c084fc', n:6, speedMin:60,speedMax:170,sizeMin:5.5,sizeMax:10.0,life:.50}; // Ancestral — piedra violeta
+  else if(col==='#06b6d4') return {colors:['#0e7490','#164e63','#22d3ee'], color2:'#67e8f9', n:5, speedMin:55,speedMax:155,sizeMin:5.0,sizeMax:9.0, life:.46}; // Especial — metal cian
+  else if(col==='#3b82f6') return {colors:['#1e3a5f','#1e293b','#3b82f6'], color2:'#60a5fa', n:5, speedMin:50,speedMax:145,sizeMin:4.6,sizeMax:8.4, life:.42}; // Militar — acero azulado
+  else                     return {colors:['#475569','#334155','#94a3b8'], color2:null,       n:4, speedMin:45,speedMax:120,sizeMin:4.0,sizeMax:7.0, life:.38}; // Normal/Satélite — chatarra gris
+}
+function mkCategoryShards(x,y,col){
+  const p = _shardPaletteForCategory(col);
+  mkShards(x,y,p.colors,p.n,{speedMin:p.speedMin,speedMax:p.speedMax,sizeMin:p.sizeMin,sizeMax:p.sizeMax,life:p.life,color2:p.color2});
+}
 function mkAbsorption(x,y,col,pts){
   const skin = (typeof Skin!=='undefined'&&Skin.cur)||'default';
   let n = Math.min(40,16+Math.floor(pts/4));
@@ -30551,6 +30798,7 @@ function mkAbsorption(x,y,col,pts){
       G.shocks.push({x,y,r:5,spd:130,life:0.38,color:'#bae6fd',lw:1.2});
       G.shocks.push({x,y,r:10,spd:70,life:0.28,color:'#94a3b8',lw:0.8});
       for(let i=0;i<8;i++){const a=(i/8)*Math.PI*2;G.particles.push({x,y,vx:Math.cos(a)*140,vy:Math.sin(a)*140,life:.26,color:'#e2e8f0',r:2.4,isText:false});}
+      mkCategoryShards(x,y,col);
       try{Audio.skinCollect('phantom',pts);}catch(_){}
       break;}
 
@@ -30587,6 +30835,7 @@ function mkAbsorption(x,y,col,pts){
           G.shocks.push({x:cx2,y:cy2,r:1,spd:120,life:0.18,color:'#fde68a',lw:1.0});
         });
       }catch(_){}
+      mkCategoryShards(x,y,col);
       try{Audio.skinCollect('nova',pts);}catch(_){}
       break;}
 
@@ -30604,6 +30853,7 @@ function mkAbsorption(x,y,col,pts){
       G.shocks.push({x,y,r:10,spd:72,life:0.32,color:'#fbbf24',lw:1.0});
       // 8 esquirlas radiales doradas — cortas y precisas
       for(let i=0;i<8;i++){const a=(i/8)*Math.PI*2+Math.random()*0.2;G.particles.push({x,y,vx:Math.cos(a)*120,vy:Math.sin(a)*120,life:.30,color:i%2?'#fde68a':'#fff',r:2.8,isText:false});}
+      mkCategoryShards(x,y,col);
       try{Audio.skinCollect('titan',pts);}catch(_){}
       break;}
 
@@ -30621,6 +30871,7 @@ function mkAbsorption(x,y,col,pts){
       G.shocks.push({x,y,r:10,spd:75,life:0.30,color:'#a78bfa',lw:0.8});
       // 10 fragmentos fractales
       for(let i=0;i<10;i++){const a=(i/10)*Math.PI*2+0.20;G.particles.push({x,y,vx:Math.cos(a)*100,vy:Math.sin(a)*100,life:.30,color:i%4===0?'#fff':i%4===1?'#e879f9':i%4===2?'#c4b5fd':'#7c3aed',r:2.6,isText:false});}
+      mkCategoryShards(x,y,col);
       try{Audio.skinCollect('quantum',pts);}catch(_){}
       break;}
 
@@ -30638,6 +30889,7 @@ function mkAbsorption(x,y,col,pts){
       G.shocks.push({x,y,r:12,spd:60,life:0.32,color:'#fbbf24',lw:0.8});
       // 12 rayos coronales radiales
       for(let i=0;i<12;i++){const a=(i/12)*Math.PI*2;G.particles.push({x,y,vx:Math.cos(a)*90,vy:Math.sin(a)*90,life:.34,color:i%3===0?'#fff':i%3===1?'#fcd34d':'#f0abfc',r:2.4,isText:false});}
+      mkCategoryShards(x,y,col);
       try{Audio.skinCollect('celestial',pts);}catch(_){}
       break;}
 
@@ -30659,6 +30911,7 @@ function mkAbsorption(x,y,col,pts){
         G.particles.push({x,y,vx:Math.cos(a)*90,vy:Math.sin(a)*90,life:.28,color:i%3===0?'#ffffff':i%3===1?'#c084fc':'#e879f9',r:2.6,isText:false});
       }
       try{Audio.skinCollect('shadow_mirror',pts);}catch(_){}
+      mkCategoryShards(x,y,col);
       break;}
     // ── VOID SPECTER: singularidad — implosión rojo-oscuro compacta ──
     case 'void_specter':{
@@ -30680,6 +30933,7 @@ function mkAbsorption(x,y,col,pts){
       for(let i=0;i<6;i++){const a=(i/6)*Math.PI*2;G.particles.push({x,y,vx:Math.cos(a)*(-40),vy:Math.sin(a)*(-40),life:.30,color:i%2===0?'#ff4500':'#dc2626',r:2.4,isText:false});}
       // 5 chispas hacia afuera
       for(let i=0;i<5;i++){const a=(i/5)*Math.PI*2;G.particles.push({x,y,vx:Math.cos(a)*130,vy:Math.sin(a)*130,life:.24,color:'#fca5a5',r:2.0,isText:false});}
+      mkCategoryShards(x,y,col);
       try{Audio.skinCollect('void_specter',pts);}catch(_){}
       break;}
 
@@ -30697,6 +30951,7 @@ function mkAbsorption(x,y,col,pts){
       G.shocks.push({x,y,r:10,spd:70,life:0.30,color:'#38bdf8',lw:0.8});
       // 10 rayos del espectro — cada uno un color diferente
       for(let i=0;i<10;i++){const a=(i/10)*Math.PI*2;G.particles.push({x,y,vx:Math.cos(a)*110,vy:Math.sin(a)*110,life:.28,color:prismCols[i%prismCols.length],r:2.8,isText:false});}
+      mkCategoryShards(x,y,col);
       try{Audio.skinCollect('aurora_prism',pts);}catch(_){}
       break;}
 
@@ -30714,6 +30969,7 @@ function mkAbsorption(x,y,col,pts){
       G.shocks.push({x,y,r:12,spd:58,life:0.32,color:'#a5f3fc',lw:0.9});
       // 8 cristales en cruz — escarcha cian característica
       for(let i=0;i<8;i++){const a=(i/8)*Math.PI*2;G.particles.push({x,y,vx:Math.cos(a)*100,vy:Math.sin(a)*100,life:.32,color:i%3===0?'#fff':i%3===1?'#a5f3fc':'#67e8f9',r:3.0,isText:false});}
+      mkCategoryShards(x,y,col);
       try{Audio.skinCollect('chrono_bastion',pts);}catch(_){}
       break;}
 
@@ -30737,6 +30993,7 @@ function mkAbsorption(x,y,col,pts){
         G.particles.push({x,y,vx:Math.cos(a)*spd2,vy:Math.sin(a)*spd2,life:.28,color:c2,r:3.5,isText:false});
       }
       try{Audio.skinCollect('nyxarion',pts);}catch(_){}
+      mkCategoryShards(x,y,col);
       break;}
 
     // ── DEFAULT: absorción orbital — diferenciada por tipo de debris ──
@@ -30792,6 +31049,9 @@ function mkAbsorption(x,y,col,pts){
         G.shocks.push({x,y,r:5, spd:110,life:0.36,color:col,       lw:1.1});
         G.shocks.push({x,y,r:9, spd:58, life:0.28,color:col,       lw:0.7});
       }
+      // Fragmentos de residuo — chatarra/cristal real del debris, diferenciado
+      // por categoría (más grandes y numerosos cuanto más raro el debris).
+      mkCategoryShards(x,y,col);
       try{Audio.skinCollect('default',pts);}catch(_){}
       break;}
   }
@@ -31886,6 +32146,7 @@ function render(){
     // Corredor seguro eliminado — los tóxicos no respetan la zona, se quitó para no confundir
 
     for(const d of G.debris)renderDebris(d);
+    renderTutDangerLabels();
     try{ BlackHole.draw(); }catch(_){}
     renderParticles();
     try{ if(G&&G.sat&&Skin&&Skin.cur==='titan') TitanProjectiles.draw(G.sat, G.sat.r||22, G.time||0); }catch(_){}
@@ -32076,6 +32337,45 @@ function renderField(){
   ctx.fillStyle=ha(fieldColor,(0.06+pulse*0.04)*_fieldAlpha);ctx.fill();
   ctx.beginPath();ctx.arc(s.x,s.y,suckR,0,Math.PI*2);
   ctx.strokeStyle=ha(fieldColor,(0.1+pulse*0.07)*_fieldAlpha);ctx.lineWidth=_IS_MOBILE?1.8:1.1;ctx.stroke();
+
+  // ── Etiqueta de campo — una sola vez para jugadores sin tutorial ────────
+  // Se dibuja en canvas sobre el anillo (no DOM), desaparece a los 3s.
+  // Solo activa si: no pasó el tutorial + partida real (no práctica, no tutorial).
+  (function(){
+    if(typeof _fieldLabelState === 'undefined'){
+      window._fieldLabelState = {
+        active: !Store.get('orb_tut', false) && !Store.get('orb_field_label_done', false),
+        t: 3.0, // segundos de vida
+        done: false
+      };
+    }
+    const fl = window._fieldLabelState;
+    if(!fl.active || fl.done) return;
+    if(typeof Practice !== 'undefined' && Practice.active) return;
+    if(typeof G !== 'undefined' && G._isTutorial) return;
+
+    fl.t -= (typeof dt !== 'undefined' ? dt : 0.016);
+    if(fl.t <= 0){ fl.done = true; Store.set('orb_field_label_done', true); return; }
+
+    const alpha = Math.min(1, fl.t * 1.5) * Math.min(1, (3.0 - fl.t) * 8);
+    if(alpha <= 0) return;
+
+    const lc = (typeof Lang !== 'undefined') ? Lang.cur : 'es';
+    const label = lc==='en' ? 'Absorption field' : lc==='pt' ? 'Campo de absorção' : lc==='ja' ? '吸収フィールド' : 'Campo de absorción';
+    const lx = s.x;
+    const ly = s.y - suckR - 8;
+
+    ctx.save();
+    ctx.globalAlpha = alpha * 0.85;
+    ctx.font = (_IS_MOBILE ? '10px' : '11px') + ' "Space Grotesk", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillStyle = fieldColor;
+    ctx.shadowColor = fieldColor;
+    ctx.shadowBlur = 6;
+    ctx.fillText(label, lx, ly);
+    ctx.restore();
+  })();
 
   // ── CAMPO ÚNICO POR SKIN — anillo decorativo interior (solo sin amenazas) ──
   // PERF: skip on tier-2 low-end mobile — field glow alone is sufficient
@@ -41888,6 +42188,71 @@ function _getCachedGrad(key, factory){
 // Invalida el cache al resize (ctx cambia de tamaño)
 window.addEventListener('resize', ()=>_gradCache.clear());
 
+// FIX v342 — Paso "esquiva" del tutorial (Amenazas Orbitales): etiqueta flotante
+// con nombre + icono sobre el meteoro y el tóxico de demostración, para que el
+// jugador nuevo identifique al instante cuál es cuál sin depender solo del color.
+// Se dibuja SOLO para los 2 objetos marcados _tutDanger (exclusivos de este paso)
+// — nunca aparece en juego normal, práctica ni el resto del tutorial.
+function renderTutDangerLabels(){
+  if(!G || !G.debris || !G.debris.length) return;
+  const _mg = 110; // mismo margen de visibilidad que usa renderDebris() para el sprite
+  for(const d of G.debris){
+    if(!d._tutDanger || d._absorbing) continue;
+    // FIX v343b — BUG REAL encontrado: la condición original usaba d.onScreen/
+    // d.onScrT (banderas del motor que solo se activan si el objeto pasa 80px+
+    // dentro de TODOS los bordes del canvas). Los objetos de demo orbitan cerca
+    // del satélite, no del centro del canvas completo, así que onScreen nunca
+    // llegaba a true en muchas resoluciones — el fillText jamás se ejecutaba.
+    // Ahora se usa el mismo chequeo de límites que ya usa el sprite (siempre
+    // consistente con lo que el jugador ve) y un temporizador de fade propio,
+    // independiente del motor.
+    if(d.x < -_mg || d.x > W+_mg || d.y < -_mg || d.y > H+_mg) continue;
+    d._lblT = (d._lblT||0) + (1/60);
+    const t = Math.min(1, d._lblT * 2.2);
+    if(t <= 0) continue;
+    const isMet = d._tutType === 'meteor';
+    const lc = (typeof Lang !== 'undefined') ? Lang.cur : 'es';
+    const text = isMet
+      ? (lc==='en' ? '☄ METEOR' : lc==='ja' ? '☄ 隕石' : '☄ METEORO')
+      : (lc==='en' ? '☠ TOXIC'  : lc==='ja' ? '☠ 毒性' : '☠ TÓXICO');
+    const chipFill = isMet ? '#ef4444' : '#84cc16';
+    // FIX v342d: el chip semitransparente oscuro se perdía contra el fondo
+    // espacial (también oscuro) — poco contraste real. Se cambia a relleno
+    // SÓLIDO de color vivo (igual que una etiqueta de advertencia) con texto
+    // blanco y borde negro grueso: contraste garantizado sobre cualquier fondo.
+    const offset = (d.r||14) + 16;
+    const lx = d.x, ly = d.y - offset;
+    ctx.save();
+    ctx.globalAlpha = t;
+    ctx.font = 'bold ' + (_IS_MOBILE ? '12px' : '13px') + ' "Space Grotesk", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const padX = 9, padY = 6;
+    const tw = ctx.measureText(text).width;
+    const chipW = tw + padX*2, chipH = 17 + padY;
+    const cx = lx - chipW/2, cy = ly - chipH/2, rad = 8;
+    ctx.beginPath();
+    ctx.moveTo(cx+rad, cy);
+    ctx.arcTo(cx+chipW, cy, cx+chipW, cy+chipH, rad);
+    ctx.arcTo(cx+chipW, cy+chipH, cx, cy+chipH, rad);
+    ctx.arcTo(cx, cy+chipH, cx, cy, rad);
+    ctx.arcTo(cx, cy, cx+chipW, cy, rad);
+    ctx.closePath();
+    ctx.fillStyle = chipFill;
+    ctx.shadowColor = 'rgba(0,0,0,0.6)';
+    ctx.shadowBlur = 10;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.lineWidth = 2.2;
+    ctx.strokeStyle = 'rgba(6,4,16,0.9)';
+    ctx.stroke();
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = 'rgba(0,0,0,0.85)';
+    ctx.shadowBlur = 3;
+    ctx.fillText(text, lx, ly);
+    ctx.restore();
+  }
+}
 function renderDebris(d){
   // Escudos ocultos durante la animación de entrada del jefe → no renderizar
   if(d._bossShieldHidden) return;
@@ -48087,6 +48452,45 @@ function renderParticles(){
       ctx.fillText(p.text, p.x, p.y);
       if(_useShadow) ctx.shadowBlur = 0;
       ctx.restore();
+    } else if(p.isShard){
+      // ── FRAGMENTO DE RESIDUO — astilla alargada (rombo irregular) que rota ──
+      // al salir despedida, simulando un pedazo real de chatarra/cristal
+      // desprendido del debris. Forma con puntas (no un rectángulo simple)
+      // + contorno oscuro para que se lea claramente distinta de las
+      // partículas redondas de energía, incluso a tamaño pequeño.
+      // Dibujado individualmente (no batched): volumen bajo (4-8 por
+      // absorción), costo insignificante frente al beneficio visual.
+      const a = Math.min(1, p.life * 1.8);
+      const L = p.r * 2.2, Wd = p.r * 1.0;
+      ctx.save();
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot||0);
+      ctx.globalAlpha = a;
+      ctx.beginPath();
+      ctx.moveTo(-L/2, 0);
+      ctx.lineTo(-L*0.12, -Wd/2);
+      ctx.lineTo(L/2, 0);
+      ctx.lineTo(-L*0.12, Wd/2);
+      ctx.closePath();
+      ctx.fillStyle = p.color;
+      ctx.fill();
+      if(p.color2){
+        // Faceta de highlight en la mitad frontal — simula un borde con brillo distinto
+        ctx.beginPath();
+        ctx.moveTo(-L*0.12, -Wd/2);
+        ctx.lineTo(L/2, 0);
+        ctx.lineTo(-L*0.12, Wd/2);
+        ctx.closePath();
+        ctx.fillStyle = p.color2;
+        ctx.globalAlpha = a * 0.55;
+        ctx.fill();
+      }
+      ctx.globalAlpha = a;
+      ctx.lineWidth = 0.8;
+      ctx.strokeStyle = 'rgba(0,0,0,0.45)';
+      ctx.stroke();
+      ctx.restore();
     } else {
       const a = Math.min(1, p.life * 2.4);
       // Bucket key: color + alpha quantized to 0.05 steps (keeps visual fidelity)
@@ -48992,8 +49396,52 @@ function startGame(practiceMode){
   }
 }
 function _doStartGame(practiceMode){
+  // ── Hint de primera partida: muestra advertencia de peligros 4s si aún no pasó el tutorial ──
+  (function(){
+    try{
+      if(Store.get('orb_tut',false)) return; // ya pasó el tutorial, no mostrar
+      if(Store.get('orb_first_hint_shown',false)) return; // solo una vez
+      Store.set('orb_first_hint_shown',true);
+      const lc=(typeof Lang!=='undefined')?Lang.cur:'es';
+      const msg = lc==='en'
+        ? '⚠️  <b>Avoid red meteors & green toxics</b> — they drain your lives'
+        : lc==='pt'
+        ? '⚠️  <b>Evite meteoros vermelhos & tóxicos verdes</b> — eles drenam suas vidas'
+        : lc==='ja'
+        ? '⚠️  <b>赤い隕石と緑の毒を避けろ</b> — ライフが減るぞ'
+        : '⚠️  <b>Evita meteoros rojos & basura tóxica verde</b> — te quitan vidas';
+      let hint = document.getElementById('_firstGameHint');
+      if(!hint){
+        hint = document.createElement('div');
+        hint.id = '_firstGameHint';
+        hint.style.cssText = [
+          'position:fixed','top:72px','left:50%','transform:translateX(-50%)',
+          'background:rgba(4,4,20,0.88)','border:1px solid rgba(239,68,68,0.45)',
+          'border-radius:10px','padding:9px 16px','font-size:13px','line-height:1.5',
+          'color:rgba(255,255,255,0.92)','text-align:center','z-index:9900',
+          'pointer-events:none','backdrop-filter:blur(8px)',
+          'box-shadow:0 4px 20px rgba(239,68,68,0.15)',
+          'opacity:0','transition:opacity .35s ease'
+        ].join(';');
+        document.body.appendChild(hint);
+      }
+      hint.innerHTML = msg;
+      requestAnimationFrame(()=>{ hint.style.opacity='1'; });
+      setTimeout(()=>{
+        hint.style.opacity='0';
+        setTimeout(()=>{ try{ hint.remove(); }catch(_){} }, 400);
+      }, 4000);
+    }catch(_){}
+  })();
+
   // Desactivar onboarding si estaba activo al iniciar cualquier modo de juego
-  try{ if(typeof NewPlayerOnboarding !== 'undefined') NewPlayerOnboarding.deactivate(); }catch(_){}
+  // FIX v342: `NewPlayerOnboarding` nunca existió en este archivo — apuntamos
+  // a _npobHide (oculta el modal sin desbloquear ni marcar orb_ob_seen).
+  try{ if(typeof window._npobHide==='function') window._npobHide(); }catch(_){}
+  // Reset etiqueta de campo para re-evaluar al inicio de partida
+  try{ window._fieldLabelState = undefined; }catch(_){}
+  // Aplicar recompensas pendientes (escudo, ×2) al INICIO de partida — no al terminar
+  try{ window._applyPendingStreakBonus && window._applyPendingStreakBonus(); }catch(_){}
   // FIX v251: limpiar flag residual del tutorial al iniciar cualquier modo de juego.
   // Si el jugador salía del tutorial con _spawnPaused=true (p.ej. al pausar/salir
   // en medio de un paso), ese flag bloqueaba permanentemente el spawn en la siguiente
@@ -51608,6 +52056,31 @@ function endGame(){
           if(xpEl&&xpAmEl){xpEl.style.display='block';xpAmEl.textContent='+'+gameXP.toLocaleString()+' XP';}
         }catch(_){}
         try{
+          if(typeof SeasonPass!=='undefined'){
+            const _sp = SeasonPass.getProgress();
+            const shEl  = document.getElementById('goSeasonHint');
+            const shTxt = document.getElementById('goSeasonHintTxt');
+            const shBar = document.getElementById('goSeasonHintBar');
+            if(shEl && shTxt && shBar){
+              if(!_sp.expired && _sp.nextXp){
+                const _lc=typeof Lang!=='undefined'?Lang.cur:'es';
+                const remain = Math.max(0, _sp.nextXp - _sp.xp);
+                shTxt.textContent = _lc==='en'
+                  ? `${remain.toLocaleString()} XP to Season Tier ${_sp.tierIdx+2}`
+                  : _lc==='pt'
+                  ? `${remain.toLocaleString()} XP para o Nível ${_sp.tierIdx+2} da Temporada`
+                  : _lc==='ja'
+                  ? `シーズンティア${_sp.tierIdx+2}まであと${remain.toLocaleString()}XP`
+                  : `Te faltan ${remain.toLocaleString()} XP para el Tier ${_sp.tierIdx+2} de Temporada`;
+                shBar.style.width = _sp.pct + '%';
+                shEl.style.display = 'block';
+              } else {
+                shEl.style.display = 'none';
+              }
+            }
+          }
+        }catch(_){}
+        try{
           $('gsTD',GS.data.totalDebris.toLocaleString());
           $('gsGP',GS.data.gamesPlayed);
           $('gsTT',Math.floor(GS.data.totalTime/60)+'m');
@@ -51639,6 +52112,7 @@ function endGame(){
         }
       } else {
         try{const xpEl=document.getElementById('goXpEarned');if(xpEl)xpEl.style.display='none';}catch(_){}
+        try{const shEl=document.getElementById('goSeasonHint');if(shEl)shEl.style.display='none';}catch(_){}
       }
       // ── FIX 4+10: NEXT-PLAY HOOK ─────────────────────────────────────────
       // Show closest mission + closest skin to pull player back in
@@ -51721,7 +52195,8 @@ function goToMenu(){
   try{ document.body.classList.remove('tut-locked'); }catch(_){}
   // Limpiar siempre el onboarding al volver al menú — evita que el indicador
   // quede visible sobre el menú principal al salir del tutorial desde pausa.
-  try{ if(typeof NewPlayerOnboarding !== 'undefined') NewPlayerOnboarding.deactivate(); }catch(_){}
+  // FIX v342: `NewPlayerOnboarding` nunca existió — usamos _npobHide real.
+  try{ if(typeof window._npobHide==='function') window._npobHide(); }catch(_){}
   // Reset all flags + invalidate stale callbacks
   _sessionId++;
   _pendingEnd=false;_dmgLock=false;_meteorShakePending=null;_pendingShake=null;_pendingFlash=false;
@@ -52488,11 +52963,15 @@ function openArchives(){
   const _lc=typeof Lang!=='undefined'?Lang.cur:'es';
   const curLv=(typeof GS!=='undefined' && GS.data) ? (GS.data.xpLevel||1) : 1;
   const lockedTxt = _lc==='en'?'Locked · Level up to unlock':_lc==='pt'?'Bloqueado · Suba de nível para desbloquear':_lc==='ja'?'ロック中・レベルアップで解除':'Bloqueado · Sube de nivel para acceder';
+  const readIds = (typeof Store!=='undefined') ? Store.get('orb_archive_read',[]) : [];
+  const newTxt = _lc==='en'?'NEW':_lc==='pt'?'NOVO':_lc==='ja'?'新規':'NUEVO';
   for(const f of ARCHIVE_FILES){
     const isU = curLv >= f.reqLevel;
     if(isU) u++;
+    const isUnread = isU && !readIds.includes(f.id);
     const card=document.createElement('div');
     card.className='arc-card'+(isU?'':' locked');
+    card.dataset.fileId=f.id;
     const title=f.title[_lc]||f.title.es;
     const metaTxt = isU ? (f.classNew?(f.classNew[_lc]||f.classNew.es):(f.classOriginal[_lc]||f.classOriginal.es)) : `🔒 LV${f.reqLevel} — ${lockedTxt}`;
     card.innerHTML = `<div class="arc-icon-wrap"><svg width="18" height="18" viewBox="0 0 24 24" fill="none">`+
@@ -52501,7 +52980,8 @@ function openArchives(){
         : `<rect x="5" y="11" width="14" height="9" rx="1.5" stroke="rgba(170,180,210,0.5)" stroke-width="1.6"/><path d="M8 11V7a4 4 0 0 1 8 0v4" stroke="rgba(170,180,210,0.5)" stroke-width="1.6"/>`)
       + `</svg></div>`+
       `<div class="arc-body"><div class="arc-name">${title}</div><div class="arc-meta">${metaTxt}</div></div>`+
-      (isU?`<svg class="arc-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`:'');
+      (isU?`<svg class="arc-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`:'')+
+      (isUnread?`<span class="arc-new-pill">${newTxt}</span>`:'');
     if(isU){ card.addEventListener('click', ()=>openArchiveReader(f.id)); }
     list.appendChild(card);
   }
@@ -52533,6 +53013,18 @@ function closeArchives(){
 function openArchiveReader(fileId){
   const f = ARCHIVE_FILES.find(x=>x.id===fileId);
   if(!f) return;
+  try{
+    if(typeof Store!=='undefined'){
+      const readIds = Store.get('orb_archive_read',[]);
+      if(!readIds.includes(fileId)){
+        readIds.push(fileId);
+        Store.set('orb_archive_read', readIds);
+        if(typeof window._refreshArchivesNewDot==='function') window._refreshArchivesNewDot();
+        const _card=document.querySelector(`.arc-card[data-file-id="${fileId}"]`);
+        if(_card){ const _pill=_card.querySelector('.arc-new-pill'); if(_pill) _pill.remove(); }
+      }
+    }
+  }catch(_){}
   const _lc=typeof Lang!=='undefined'?Lang.cur:'es';
   const p=document.getElementById('archiveReaderPanel');
   const titleEl=document.getElementById('archiveReaderTitle');
@@ -52762,6 +53254,8 @@ function openMissions(){
   }
   // Refresh WeeklyEvent card in missions panel on open
   try{ if(typeof WeeklyEvent!=='undefined') WeeklyEvent.renderMenu(); }catch(_){}
+  // Refresh Season Pass card on open
+  try{ if(typeof SeasonPass!=='undefined') SeasonPass.renderCard(); }catch(_){}
   // skinsRow eliminado — cambio de skin disponible en el panel de Skins dedicado
   const p=document.getElementById('missionsPanel');
   if(p){
@@ -59523,22 +60017,22 @@ const SkinAbility = {
       // Popup de activación único por habilidad
       try{
         if(G&&G.sat&&typeof mkPopup==='function'){
-          const isEN=typeof Lang!=='undefined'&&Lang.cur==='en';
+          const _lc=typeof Lang!=='undefined'?Lang.cur:'es';
           const popups={
-            ghost:         {en:'👁 GHOST MODE!',   es:'👁 ¡MODO FANTASMA!',  col:'#06b6d4',sz:18},
-            nova_burst:    {en:'🔥 SOLAR BURST!',  es:'🔥 ¡ERUPCIÓN SOLAR!', col:'#f97316',sz:19},
-            titan_salvo:   {en:'💥 TITAN SALVO!',  es:'💥 ¡SALVA TITÁN!',    col:'#f59e0b',sz:18},
-            mirror_veil:   {en:'🪞 MIRROR VEIL!',  es:'🪞 ¡VELO ESPEJO!',    col:'#c084fc',sz:17},
-            quantum_shift: {en:'🌀 QUANTUM COLLAPSE!',es:'🌀 ¡COLAPSO CUÁNTICO!',col:'#e879f9',sz:16},
-            celestial_nova:{en:'✨ DIVINE CORONA!',es:'✨ ¡CORONA DIVINA!',   col:'#fcd34d',sz:19},
-            void_collapse:  {en:'🕳️ SINGULARITY!', es:'🕳️ ¡SINGULARIDAD!',  col:'#ff4500',sz:19},
-            prism_shield:  {en:'🔮 PRISM SHIELD!', es:'🔮 ¡ESCUDO PRISMÁTICO!',col:'#e879f9',sz:16},
-            chrono_field:  {en:'⏳ TIME FROZEN!',  es:'⏳ ¡TIEMPO CONGELADO!',col:'#67e8f9',sz:17},
-            safe_field:    {en:'🛰️ ORBITAL PULSE!',es:'🛰️ ¡PULSO ORBITAL!', col:'#22d3ee',sz:17},
-            stellar_dominion:{en:'⭐ STELLAR DOMINION!',es:'⭐ ¡DOMINIO ESTELAR!',col:'#fbbf24',sz:20},
+            ghost:         {en:'👁 GHOST MODE!',   es:'👁 ¡MODO FANTASMA!',  pt:'👁 MODO FANTASMA!',    ja:'👁 ゴーストモード！',    col:'#06b6d4',sz:18},
+            nova_burst:    {en:'🔥 SOLAR BURST!',  es:'🔥 ¡ERUPCIÓN SOLAR!', pt:'🔥 ERUPÇÃO SOLAR!',    ja:'🔥 ソーラーバースト！',  col:'#f97316',sz:19},
+            titan_salvo:   {en:'💥 TITAN SALVO!',  es:'💥 ¡SALVA TITÁN!',    pt:'💥 SALVA TITÃ!',       ja:'💥 タイタン一斉射撃！',  col:'#f59e0b',sz:18},
+            mirror_veil:   {en:'🪞 MIRROR VEIL!',  es:'🪞 ¡VELO ESPEJO!',    pt:'🪞 VÉU ESPELHO!',      ja:'🪞 ミラーヴェール！',    col:'#c084fc',sz:17},
+            quantum_shift: {en:'🌀 QUANTUM COLLAPSE!',es:'🌀 ¡COLAPSO CUÁNTICO!',pt:'🌀 COLAPSO QUÂNTICO!', ja:'🌀 量子崩壊！',        col:'#e879f9',sz:16},
+            celestial_nova:{en:'✨ DIVINE CORONA!',es:'✨ ¡CORONA DIVINA!',   pt:'✨ COROA DIVINA!',      ja:'✨ 神聖コロナ！',        col:'#fcd34d',sz:19},
+            void_collapse:  {en:'🕳️ SINGULARITY!', es:'🕳️ ¡SINGULARIDAD!',  pt:'🕳️ SINGULARIDADE!',   ja:'🕳️ 特異点！',           col:'#ff4500',sz:19},
+            prism_shield:  {en:'🔮 PRISM SHIELD!', es:'🔮 ¡ESCUDO PRISMÁTICO!',pt:'🔮 ESCUDO PRISMÁTICO!',ja:'🔮 プリズムシールド！', col:'#e879f9',sz:16},
+            chrono_field:  {en:'⏳ TIME FROZEN!',  es:'⏳ ¡TIEMPO CONGELADO!',pt:'⏳ TEMPO CONGELADO!',  ja:'⏳ 時間停止！',          col:'#67e8f9',sz:17},
+            safe_field:    {en:'🛰️ ORBITAL PULSE!',es:'🛰️ ¡PULSO ORBITAL!', pt:'🛰️ PULSO ORBITAL!',   ja:'🛰️ 軌道パルス！',       col:'#22d3ee',sz:17},
+            stellar_dominion:{en:'⭐ STELLAR DOMINION!',es:'⭐ ¡DOMINIO ESTELAR!',pt:'⭐ DOMÍNIO ESTELAR!', ja:'⭐ 星の支配！',        col:'#fbbf24',sz:20},
           };
           const p=popups[sk.ability.effect];
-          if(p) mkPopup(G.sat.x,G.sat.y-36,isEN?p.en:p.es,{color:p.col,size:p.sz});
+          if(p) mkPopup(G.sat.x,G.sat.y-36,_lc==='en'?p.en:_lc==='pt'?p.pt:_lc==='ja'?p.ja:p.es,{color:p.col,size:p.sz});
         }
       }catch(_){}
       try{ Audio.abilityActivate(sk.id); }catch(_){ try{Audio.powerup();}catch(_){} }
@@ -59961,15 +60455,17 @@ wire('menuHowBtn', ()=>{
     p.style.webkitOverflowScrolling='touch';
     p.style.overflowY='auto';
   }
-  // Onboarding: todo lo maneja el listener 'once' registrado en NewPlayerOnboarding.init()
-  // No duplicamos lógica aquí — evita condiciones de carrera
+  // Onboarding: el modal de bienvenida (_npobShow) se dispara solo en el init
+  // de la página (ver bloque IIFE de #npob-modal). No duplicamos lógica aquí.
 });
 wire('howClose', ()=>{
   const p=document.getElementById('howPanel');
   if(p){ p.style.transform='translateY(100%)'; p.scrollTop=0; }
   if(typeof Lang!=='undefined') Lang.showBtn();
-  // Onboarding: quitar highlight del tutorial si el panel se cierra sin iniciar
-  try{ if(typeof NewPlayerOnboarding !== 'undefined') NewPlayerOnboarding.onHowPanelClose(); }catch(_){}
+  // FIX v342: se retiró la llamada muerta a `NewPlayerOnboarding.onHowPanelClose()`
+  // (objeto inexistente). No hay ningún highlight que apagar aquí — el sistema
+  // de resaltado `.ob-pulse` de una versión anterior nunca llegó a activarse
+  // desde JS, así que no había nada real que esta línea estuviera limpiando.
 });
 wire('startBtn',      ()=>startGame(false));
 // blitzBtn and chaosBtn wired below after their full definitions
@@ -59982,7 +60478,10 @@ wire('restartBtn',    ()=>startGame(false));
 // startTutorialMode() es una entrada adicional exclusiva para el tutorial.
 function startTutorialMode(){
   // Desactivar onboarding inmediatamente al iniciar el tutorial
-  try{ if(typeof NewPlayerOnboarding !== 'undefined') NewPlayerOnboarding.deactivate(); }catch(_){}
+  // FIX v342: `NewPlayerOnboarding` nunca existió — usamos _npobHide real
+  // (oculta el modal sin desbloquear todavía; el desbloqueo real llega al
+  // completar/salir del tutorial vía _npobUnlock, como ya hacía goToMenu).
+  try{ if(typeof window._npobHide==='function') window._npobHide(); }catch(_){}
   // Cerrar el panel how-to si está abierto
   try{ const hp=document.getElementById('howPanel'); if(hp) hp.style.transform='translateY(100%)'; }catch(_){}
 
@@ -60087,8 +60586,16 @@ function startTutorialMode(){
         el.textContent = txt;
         el.style.display = u>0 ? 'inline-flex' : 'none';
       });
+      const readIds = (typeof Store!=='undefined') ? Store.get('orb_archive_read',[]) : [];
+      const hasNew = ARCHIVE_FILES.some(f=>curLv>=f.reqLevel && !readIds.includes(f.id));
+      ['menuArchivesNewDot','menuArchivesNewDot_d'].forEach(function(id){
+        const el=document.getElementById(id);
+        if(!el) return;
+        el.style.display = hasNew ? 'inline-block' : 'none';
+      });
     }catch(_){}
   }
+  window._refreshArchivesNewDot = _updateArchivesMenuCounter;
   _updateArchivesMenuCounter();
   const _origGoToMenu2 = window.goToMenu;
   window.goToMenu = function(){
@@ -61296,18 +61803,9 @@ const MenuBg = {
       c.fillStyle=g;c.fillRect(0,0,W,H);
     });
 
-    // ── REJILLA ESPACIAL — más visible ──
-    const go=0.090+0.030*Math.sin(t*0.26);
-    c.strokeStyle=`rgba(6,182,212,${go.toFixed(3)})`;c.lineWidth=0.7;
-    const gsx=Math.round(W/12),gsy=Math.round(H/9);
-    for(let x=0;x<W;x+=gsx){c.beginPath();c.moveTo(x,0);c.lineTo(x,H);c.stroke();}
-    for(let y=0;y<H;y+=gsy){c.beginPath();c.moveTo(0,y);c.lineTo(W,y);c.stroke();}
-    // Líneas diagonales sutiles — solo desktop
-    if(W>=1024){
-      const dgo=0.022+0.010*Math.sin(t*0.18+1.2);
-      c.strokeStyle=`rgba(139,92,246,${dgo.toFixed(3)})`;c.lineWidth=0.4;
-      for(let x=-H;x<W+H;x+=gsx*2){c.beginPath();c.moveTo(x,0);c.lineTo(x+H,H);c.stroke();}
-    }
+    // FIX v343i — se eliminó la "rejilla espacial" (líneas horizontales +
+    // verticales + diagonales en desktop) que cubría todo el fondo del menú
+    // con un patrón de cuadros visibles en todas las versiones del juego.
 
     // ── PLANETA 1 — "VÓRTICE VIOLETA" — Gas giant tipo Saturno ──
     {
@@ -63194,7 +63692,10 @@ const ProfileNameEditor = {
     }
     this.close();
     if (typeof SaveIndicator !== 'undefined') SaveIndicator.show();
-    if (typeof notify === 'function') notify('✏️', '¡Nombre actualizado!', n);
+    if (typeof notify === 'function'){
+      const _nulc=typeof Lang!=='undefined'?Lang.cur:'es';
+      notify('✏️', _nulc==='en'?'Name updated!':_nulc==='pt'?'Nome atualizado!':_nulc==='ja'?'名前を更新しました！':'¡Nombre actualizado!', n);
+    }
   }
 };
 (function(){
@@ -63396,15 +63897,15 @@ const DirectDuel = {
 
   updateHud(currentScore) {
     if(!this._active || !this._hudEl) return;
-    const isEN = typeof Lang!=='undefined' && Lang.cur==='en';
+    const _lc = typeof Lang!=='undefined'?Lang.cur:'es';
     const diff = this._targetScore - currentScore;
     const el = document.getElementById('duelHudText');
     if(!el) return;
     if(diff > 0){
-      el.textContent = isEN ? `⚔️ Beat ${this._challengerName}: ${diff.toLocaleString()} pts to go` : `⚔️ Supera a ${this._challengerName}: faltan ${diff.toLocaleString()} pts`;
+      el.textContent = _lc==='en'?`⚔️ Beat ${this._challengerName}: ${diff.toLocaleString()} pts to go`:_lc==='pt'?`⚔️ Supere ${this._challengerName}: faltam ${diff.toLocaleString()} pts`:_lc==='ja'?`⚔️ ${this._challengerName}に勝つには、あと${diff.toLocaleString()}pt`:`⚔️ Supera a ${this._challengerName}: faltan ${diff.toLocaleString()} pts`;
       el.style.color = diff < 500 ? '#f59e0b' : 'rgba(255,255,255,0.85)';
     } else {
-      el.textContent = isEN ? `✅ You beat ${this._challengerName}!` : `✅ ¡Superaste a ${this._challengerName}!`;
+      el.textContent = _lc==='en'?`✅ You beat ${this._challengerName}!`:_lc==='pt'?`✅ Você superou ${this._challengerName}!`:_lc==='ja'?`✅ ${this._challengerName}に勝った！`:`✅ ¡Superaste a ${this._challengerName}!`;
       el.style.color = '#10b981';
       if(!this._won){
         this._won = true;
@@ -68268,7 +68769,7 @@ BossWave = Object.assign(BossWave, {
             const _lcCrossN  = this._phase>=2 ? 2 : 1;
             this._lcCrossN   = _lcCrossN;
             notify('☄️',
-              isEN ? `CROSS RAIN x${_lcCrossN}! — MOVE!` : `¡LLUVIA CRUZADA x${_lcCrossN}! ¡MUÉVETE!`,
+              _bslc==='en'?`CROSS RAIN x${_lcCrossN}! — MOVE!`:_bslc==='pt'?`CHUVA CRUZADA x${_lcCrossN}! — MOVA-SE!`:_bslc==='ja'?`クロスレイン x${_lcCrossN}！— 動け！`:`¡LLUVIA CRUZADA x${_lcCrossN}! ¡MUÉVETE!`,
               _bslc==='en'?'Meteor rows converging on you — escape the crosshair!':_bslc==='pt'?'Fileiras de meteoros convergindo — escape da mira!':_bslc==='ja'?'流星列が迫る — クロスヘアから逃げろ！':'¡Filas de meteoros convergen hacia ti — ¡escapa de la mira!');
             try{ if(navigator.vibrate) navigator.vibrate([30,10,30,10,60]); }catch(_){}
           }
@@ -68775,7 +69276,7 @@ BossWave = Object.assign(BossWave, {
             this._ifTargetX  = G.sat ? G.sat.x : W/2;
             this._ifTargetY  = G.sat ? G.sat.y : H/2;
             notify('💥',
-              isEN ? `FRACTAL IMPLOSION x${this._ifFragN}!` : `¡IMPLOSIÓN FRACTAL x${this._ifFragN}!`,
+              _bslc==='en'?`FRACTAL IMPLOSION x${this._ifFragN}!`:_bslc==='pt'?`IMPLOSÃO FRACTAL x${this._ifFragN}!`:_bslc==='ja'?`フラクタル内破 x${this._ifFragN}！`:`¡IMPLOSIÓN FRACTAL x${this._ifFragN}!`,
               _bslc==='en'?'Curved plasma shards spiraling in — move in an arc!':_bslc==='pt'?'Fragmentos de plasma em espiral — mova-se em arco!':_bslc==='ja'?'プラズマ破片が渦巻く — 弧を描いて移動！':'¡Fragmentos de plasma en espiral — ¡muévete en arco!');
             try{ if(navigator.vibrate) navigator.vibrate([20,8,20,8,20,8,50]); }catch(_){}
           }
@@ -70360,7 +70861,7 @@ BossWave = Object.assign(BossWave, {
       this._phase = 1;
       try{ BossMusic.setPhase(1); }catch(_){}
       const _enragedNotifs = {
-        corrupt: ['💀', isEN?'CORE CORRUPTED!':'¡NÚCLEO CORROMPIDO!',           isEN?'Memory virus now active!':'¡Virus de memoria activado!'],
+        corrupt: ['💀', _bslc==='en'?'CORE CORRUPTED!':_bslc==='pt'?'NÚCLEO CORROMPIDO!':_bslc==='ja'?'コア破損！':'¡NÚCLEO CORROMPIDO!',           _bslc==='en'?'Memory virus now active!':_bslc==='pt'?'Vírus de memória ativado!':_bslc==='ja'?'メモリウイルス発動！':'¡Virus de memoria activado!'],
         toxic:   ['☣️', _bslc==='en'?'TOXIC OVERLOAD!':_bslc==='pt'?'SOBRECARGA TÓXICA!':_bslc==='ja'?'毒性過負荷！':'¡SOBRECARGA TÓXICA!',            _bslc==='en'?'Acid rain + viscous wave unlocked!':_bslc==='pt'?'Chuva ácida + onda viscosa liberadas!':_bslc==='ja'?'酸性雨 + 粘性波解放！':'¡Lluvia ácida + ola viscosa activadas!'],
         meteor:  ['☄️', _bslc==='en'?'TITAN ENRAGED!':_bslc==='pt'?'TITÃ ENFURECIDO!':_bslc==='ja'?'タイタン激怒！':'¡TITÁN ENFURECIDO!',              _bslc==='en'?'Gravity pull now active — brace!':_bslc==='pt'?'Atração gravitacional ativa — prepare-se!':_bslc==='ja'?'重力引力発動 — 備えよ！':'¡Atracción gravitatoria activa!'],
         chaos:   ['💥', _bslc==='en'?'CORONA STORM UNLEASHED!':_bslc==='pt'?'TEMPESTADE DE COROA LIBERADA!':_bslc==='ja'?'コロナストーム解放！':'¡TORMENTA DE CORONA!',   _bslc==='en'?'Spiral arcs now added — find the gap!':_bslc==='pt'?'Arcos em espiral adicionados — encontre a lacuna!':_bslc==='ja'?'螺旋弧追加 — 隙間を探せ！':'¡Arcos en espiral — ¡busca el hueco!'],
@@ -71101,10 +71602,14 @@ BossWave = Object.assign(BossWave, {
         this._rwCorruptBase   = _hexRot;
         this._rwCorruptSpread = Math.PI * 2;
         notify('💀',
-          isEN ? `DATA BLEED! (${hp}/${maxHp} HP)` : `¡SANGRADO DE DATOS! (${hp}/${maxHp} HP)`,
-          isEN
+          _bslc==='en'?`DATA BLEED! (${hp}/${maxHp} HP)`:_bslc==='pt'?`SANGRAMENTO DE DADOS! (${hp}/${maxHp} HP)`:_bslc==='ja'?`データ流出！ (${hp}/${maxHp} HP)`:`¡SANGRADO DE DATOS! (${hp}/${maxHp} HP)`,
+          _bslc==='en'
             ? (this._phase>=2?'8-axis double burst — nowhere safe!':this._phase>=1?'8-axis data grid!':'4-axis corrupt cross!')
-            : (this._phase>=2?'¡Doble ráfaga 8 ejes — ¡sin zona segura!':this._phase>=1?'¡Cuadrícula de datos 8 ejes!':'¡Cruz corrupta de 4 ejes!'));
+            : _bslc==='pt'
+              ? (this._phase>=2?'Rajada dupla de 8 eixos — sem lugar seguro!':this._phase>=1?'Grade de dados 8 eixos!':'Cruz corrupta de 4 eixos!')
+              : _bslc==='ja'
+                ? (this._phase>=2?'8方向ダブルバースト — 安全地帯なし！':this._phase>=1?'8方向データグリッド！':'4方向の破損クロス！')
+                : (this._phase>=2?'¡Doble ráfaga 8 ejes — ¡sin zona segura!':this._phase>=1?'¡Cuadrícula de datos 8 ejes!':'¡Cruz corrupta de 4 ejes!'));
         try{ if(navigator.vibrate) navigator.vibrate(this._phase>=2?[40,8,40,8,80]:[28,12,55]); }catch(_){}
 
         setTimeout(()=>{
@@ -71660,10 +72165,14 @@ BossWave = Object.assign(BossWave, {
         this._ringWarnDur   = 1.2;
         this._ringWarnSpots = _warnSpots;
         notify('💀',
-          isEN?'CORRUPT HEX PULSE!':'¡PULSO HEXAGONAL CORRUPTO!',
-          isEN
+          _bslc==='en'?'CORRUPT HEX PULSE!':_bslc==='pt'?'PULSO HEXAGONAL CORROMPIDO!':_bslc==='ja'?'破損ヘクスパルス！':'¡PULSO HEXAGONAL CORRUPTO!',
+          _bslc==='en'
             ? (this._phase>=2?'Triple layer — dodge the gaps!':this._phase>=1?'Double hex burst!':'Hex vertex burst!')
-            : (this._phase>=2?'¡Triple capa — ¡esquiva los huecos!':this._phase>=1?'¡Doble ráfaga hex!':'¡Ráfaga de vértices hex!'));
+            : _bslc==='pt'
+              ? (this._phase>=2?'Tripla camada — desvie das brechas!':this._phase>=1?'Rajada hexagonal dupla!':'Rajada de vértices hexagonais!')
+              : _bslc==='ja'
+                ? (this._phase>=2?'三重層 — 隙間を回避せよ！':this._phase>=1?'ダブルヘクスバースト！':'ヘクス頂点バースト！')
+                : (this._phase>=2?'¡Triple capa — ¡esquiva los huecos!':this._phase>=1?'¡Doble ráfaga hex!':'¡Ráfaga de vértices hex!'));
         try{ if(navigator.vibrate) navigator.vibrate(this._phase>=2?[30,8,30,8,60]:[20,10,45]); }catch(_){}
 
         setTimeout(()=>{
@@ -79924,6 +80433,7 @@ const EpicMoment = {
 
   // ── LEGENDARY absorbido ──
   legendary(x, y){
+    try{ shake('l'); hitStop(0.035); }catch(_){}
     this._vibrate([40, 30, 80]);
     this._ring('#ffd700');
     this._flash('radial-gradient(circle at '+Math.round(x/W*100)+'% '+Math.round(y/H*100)+'%, rgba(255,215,0,0.18) 0%, transparent 70%)', 220);
@@ -79932,6 +80442,7 @@ const EpicMoment = {
 
   // ── COMBO x25 — usa colores de la skin activa ──
   comboMax(){
+    try{ shake('m'); hitStop(0.06); }catch(_){}
     const p = this._skinPalette();
     this._vibrate([30, 20, 30, 20, 80]);
     this._ring(p.ring);
@@ -82506,10 +83017,25 @@ const StreakRewards = (function(){
       const x2secs = Store.get('orb_pending_x2', 0);
       if(x2secs > 0){
         Store.set('orb_pending_x2', 0);
-        if(typeof G !== 'undefined'){
-          G.doublePoints = (G.doublePoints||0) + x2secs * 1000;
-          if(typeof notify === 'function') notify('⭐', '×2 PUNTOS', 'Recompensa de racha: '+x2secs+'s');
+        if(typeof activatePU === 'function'){
+          activatePU('double', true); // bypassCooldown=true — es recompensa, no pickup
+          // FIX: activatePU fija la duración a CFG.PU_DUR (10s) por defecto, ignorando
+          // el valor real de la recompensa (x2secs, típicamente 30s). Sobreescribimos
+          // aquí para que el power-up dure lo que la notificación promete.
+          try{
+            if(typeof G !== 'undefined' && G.pu){
+              G.pu.double = x2secs;
+              const _puDoubleT = document.getElementById('puDoubleT');
+              if(_puDoubleT) _puDoubleT.textContent = Math.ceil(x2secs)+'s';
+            }
+          }catch(_){}
+        } else if(typeof G !== 'undefined'){
+          G.pu.double = (G.pu && G.pu.double > 0) ? Math.max(G.pu.double, x2secs) : x2secs;
         }
+        const _x2lc = typeof Lang!=='undefined' ? Lang.cur : 'es';
+        if(typeof notify === 'function') notify('⭐',
+          _x2lc==='en'?'×2 POINTS ACTIVE!':_x2lc==='pt'?'×2 PONTOS ATIVO!':_x2lc==='ja'?'×2ポイント発動！':'¡×2 PUNTOS ACTIVO!',
+          _x2lc==='en'?'Season reward: '+x2secs+'s':_x2lc==='pt'?'Recompensa de temporada: '+x2secs+'s':_x2lc==='ja'?'シーズン報酬: '+x2secs+'s':'Recompensa de temporada: '+x2secs+'s');
       }
     }catch(_){}
   };
@@ -82987,6 +83513,228 @@ const PushNotifs = (function(){
 })();
 
 // ─────────────────────────────────────────────────────────────────────────
+// SEASON PASS — Temporada 1: Proyecto VELO
+//   100% local (no backend). XP de temporada = mismo XP que ya otorga GS.
+//   Recompensas auto-aplicadas al alcanzar cada tier (sin botón de "reclamar"
+//   para mantener el mismo estilo que StreakRewards/Missions).
+// ─────────────────────────────────────────────────────────────────────────
+const SeasonPass = (function(){
+  const CONFIG = {
+    id: 'season1_velo',
+    durationDays: 35, // 5 semanas
+    name:   'Temporada 1: Proyecto VELO',
+    nameEn: 'Season 1: Project VELO',
+    namePt: 'Temporada 1: Projeto VELO',
+    nameJa: 'シーズン1：プロジェクトVELO',
+  };
+
+  // Umbrales de XP de temporada acumulada por tier (8 tiers).
+  // Recompensas: solo mecanismos ya probados en el juego.
+  //   - title      → título coleccionable permanente (orb_titles, mismo array que niveles/desafíos)
+  //   - powerup    → escudo gratis en la próxima partida (orb_pending_pu)
+  //   - x2bonus    → puntos ×2 los primeros 30s de la próxima partida (orb_pending_x2)
+  //   - temp_skin  → skin REAL del catálogo, temporal con expiración (mismo motor que WeeklyChallenge,
+  //                  NUNCA skins premium — esas se compran por PayPal y no se regalan)
+  //   - final      → combo: skin temporal hasta fin de temporada + título permanente de cierre
+  const TIERS = [
+    { xp:1500,  type:'title',     icon:'📡', titleKey:'recluta' },
+    { xp:4000,  type:'powerup',   icon:'⚡' },
+    { xp:8000,  type:'title',     icon:'🛰️', titleKey:'informante' },
+    { xp:14000, type:'x2bonus',   icon:'⭐' },
+    { xp:21000, type:'temp_skin',icon:'🪞', skinId:'shadow_mirror', days:21 },
+    { xp:29000, type:'powerup',   icon:'🛡️' },
+    { xp:38000, type:'title',     icon:'📶', titleKey:'centinela' },
+    { xp:50000, type:'final',     icon:'🎖️', skinId:'celestial' },
+  ];
+
+  // Títulos exclusivos de temporada — verificados sin colisión con niveles de
+  // piloto ni con los 14 títulos de desafío semanal existentes.
+  const SEASON_TITLES = {
+    recluta:    {es:'Recluta VELO',              en:'VELO Recruit',           pt:'Recruta VELO',            ja:'VELO新兵'},
+    informante: {es:'Informante de Ana Hara',    en:"Ana Hara's Informant",   pt:'Informante de Ana Hara',  ja:'アナ・ハラの情報提供者'},
+    centinela:  {es:'Centinela del Núcleo',      en:'Core Sentinel',         pt:'Sentinela do Núcleo',     ja:'コアの哨兵'},
+    agente:     {es:'Agente VELO',               en:'VELO Agent',            pt:'Agente VELO',             ja:'VELOエージェント'},
+  };
+
+  // Nombres de skin por idioma (mismo set que usa WeeklyChallenge._skinDisplayName,
+  // duplicado localmente para no depender de su disponibilidad/orden de carga).
+  const SKIN_NAMES = {
+    shadow_mirror: {es:'Espejo de Sombra', en:'Shadow Mirror', pt:'Espelho Sombrio', ja:'シャドウミラー'},
+    celestial:     {es:'Divino Celestial', en:'Celestial Divine', pt:'Divino Celestial', ja:'セレスティアルディヴァイン'},
+  };
+
+  function _lang(){
+    if(typeof Lang !== 'undefined'){
+      const c = Lang.cur;
+      if(c==='en') return 'en'; if(c==='pt') return 'pt'; if(c==='ja') return 'ja';
+    }
+    return 'es';
+  }
+  function _L4(es,en,pt,ja){ const l=_lang(); return l==='en'?en:l==='pt'?(pt||en):l==='ja'?(ja||en):es; }
+
+  function _seasonName(){ return _L4(CONFIG.name, CONFIG.nameEn, CONFIG.namePt, CONFIG.nameJa); }
+
+  function _load(){
+    let d = Store.get('orb_season', null);
+    const now = Date.now();
+    // Primera vez, o temporada anterior expirada → (re)inicializar.
+    if(!d || d.id !== CONFIG.id){
+      d = { id:CONFIG.id, startTs:now, xp:0, claimed:[] };
+      Store.set('orb_season', d);
+    }
+    return d;
+  }
+  function _save(d){ Store.set('orb_season', d); }
+
+  function _endTs(d){ return d.startTs + CONFIG.durationDays*24*60*60*1000; }
+  function _isExpired(d){ return Date.now() >= _endTs(d); }
+  function _daysLeft(d){ return Math.max(0, Math.ceil((_endTs(d)-Date.now())/(24*60*60*1000))); }
+
+  function _tierIndexForXp(xp){
+    let idx = -1;
+    for(let i=0;i<TIERS.length;i++){ if(xp >= TIERS[i].xp) idx = i; }
+    return idx; // -1 = ningún tier alcanzado aún
+  }
+
+  // Otorga una skin real y temporal del catálogo (NUNCA premium), usando el
+  // mismo formato que WeeklyChallenge (orb_temp_skins + orb_skins), para que
+  // el ciclo de limpieza existente (WeeklyChallenge.cleanExpired) la revoque
+  // automáticamente al expirar sin necesidad de duplicar esa lógica.
+  function _grantTempSkin(skinId, expiryTs){
+    try{
+      const tempSkins = Store.get('orb_temp_skins', {});
+      const names = SKIN_NAMES[skinId] || {};
+      tempSkins[skinId] = { expiry: expiryTs, name: names.en || skinId, icon: '🪞' };
+      Store.set('orb_temp_skins', tempSkins);
+      const owned = Store.get('orb_skins', ['default']);
+      if(!owned.includes(skinId)){ owned.push(skinId); Store.set('orb_skins', owned); }
+    }catch(_){}
+  }
+
+  function _grantTitle(key){
+    try{
+      const t = SEASON_TITLES[key];
+      if(!t) return;
+      const earnt = Store.get('orb_titles', []);
+      if(!earnt.includes(t.es)){ earnt.push(t.es); Store.set('orb_titles', earnt); }
+    }catch(_){}
+  }
+
+  function _applyReward(tier, idx, seasonData){
+    try{
+      const n=(icon,es,en,pt,ja)=>{ if(typeof notify==='function') notify(icon, _L4(es,en,pt,ja), _seasonName()); };
+      if(tier.type === 'powerup'){
+        Store.set('orb_pending_pu','shield');
+        n(tier.icon,'¡Escudo de temporada listo!','Season shield ready!','Escudo da temporada pronto!','シーズンシールド準備完了！');
+
+      } else if(tier.type === 'x2bonus'){
+        Store.set('orb_pending_x2',30);
+        n(tier.icon,'¡Bono ×2 de temporada!','Season ×2 bonus!','Bônus ×2 da temporada!','シーズン×2ボーナス！');
+
+      } else if(tier.type === 'title'){
+        _grantTitle(tier.titleKey);
+        const t = SEASON_TITLES[tier.titleKey];
+        n(tier.icon, `¡Título "${t.es}" desbloqueado!`, `"${t.en}" title unlocked!`, `Título "${t.pt}" desbloqueado!`, `「${t.ja}」称号解放！`);
+
+      } else if(tier.type === 'temp_skin'){
+        const expiryTs = Date.now() + tier.days*24*60*60*1000;
+        _grantTempSkin(tier.skinId, expiryTs);
+        const sk = SKIN_NAMES[tier.skinId] || {};
+        n(tier.icon,
+          `¡Skin "${sk.es}" desbloqueada por ${tier.days} días!`,
+          `"${sk.en}" skin unlocked for ${tier.days} days!`,
+          `Skin "${sk.pt}" desbloqueada por ${tier.days} dias!`,
+          `「${sk.ja}」スキンが${tier.days}日間アンロック！`);
+
+      } else if(tier.type === 'final'){
+        // Cierre de temporada: skin temporal hasta que termine la temporada + título permanente.
+        const endTs = _endTs(seasonData);
+        _grantTempSkin(tier.skinId, endTs);
+        _grantTitle('agente');
+        const sk = SKIN_NAMES[tier.skinId] || {};
+        const tAgente = SEASON_TITLES.agente;
+        n(tier.icon,
+          `¡Temporada completada! Skin "${sk.es}" + título "${tAgente.es}"`,
+          `Season complete! "${sk.en}" skin + "${tAgente.en}" title`,
+          `Temporada concluída! Skin "${sk.pt}" + título "${tAgente.pt}"`,
+          `シーズン完了！「${sk.ja}」スキン＋「${tAgente.ja}」称号`);
+      }
+    }catch(_){}
+  }
+
+  function addXP(amount){
+    if(!amount || amount<=0) return;
+    const d = _load();
+    if(_isExpired(d)) return; // temporada terminada — no acumula más
+    d.xp = (d.xp||0) + amount;
+    const newIdx = _tierIndexForXp(d.xp);
+    for(let i=0; i<=newIdx; i++){
+      if(!d.claimed.includes(i)){
+        d.claimed.push(i);
+        _applyReward(TIERS[i], i, d);
+      }
+    }
+    _save(d);
+  }
+
+  function getProgress(){
+    const d = _load();
+    const expired = _isExpired(d);
+    const tierIdx = _tierIndexForXp(d.xp);
+    const next = TIERS[tierIdx+1] || null;
+    const prevThreshold = tierIdx>=0 ? TIERS[tierIdx].xp : 0;
+    const pct = next ? Math.min(100, Math.round(((d.xp-prevThreshold)/(next.xp-prevThreshold))*100)) : 100;
+    return {
+      expired, tierIdx, tierCount: TIERS.length,
+      xp:d.xp, nextXp: next?next.xp:null, pct,
+      daysLeft:_daysLeft(d),
+    };
+  }
+
+  function renderCard(){
+    const card = document.getElementById('seasonPassCard');
+    if(!card) return;
+    const p = getProgress();
+    const title = document.getElementById('seasonPassTitle');
+    const sub   = document.getElementById('seasonPassSub');
+    const bar   = document.getElementById('seasonPassBar');
+    const tierLbl = document.getElementById('seasonPassTier');
+    if(title) title.textContent = _seasonName();
+    if(p.expired){
+      if(sub) sub.textContent = _L4('Temporada finalizada','Season ended','Temporada finalizada','シーズン終了');
+      if(bar) bar.style.width = '100%';
+      if(tierLbl) tierLbl.textContent = `${p.tierCount}/${p.tierCount}`;
+      card.style.opacity = '0.55';
+      return;
+    }
+    card.style.opacity = '1';
+    if(sub) sub.textContent = _L4(
+      `${p.daysLeft} días restantes`, `${p.daysLeft} days left`,
+      `${p.daysLeft} dias restantes`, `残り${p.daysLeft}日`
+    );
+    if(bar) bar.style.width = p.pct + '%';
+    if(tierLbl) tierLbl.textContent = `${p.tierIdx+1<0?0:p.tierIdx+1}/${p.tierCount}`;
+  }
+
+  function init(){
+    _load(); // asegura que exista el estado guardado
+    renderCard();
+  }
+
+  return { init, addXP, getProgress, renderCard };
+})();
+
+// Hook: el XP de temporada se alimenta del mismo XP de piloto que ya otorga
+// el juego (gameplay, misiones, niveles) — sin tocar la fuente original.
+(function(){
+  const _origAddXP = GS.addXP.bind(GS);
+  GS.addXP = function(amount){
+    _origAddXP(amount);
+    try{ SeasonPass.addXP(amount); }catch(_){}
+  };
+})();
+
+// ─────────────────────────────────────────────────────────────────────────
 // BOOTSTRAP — wires everything together at load time
 // ─────────────────────────────────────────────────────────────────────────
 window.addEventListener('load', function(){
@@ -82995,6 +83743,9 @@ window.addEventListener('load', function(){
 
   // Streak rewards check (after streak banner appears)
   setTimeout(()=>{ try{ StreakRewards.check(); }catch(_){} }, 2500);
+
+  // Season pass init (renders the season card if mounted)
+  setTimeout(()=>{ try{ SeasonPass.init(); }catch(_){} }, 1500);
 
   // Update push btn state
   try{
@@ -83008,7 +83759,6 @@ window.addEventListener('load', function(){
   if(typeof origGameOver === 'function'){
     window.gameOver = function(){
       try{ window._socialProofTrackPlay(); }catch(_){}
-      try{ window._applyPendingStreakBonus && window._applyPendingStreakBonus(); }catch(_){}
       return origGameOver.apply(this, arguments);
     };
   }
@@ -83490,9 +84240,11 @@ if(typeof DirectDuel !== 'undefined'){
 <script>
 // ══ BIENVENIDA NUEVO JUGADOR — modal + bloqueo de botones ══
 (function(){
+  // Bloqueados hasta completar el tutorial: modos avanzados + paneles de progresión.
+  // startBtn y practiceBtn están FUERA de esta lista — accesibles desde el segundo cero.
   const LOCKED_IDS = [
-    'startBtn','blitzBtn','chaosBtn','practiceBtn','zenBtn','orbitaDiaBtn',
-    'startBtn_d','blitzBtn_d','chaosBtn_d','practiceBtn_d','zenBtn_d','orbitaDiaBtn_d',
+    'blitzBtn','chaosBtn','zenBtn','orbitaDiaBtn',
+    'blitzBtn_d','chaosBtn_d','zenBtn_d','orbitaDiaBtn_d',
     'menuAchBtn','menuAchBtn_d',
     'menuArchivesBtn','menuArchivesBtn_d',
     'menuMissionBtn','menuMissionBtn_d',
@@ -83543,6 +84295,75 @@ if(typeof DirectDuel !== 'undefined'){
     try{ if(typeof Store!=='undefined') Store.set('orb_ob_seen',true); }catch(_){}
   };
 
+  // FIX v342: ocultar el modal/veil SIN desbloquear ni marcar orb_ob_seen.
+  // Usado cuando arranca cualquier partida o el tutorial mientras el modal
+  // sigue visible (evita que quede flotando sobre el juego).
+  window._npobHide = function(){
+    const veil=document.getElementById('npob-veil');
+    if(veil) veil.classList.remove('on');
+    const modal=document.getElementById('npob-modal');
+    if(modal) modal.classList.remove('on');
+  };
+
+  // FIX v342: los botones bloqueados (Blitz, Caos, Zen, Logros, Skins, etc.)
+  // ya no son mudos (pointer-events:none). Un listener delegado en fase de
+  // captura intercepta el click ANTES de que llegue al handler original del
+  // botón, y muestra un aviso claro con acceso directo al tutorial en 1 tap.
+  function _showLockedToast(btn){
+    let toast=document.getElementById('_npobLockToast');
+    if(toast) toast.remove();
+    toast=document.createElement('div');
+    toast.id='_npobLockToast';
+    toast.style.cssText=[
+      'position:fixed','left:50%','bottom:max(18px, env(safe-area-inset-bottom))',
+      'transform:translateX(-50%) translateY(12px)','z-index:9950',
+      'display:flex','align-items:center','gap:10px','flex-wrap:wrap','justify-content:center',
+      'max-width:min(420px, 92vw)','padding:11px 14px',
+      'background:rgba(8,6,24,0.94)','border:1px solid rgba(139,92,246,0.35)',
+      'border-radius:14px','box-shadow:0 10px 30px rgba(0,0,0,0.5)',
+      'backdrop-filter:blur(10px)','opacity:0','transition:opacity .25s ease, transform .25s ease'
+    ].join(';');
+    const msg=document.createElement('span');
+    msg.style.cssText='font-size:12.5px;line-height:1.4;color:rgba(230,235,255,0.92);';
+    msg.textContent=_lc(
+      '🔒 Completa el tutorial (2 min) para desbloquear esto.',
+      '🔒 Complete the tutorial (2 min) to unlock this.',
+      '🔒 Completa o tutorial (2 min) para desbloquear isto.',
+      '🔒 チュートリアル（2分）を完了すると解放されます。'
+    );
+    const cta=document.createElement('button');
+    cta.type='button';
+    cta.style.cssText=[
+      'flex:none','border:none','cursor:pointer','padding:7px 13px','border-radius:9px',
+      'font-size:11.5px','font-weight:700','letter-spacing:.3px','white-space:nowrap',
+      'color:#fff','background:linear-gradient(135deg,#06b6d4,#7c3aed)'
+    ].join(';');
+    cta.textContent=_lc('Iniciar tutorial','Start tutorial','Iniciar tutorial','チュートリアル開始');
+    cta.onclick=function(){
+      toast.remove();
+      try{ if(typeof startTutorialMode==='function') startTutorialMode(); }catch(_){}
+    };
+    toast.appendChild(msg);
+    toast.appendChild(cta);
+    document.body.appendChild(toast);
+    requestAnimationFrame(()=>{ toast.style.opacity='1'; toast.style.transform='translateX(-50%) translateY(0)'; });
+    clearTimeout(toast._t);
+    toast._t=setTimeout(()=>{
+      toast.style.opacity='0'; toast.style.transform='translateX(-50%) translateY(12px)';
+      setTimeout(()=>{ if(toast&&toast.parentNode) toast.remove(); },260);
+    },4200);
+  }
+  if(!window._npobLockClickBound){
+    window._npobLockClickBound=true;
+    document.addEventListener('click', function(e){
+      const lockedBtn = e.target && e.target.closest && e.target.closest('.npob-locked');
+      if(!lockedBtn) return;
+      e.preventDefault(); e.stopPropagation();
+      if(e.stopImmediatePropagation) e.stopImmediatePropagation();
+      _showLockedToast(lockedBtn);
+    }, true);
+  }
+
   function _lc(es,en,pt,ja){
     const cur=(typeof Lang!=='undefined')?Lang.cur:'es';
     return cur==='en'?en:cur==='pt'?pt:cur==='ja'?ja:es;
@@ -83555,10 +84376,10 @@ if(typeof DirectDuel !== 'undefined'){
     if(tag) tag.textContent=_lc('✦ Primer vuelo','✦ First Flight','✦ Primeiro Voo','✦ 初フライト');
     const body=document.getElementById('npob-body');
     if(body) body.innerHTML=_lc(
-      'Absorbe debris, encadena combos y limpia la órbita.<br><strong>El tutorial te pone en acción en segundos.</strong>',
-      'Absorb debris, chain combos and clean the orbit.<br><strong>The tutorial gets you playing in seconds.</strong>',
-      'Absorve destroços, encadeia combos e limpa a órbita.<br><strong>O tutorial coloca-te em ação em segundos.</strong>',
-      'デブリを吸収してコンボをつなぎ軌道を清めよう。<br><strong>チュートリアルで数秒後にはプレイ開始。</strong>'
+      'Juega ahora mismo o practica sin perder vidas.<br><strong>El tutorial desbloquea todos los modos en 2 min.</strong>',
+      'Play right now or practice without losing lives.<br><strong>The tutorial unlocks all modes in 2 min.</strong>',
+      'Jogue agora ou pratique sem perder vidas.<br><strong>O tutorial desbloqueia todos os modos em 2 min.</strong>',
+      '今すぐプレイ、またはライフなしで練習できます。<br><strong>チュートリアルで2分後に全モード解放。</strong>'
     );
     const ctaLbl=document.getElementById('npob-cta-label');
     if(ctaLbl) ctaLbl.textContent=_lc('¡JUGAR AHORA','PLAY NOW','JOGAR AGORA','今すぐプレイ');
@@ -83598,23 +84419,15 @@ if(typeof DirectDuel !== 'undefined'){
       if(veil) veil.classList.add('on');
       setTimeout(()=>{ modal.classList.add('on'); }, 80);
     });
-    // CTA → cierra modal, hace scroll al botón tutorial y lo resalta
+    // CTA → cierra modal y lanza la partida directamente
     const cta=document.getElementById('npob-cta');
     if(cta) cta.onclick=function(){
       modal.classList.remove('on');
       const veil2=document.getElementById('npob-veil');
       if(veil2) veil2.classList.remove('on');
       setTimeout(()=>{
-        const btnM=document.getElementById('tutorialBtn_m');
-        const btnD=document.getElementById('tutorialBtn_d');
-        const btn=(btnM&&btnM.offsetParent!==null)?btnM:(btnD||btnM);
-        if(btn){
-          btn.style.transition='box-shadow .3s';
-          btn.style.boxShadow='0 0 0 3px rgba(6,182,212,0.8), 0 0 20px rgba(6,182,212,0.5)';
-          setTimeout(()=>{ btn.style.boxShadow=''; },2000);
-          btn.scrollIntoView({behavior:'smooth',block:'center'});
-        }
-      },350);
+        try{ if(typeof startGame==='function') startGame(false); }catch(_){}
+      },300);
     };
   }
 
@@ -85402,6 +86215,14 @@ const MilestoneSystem = (function(){
   .tfs-ach { padding: 7px 10px !important; gap: 8px !important; }
   .tfs-ach-icon { width: 26px !important; height: 26px !important; font-size: 13px !important; }
   #tfs-buttons { padding: 14px 16px 16px !important; gap: 7px !important; }
+  /* Fila de 3 botones (Repetir / Cómo Jugar / Menú) — compactar para que quepan
+     sin partir texto en 2 líneas en pantallas muy angostas. */
+  #tfs-btn-row { gap: 5px !important; }
+  #tfs-btn-row button {
+    font-size: 9px !important; padding: 9px 4px !important; gap: 3px !important;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  #tfs-btn-row button svg { width: 11px !important; height: 11px !important; flex-shrink: 0; }
 }
 
 /* ── FIX 5: tfs-stats (tutorial final) — compactar en ≤400px ── */
