@@ -2567,6 +2567,15 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
   margin-top:5px;
   font-weight:600;
 }
+.stat-icon-badge{
+  width:30px;height:30px;
+  border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 7px;
+  border:1px solid;
+  transition:transform .2s ease;
+}
+.stat-card:hover .stat-icon-badge{ transform:scale(1.06); }
 .record-badge{
   display:inline-flex;
   align-items:center;
@@ -2634,6 +2643,15 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
   color: #ef4444 !important;
   background: rgba(239,68,68,0.04) !important;
 }
+#goShareBtn.btn-ghost {
+  border-color: rgba(6,182,212,0.3) !important;
+  color: #22d3ee !important;
+  background: rgba(6,182,212,0.05) !important;
+}
+#goShareBtn.btn-ghost:active {
+  background: rgba(6,182,212,0.1) !important;
+  border-color: rgba(6,182,212,0.45) !important;
+}
 /* Menú Principal — visible, profesional, minimalista */
 #gameOverScreen #goMenuBtn.btn-ghost,
 #goMenuBtn.btn-ghost {
@@ -2673,6 +2691,20 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
   border-radius: 14px;
   border-color: rgba(255,255,255,0.07);
   background: rgba(255,255,255,0.02);
+}
+/* Detail row icon badges */
+.go-row-icon{
+  width:22px;height:22px;border-radius:7px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;margin-right:8px;
+}
+.go-row-left{ display:flex; align-items:center; }
+/* Global stats row icons */
+.gs-row-icon{
+  width:20px;height:20px;border-radius:6px;
+  background:rgba(6,182,212,0.08);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
 }
 /* Divider line between score label and score number */
 .go-score-divider {
@@ -17365,20 +17397,30 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
     </div>
 
     <!-- NEW RECORD badge -->
-    <div id="newRecBadge" style="display:none;margin-bottom:12px;"><span class="record-badge" data-i18n="new_record_badge">🏆 New Record</span></div>
+    <div id="newRecBadge" style="display:none;margin-bottom:12px;"><span class="record-badge"><svg width="13" height="13" viewBox="0 0 18 18" fill="none" style="flex-shrink:0;"><path d="M6 3H12V7.4C12 9.6 10.4 11.3 9 11.3C7.6 11.3 6 9.6 6 7.4V3Z" fill="#000" opacity="0.82"/><path d="M6 4.2H3.6C3.6 6.3 4.7 7.7 6 8.1" stroke="#000" stroke-width="1.1" stroke-linecap="round" opacity="0.82"/><path d="M12 4.2H14.4C14.4 6.3 13.3 7.7 12 8.1" stroke="#000" stroke-width="1.1" stroke-linecap="round" opacity="0.82"/><rect x="7.8" y="11" width="2.4" height="2.2" fill="#000" opacity="0.82"/><path d="M5.6 15H12.4" stroke="#000" stroke-width="1.3" stroke-linecap="round" opacity="0.82"/></svg><span data-i18n="new_record_badge">New Record</span></span></div>
 
     <!-- Score panel -->
     <div id="goScorePanel" style="margin-bottom:10px;">
-      <div style="display:flex;align-items:flex-end;justify-content:space-between;">
+      <svg width="130" height="130" viewBox="0 0 130 130" fill="none" style="position:absolute;top:-34px;right:-34px;opacity:0.10;pointer-events:none;">
+        <circle cx="65" cy="65" r="54" stroke="#06b6d4" stroke-width="1" stroke-dasharray="4 5"/>
+        <circle cx="65" cy="65" r="38" stroke="#8b5cf6" stroke-width="1" stroke-dasharray="2 4"/>
+      </svg>
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;position:relative;">
         <!-- Main score -->
         <div style="text-align:left;">
-          <div style="font-size:9px;color:var(--tx3);letter-spacing:2px;text-transform:uppercase;font-weight:700;" id="goScoreLbl">PUNTUACIÓN</div>
+          <div style="display:flex;align-items:center;gap:5px;">
+            <svg width="11" height="11" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7" stroke="#06b6d4" stroke-width="1.4" opacity="0.55"/><circle cx="9" cy="9" r="2.1" fill="#06b6d4"/></svg>
+            <div style="font-size:9px;color:var(--tx3);letter-spacing:2px;text-transform:uppercase;font-weight:700;" id="goScoreLbl">PUNTUACIÓN</div>
+          </div>
           <div class="go-score-divider"></div>
           <div class="go-score-val" style="font-family:'Space Grotesk',sans-serif;font-size:46px;font-weight:900;color:var(--c);line-height:1;letter-spacing:-2px;" id="goScore">0</div>
         </div>
         <!-- High score -->
         <div style="text-align:right;padding-bottom:6px;">
-          <div style="font-size:9px;color:rgba(251,191,36,0.6);letter-spacing:2px;text-transform:uppercase;font-weight:700;" id="goHSLbl">RÉCORD</div>
+          <div style="display:flex;align-items:center;gap:4px;justify-content:flex-end;">
+            <div style="font-size:9px;color:rgba(251,191,36,0.6);letter-spacing:2px;text-transform:uppercase;font-weight:700;" id="goHSLbl">RÉCORD</div>
+            <svg width="10" height="10" viewBox="0 0 18 18" fill="none"><path d="M9 2.6L11.2 6.9H15.8L12.3 9.9L13.6 14.4L9 11.6L4.4 14.4L5.7 9.9L2.2 6.9H6.8L9 2.6Z" fill="#f59e0b" opacity="0.85"/></svg>
+          </div>
           <div style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:800;color:var(--a);letter-spacing:-0.5px;" id="goHS">0</div>
         </div>
       </div>
@@ -17392,33 +17434,69 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
     <!-- Main stats: 2x2 grid -->
     <div class="stats-grid" style="margin-bottom:10px;">
       <div class="stat-card">
+        <div class="stat-icon-badge" style="background:rgba(16,185,129,0.10);border-color:rgba(16,185,129,0.28);">
+          <svg width="16" height="16" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="9" cy="9" r="6.6" stroke="#10b981" stroke-width="1.1" stroke-dasharray="2 2.2" opacity="0.5"/>
+            <path d="M9 5.4L11.2 6.7V9.3L9 10.6L6.8 9.3V6.7L9 5.4Z" fill="#10b981"/>
+          </svg>
+        </div>
         <div class="stat-val" style="color:var(--g);" id="goDebris">0</div>
         <div class="stat-lbl" data-i18n="stat_absorbed">Absorbidos</div>
       </div>
       <div class="stat-card">
+        <div class="stat-icon-badge" style="background:rgba(139,92,246,0.10);border-color:rgba(139,92,246,0.28);">
+          <svg width="16" height="16" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="4.8" cy="12.5" r="1.8" fill="#8b5cf6" opacity="0.55"/>
+            <circle cx="9" cy="8.6" r="2.15" fill="#8b5cf6" opacity="0.78"/>
+            <circle cx="13.3" cy="4.9" r="2.55" fill="#8b5cf6"/>
+          </svg>
+        </div>
         <div class="stat-val" style="color:var(--p);" id="goCombo">x0</div>
         <div class="stat-lbl" data-i18n="stat_combo">Combo</div>
       </div>
       <div class="stat-card">
-        <div class="stat-val" id="goTime">0s</div>
+        <div class="stat-icon-badge" style="background:rgba(6,182,212,0.10);border-color:rgba(6,182,212,0.28);">
+          <svg width="16" height="16" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="9" cy="9" r="6.8" stroke="#06b6d4" stroke-width="1.2" opacity="0.4"/>
+            <path d="M9 9V4.9" stroke="#06b6d4" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M9 9L11.8 10.7" stroke="#06b6d4" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="9" cy="9" r="1.05" fill="#06b6d4"/>
+          </svg>
+        </div>
+        <div class="stat-val" style="color:var(--c);" id="goTime">0s</div>
         <div class="stat-lbl" data-i18n="stat_time">Tiempo</div>
       </div>
       <div class="stat-card">
-        <div class="stat-val" id="goLevel">1</div>
+        <div class="stat-icon-badge" style="background:rgba(245,158,11,0.10);border-color:rgba(245,158,11,0.28);">
+          <svg width="16" height="16" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 11.7L9 7.3L14 11.7" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+            <path d="M4 15.1L9 10.7L14 15.1" stroke="#f59e0b" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="9" cy="4.4" r="1.25" fill="#f59e0b"/>
+          </svg>
+        </div>
+        <div class="stat-val" style="color:var(--a);" id="goLevel">1</div>
         <div class="stat-lbl" data-i18n="stat_level">Nivel</div>
       </div>
     </div>
 
     <!-- Combo streak row -->
     <div id="goComboStreakRow" style="display:none;background:linear-gradient(135deg,rgba(139,92,246,0.08),rgba(245,158,11,0.05));border:1px solid rgba(139,92,246,0.2);border-radius:14px;padding:10px 16px;margin-bottom:10px;align-items:center;justify-content:space-between;">
-      <div style="font-size:9px;color:var(--tx3);letter-spacing:1.5px;font-weight:700;text-transform:uppercase;" id="goStreakLbl">🌈 MEJOR RACHA COMBO x25</div>
+      <div class="go-row-left">
+        <div class="go-row-icon" style="background:rgba(167,139,250,0.14);">
+          <svg width="13" height="13" viewBox="0 0 18 18" fill="none"><path d="M9 2.4L12.4 8.1L16.2 8.7L13.5 12L14.3 16L9 13.7L3.7 16L4.5 12L1.8 8.7L5.6 8.1L9 2.4Z" fill="#a78bfa"/></svg>
+        </div>
+        <div style="font-size:9px;color:var(--tx3);letter-spacing:1.5px;font-weight:700;text-transform:uppercase;" id="goStreakLbl">MEJOR RACHA COMBO x25</div>
+      </div>
       <div style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:800;color:#a78bfa;" id="goStreakVal">—</div>
     </div>
 
     <!-- Collapsible detailed breakdown -->
     <div id="goDetailPanel" style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:14px;margin-bottom:10px;overflow:hidden;">
       <button id="goDetailToggle" style="width:100%;background:none;border:none;color:var(--tx2);font-size:10px;font-weight:700;letter-spacing:1.2px;padding:11px 16px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;touch-action:manipulation;">
-        <span id="goDetailToggleLbl">📊 DESGLOSE DETALLADO</span>
+        <span style="display:flex;align-items:center;gap:7px;">
+          <svg width="13" height="13" viewBox="0 0 18 18" fill="none"><rect x="3" y="10.5" width="2.8" height="4.5" rx="0.8" fill="#06b6d4" opacity="0.55"/><rect x="7.6" y="6.5" width="2.8" height="8.5" rx="0.8" fill="#06b6d4" opacity="0.78"/><rect x="12.2" y="3" width="2.8" height="12" rx="0.8" fill="#06b6d4"/></svg>
+          <span id="goDetailToggleLbl">DESGLOSE DETALLADO</span>
+        </span>
         <span id="goDetailArrow" style="transition:transform .25s cubic-bezier(.4,0,.2,1);font-size:10px;opacity:0.5;">▾</span>
       </button>
       <div id="goDetailContent" style="display:none;padding:0 16px 14px;">
@@ -17426,15 +17504,24 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
         <div id="goTypeGrid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:12px;"></div>
         <div style="display:flex;flex-direction:column;gap:1px;">
           <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
-            <span style="font-size:11px;color:var(--tx2);" id="goDodgeLbl">⚡ Precisión esquiva</span>
+            <span class="go-row-left">
+              <span class="go-row-icon" style="background:rgba(16,185,129,0.12);"><svg width="12" height="12" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="6.4" stroke="#10b981" stroke-width="1.3" opacity="0.4"/><circle cx="9" cy="9" r="1.6" fill="#10b981"/><path d="M9 2.6V4.6M9 13.4V15.4M2.6 9H4.6M13.4 9H15.4" stroke="#10b981" stroke-width="1.2" stroke-linecap="round"/></svg></span>
+              <span style="font-size:11px;color:var(--tx2);" id="goDodgeLbl">Precisión esquiva</span>
+            </span>
             <span style="font-size:11px;font-weight:700;color:var(--g);" id="goDodgePct">—</span>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
-            <span style="font-size:11px;color:var(--tx2);" id="goComboTimeLbl">🌈 Tiempo en combo x10</span>
+            <span class="go-row-left">
+              <span class="go-row-icon" style="background:rgba(167,139,250,0.14);"><svg width="12" height="12" viewBox="0 0 18 18" fill="none"><path d="M9 2.4L12.4 8.1L16.2 8.7L13.5 12L14.3 16L9 13.7L3.7 16L4.5 12L1.8 8.7L5.6 8.1L9 2.4Z" fill="#a78bfa"/></svg></span>
+              <span style="font-size:11px;color:var(--tx2);" id="goComboTimeLbl">Tiempo en combo x10</span>
+            </span>
             <span style="font-size:11px;font-weight:700;color:var(--p);" id="goComboTime">0s</span>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;">
-            <span style="font-size:11px;color:var(--tx2);" id="goRareLbl">✦ Debris raros</span>
+            <span class="go-row-left">
+              <span class="go-row-icon" style="background:rgba(168,85,247,0.14);"><svg width="12" height="12" viewBox="0 0 18 18" fill="none"><path d="M9 3L10.7 7.3L15 9L10.7 10.7L9 15L7.3 10.7L3 9L7.3 7.3L9 3Z" fill="#a855f7"/></svg></span>
+              <span style="font-size:11px;color:var(--tx2);" id="goRareLbl">Debris raros</span>
+            </span>
             <span style="font-size:11px;font-weight:700;color:#a855f7;" id="goRareCount">0</span>
           </div>
         </div>
@@ -17443,14 +17530,23 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
 
     <!-- Global stats compact -->
     <div class="card card-sm" style="margin-bottom:12px;text-align:left;border-radius:14px;border-color:rgba(255,255,255,0.07);">
-      <div style="font-size:9px;color:var(--tx3);letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-bottom:8px;" data-i18n="global_stats">Estadísticas Globales</div>
-      <div style="display:grid;grid-template-columns:1fr auto;gap:5px 10px;align-items:center;">
-        <div style="font-size:11px;color:var(--tx2);" data-i18n="total_debris">Total debris</div>
-        <div style="font-size:12px;font-weight:700;color:var(--tx);text-align:right;" id="gsTD">0</div>
-        <div style="font-size:11px;color:var(--tx2);" data-i18n="games_played">Partidas</div>
-        <div style="font-size:12px;font-weight:700;color:var(--tx);text-align:right;" id="gsGP">0</div>
-        <div style="font-size:11px;color:var(--tx2);" data-i18n="total_time">Tiempo total</div>
-        <div style="font-size:12px;font-weight:700;color:var(--tx);text-align:right;" id="gsTT">0m</div>
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:9px;">
+        <svg width="11" height="11" viewBox="0 0 18 18" fill="none"><rect x="2.5" y="10" width="3" height="6" rx="0.8" fill="#06b6d4" opacity="0.55"/><rect x="7.5" y="6" width="3" height="10" rx="0.8" fill="#06b6d4" opacity="0.78"/><rect x="12.5" y="2.5" width="3" height="13.5" rx="0.8" fill="#06b6d4"/></svg>
+        <div style="font-size:9px;color:var(--tx3);letter-spacing:2px;text-transform:uppercase;font-weight:700;" data-i18n="global_stats">Estadísticas Globales</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:7px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span class="go-row-left"><span class="gs-row-icon"><svg width="11" height="11" viewBox="0 0 18 18" fill="none"><path d="M9 5.4L11.2 6.7V9.3L9 10.6L6.8 9.3V6.7L9 5.4Z" fill="#06b6d4"/></svg></span><span style="font-size:11px;color:var(--tx2);" data-i18n="total_debris">Total debris</span></span>
+          <span style="font-size:12px;font-weight:700;color:var(--tx);" id="gsTD">0</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span class="go-row-left"><span class="gs-row-icon"><svg width="11" height="11" viewBox="0 0 18 18" fill="none"><rect x="6.5" y="7" width="5" height="4" rx="1" fill="#06b6d4"/><rect x="1.8" y="8" width="3.6" height="1.7" rx="0.85" fill="#06b6d4" opacity="0.6"/><rect x="12.6" y="8" width="3.6" height="1.7" rx="0.85" fill="#06b6d4" opacity="0.6"/></svg></span><span style="font-size:11px;color:var(--tx2);" data-i18n="games_played">Partidas</span></span>
+          <span style="font-size:12px;font-weight:700;color:var(--tx);" id="gsGP">0</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span class="go-row-left"><span class="gs-row-icon"><svg width="11" height="11" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="6.6" stroke="#06b6d4" stroke-width="1.3" opacity="0.45"/><path d="M9 9V5.4M9 9L11.5 10.5" stroke="#06b6d4" stroke-width="1.3" stroke-linecap="round"/></svg></span><span style="font-size:11px;color:var(--tx2);" data-i18n="total_time">Tiempo total</span></span>
+          <span style="font-size:12px;font-weight:700;color:var(--tx);" id="gsTT">0m</span>
+        </div>
       </div>
     </div>
 
@@ -17479,12 +17575,15 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
 
       <!-- Secondary actions row -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        <button id="goShareBtn" class="btn btn-ghost" style="display:none;" onclick="DebrisShare.share()">📸 <span id="goShareLbl">Compartir</span></button>
-        <button id="goDuelBtn" class="btn btn-ghost" style="display:none;">⚔️ <span id="goDuelLbl">Retar</span></button>
+        <button id="goShareBtn" class="btn btn-ghost" style="display:none;align-items:center;justify-content:center;gap:6px;" onclick="DebrisShare.share()"><svg width="14" height="14" viewBox="0 0 18 18" fill="none" style="flex-shrink:0;"><circle cx="9" cy="9" r="2" fill="currentColor"/><circle cx="9" cy="9" r="6.4" stroke="currentColor" stroke-width="1.2" opacity="0.4"/><path d="M9 2.6V4.6M9 13.4V15.4M2.6 9H4.6M13.4 9H15.4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity="0.85"/></svg> <span id="goShareLbl">Compartir</span></button>
+        <button id="goDuelBtn" class="btn btn-ghost" style="display:none;align-items:center;justify-content:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 18 18" fill="none" style="flex-shrink:0;"><path d="M2.6 2.6L8 8M15.4 2.6L10 8M8 10L2.6 15.4M10 10L15.4 15.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="9" cy="9" r="1.7" fill="currentColor"/></svg> <span id="goDuelLbl">Retar</span></button>
       </div>
 
       <!-- Main menu — subtle -->
-      <button class="btn btn-ghost" style="width:100%;opacity:0.55;font-size:11px;padding:11px;" id="goMenuBtn" data-i18n="main_menu">🏠 Menú Principal</button>
+      <button class="btn btn-ghost" style="width:100%;opacity:0.55;font-size:11px;padding:11px;display:flex;align-items:center;justify-content:center;gap:7px;" id="goMenuBtn">
+        <svg width="13" height="13" viewBox="0 0 18 18" fill="none"><rect x="6.5" y="7" width="5" height="4" rx="1" fill="currentColor" opacity="0.75"/><rect x="1.5" y="8" width="4" height="1.8" rx="0.9" fill="currentColor" opacity="0.5"/><rect x="12.5" y="8" width="4" height="1.8" rx="0.9" fill="currentColor" opacity="0.5"/><rect x="8.1" y="4" width="1.8" height="2.5" rx="0.7" fill="currentColor" opacity="0.5"/><rect x="8.1" y="11.5" width="1.8" height="2.5" rx="0.7" fill="currentColor" opacity="0.5"/></svg>
+        <span data-i18n="main_menu">Menú Principal</span>
+      </button>
     </div>
 
   </div>
@@ -19440,7 +19539,7 @@ function _scaleCFG(){
   // v199: debris escala independiente, ligeramente más pequeña que el satélite
   CFG._debrisScale  = scaleFactor;
   // Ratio máximo debris/satélite: ningún debris debe superar el 55% del SAT_R visual
-  // SAT_R visual con SKIN_SIZE_MULT máx (nyxarion desk 1.12) ≈ 26*1.55*1.12 ≈ 45px
+  // SAT_R visual con SKIN_SIZE_MULT máx (celestial desk 1.10) ≈ 26*1.55*1.10 ≈ 44px
   // Debris legendario máx ≈ 20px × _ds ≈ 20 * 0.84 * 1.55 ≈ 26px → < 60% → OK
   if(G && G.sat) G.sat.r = CFG.SAT_R;
 }
@@ -19535,7 +19634,7 @@ const TRANSLATIONS = {
     score:'PUNTUACIÓN', best:'MEJOR',
     play_again:'JUGAR DE NUEVO', main_menu:'MENÚ PRINCIPAL',
     no_lives:'Sin vidas',
-    new_record_badge:'🏆 Nuevo Récord',
+    new_record_badge:'Nuevo Récord',
     global_stats:'Estadísticas globales',
     total_debris:'Total debris',
     games_played:'Partidas',
@@ -19631,7 +19730,7 @@ const TRANSLATIONS = {
     score:'SCORE', best:'BEST',
     play_again:'PLAY AGAIN', main_menu:'MAIN MENU',
     no_lives:'No lives left',
-    new_record_badge:'🏆 New Record',
+    new_record_badge:'New Record',
     global_stats:'Global stats',
     total_debris:'Total debris',
     games_played:'Games',
@@ -19726,7 +19825,7 @@ const TRANSLATIONS = {
     score:'PONTUAÇÃO', best:'MELHOR',
     play_again:'JOGAR DE NOVO', main_menu:'MENU PRINCIPAL',
     no_lives:'Sem vidas',
-    new_record_badge:'🏆 Novo Recorde',
+    new_record_badge:'Novo Recorde',
     global_stats:'Estatísticas globais',
     total_debris:'Total de destroços',
     games_played:'Partidas',
@@ -19821,7 +19920,7 @@ const TRANSLATIONS = {
     score:'スコア', best:'ベスト',
     play_again:'もう一度', main_menu:'メインメニュー',
     no_lives:'ライフ切れ',
-    new_record_badge:'🏆 新記録',
+    new_record_badge:'新記録',
     global_stats:'グローバル統計',
     total_debris:'総デブリ数',
     games_played:'プレイ回数',
@@ -21717,28 +21816,6 @@ const SKINS = {
     diff:4, rarity:'Weekly', type:'Nexus',
     reqs:['Desafío Semanal'], rid:'wc_nexus_skin', renderer:'renderStandard',
     ability:{id:'orbital_pulse',icon:'⚡',name:'Pulso Orbital',nameEn:'Orbital Pulse',desc:'Activa al combo máximo. Dura 10s.',descEn:'Activates at max combo. Lasts 10s.',effect:'orbital_pulse',dur:10}
-  },
-
-  // ══════════════════════════════════════════════════════════════════
-  // NYXARION — DIOS ESTELAR  ·  Skin Mítica Suprema
-  // ══════════════════════════════════════════════════════════════════
-  nyxarion:{
-    id:'nyxarion', name:'Nyxarion', nameEn:'Nyxarion',
-    desc:'El Dios Estelar que tejió las primeras constelaciones con sus manos. Su núcleo contiene la energía de diez mil soles extintos — al despertar, la órbita entera se dobla a su voluntad.',
-    descEn:'The Stellar God who wove the first constellations with bare hands. Its core contains the energy of ten thousand dead suns — when awakened, the entire orbit bends to its will.',
-    color:'#c084fc', glow:'#f0abfc', accent:'#fbbf24',
-    diff:5, rarity:'Mythic', type:'Stellar God',
-    reqs:['💎 Premium skin — Dios Estelar'], rid:'nyxarion', renderer:'renderNyxarion',
-    ability:{
-      id:'stellar_dominion',
-      icon:'⭐',
-      name:'Dominio Estelar',
-      nameEn:'Stellar Dominion',
-      desc:'Nyxarion despierta: todos los peligros son convertidos en debris de puntos máximos, x8 multiplicador, absorción omnidireccional e invencibilidad total por 12 segundos. El cosmos obedece.',
-      descEn:'Nyxarion awakens: all dangers convert to max-point debris, x8 multiplier, omnidirectional absorption and full invincibility for 12 seconds. The cosmos obeys.',
-      effect:'stellar_dominion',
-      dur:12
-    }
   }
 };
 
@@ -21798,7 +21875,6 @@ const SAT_VR_BY_SKIN = {
   wc_apex_skin:   20,
   wc_iron_skin:   20,
   wc_nexus_skin:  20,
-  nyxarion:       22, // cuerpo estelar denso r=24px. Corona de rayos y halos son decorativos → 22px
 };
 
 // Devuelve SAT_VR calibrado para la skin activa, escalado por resolución
@@ -22021,7 +22097,10 @@ const Tut = (function(){
   // Tiempo de lectura por tipo de paso — ajustado a cuánto texto tiene cada
   // uno. El paso se activa (spawn + tracking) recién cuando la tarjeta se
   // colapsa, no en un tiempo fijo genérico para todos.
-  const _STEP_READ_MS = { move:1300, absorb:1500, dodge:1900, combo:1600, powerup:1700 };
+  // FIX v362 — el paso 0 (move) tenía el tiempo de lectura MÁS CORTO de
+  // todos (1300ms) a pesar de ser la primera tarjeta que ve el jugador —
+  // justo cuando más necesita tiempo para orientarse. Se sube a 2600ms.
+  const _STEP_READ_MS = { move:2600, absorb:1500, dodge:1900, combo:1600, powerup:1700 };
   const _STEP_READ_DEFAULT = 1500;
   let _tutDangers = [];      // debris del tutorial (paso 3)
   let _demoHit = false;      // ya recibió el golpe demo en paso 3
@@ -23137,6 +23216,17 @@ const Tut = (function(){
       // Desbloquear botón de menú principal y mostrar skip de nuevo
       try{ document.body.classList.remove('tut-locked'); }catch(_){}
       try{ Store.set('orb_tut',true); }catch(_){}
+      // FIX v362 — BUG REAL: goToMenu() era el ÚNICO lugar que llamaba a
+      // _npobUnlock(), y lo hacía condicionado a `if(G._isTutorial)`. Pero
+      // arriba, unas líneas antes, ya se puso G._isTutorial=false — así que
+      // para cuando (si) goToMenu() llegaba a ejecutarse, la condición ya
+      // era falsa y el desbloqueo nunca ocurría. Además, "¡A Jugar!" y
+      // "Cómo Jugar" en la pantalla final ni siquiera pasan por goToMenu().
+      // Resultado: usuarios nuevos (o que borraron sus datos) terminaban el
+      // tutorial completo y los modos Blitz/Caos/Zen/Órbita del Día y los
+      // paneles de progresión quedaban con el candado puesto para siempre.
+      // Se llama aquí, en el único punto común a las 3 salidas del tutorial.
+      try{ if(typeof window._npobUnlock==='function') window._npobUnlock(); }catch(_){}
     },
 
     // Llamado por startTutorialMode para reset completo antes de start()
@@ -28758,26 +28848,6 @@ function updateSat(dt){
       break;
     }
 
-    // NYXARION — DIOS ESTELAR: rotación solemne y majestuosa
-    // stellar_dominion activo: la rotación se acelera dramáticamente — el dios despierta.
-    // La órbita pulsa con energía estelar y el tilt responde con majestad divina.
-    case 'nyxarion': {
-      const sdOn = !!(G && G._stellarDominion);
-      // Rotación base lenta y solemne; al despertar, gira con poder divino
-      const nyxRotBase = sdOn ? 0.90 : 0.20;
-      const nyxRotVel  = sdOn ? 2.20 : 0.60;
-      // Pulso sinusoidal — el núcleo estelar late
-      const nyxPulse = Math.sin(g.time*(sdOn?4.5:1.8))*dt*(sdOn?0.18:0.06);
-      s.rot += dt*(nyxRotBase + vm*nyxRotVel) + nyxPulse;
-      // Tilt amplio pero suave — el dios se mueve con dignidad cósmica
-      const nyxTiltSmooth = Math.pow(sdOn ? 0.002 : 0.005, dt);
-      const nyxTiltMag    = sdOn ? 0.42 : 0.28;
-      const nyxWobble     = sdOn ? Math.sin(g.time*3.2)*0.06 : 0;
-      s.tiltX = s.tiltX*nyxTiltSmooth + (s.vx/maxSpd*nyxTiltMag + nyxWobble)*(1-nyxTiltSmooth);
-      s.tiltY = s.tiltY*nyxTiltSmooth + (s.vy/maxSpd*nyxTiltMag + nyxWobble)*(1-nyxTiltSmooth);
-      break;
-    }
-
     // FALLBACK — cualquier skin futura hereda comportamiento de satélite
     default:
       s.rot += dt*(0.38 + vm*1.4);
@@ -30971,29 +31041,6 @@ function mkAbsorption(x,y,col,pts){
       for(let i=0;i<8;i++){const a=(i/8)*Math.PI*2;G.particles.push({x,y,vx:Math.cos(a)*100,vy:Math.sin(a)*100,life:.32,color:i%3===0?'#fff':i%3===1?'#a5f3fc':'#67e8f9',r:3.0,isText:false});}
       mkCategoryShards(x,y,col);
       try{Audio.skinCollect('chrono_bastion',pts);}catch(_){}
-      break;}
-
-    case 'nyxarion':{
-      // Absorción del Dios Estelar — partículas estelares doradas y violeta
-      const nyxC=['#fde047','#c084fc','#f0abfc','#fbbf24','#a855f7','#fff','#fcd34d','#e9d5ff'];
-      const nNyx = Math.min(36, n+14);
-      for(let i=0;i<nNyx;i++){
-        const a=Math.random()*Math.PI*2, spd=55+Math.random()*140;
-        const c=nyxC[Math.floor(Math.random()*nyxC.length)];
-        G.particles.push({x,y,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,life:.38+Math.random()*.44,color:c,r:2.0+Math.random()*3.5,isText:false});
-      }
-      // 2 ondas de shock — dorada exterior, violeta interior
-      G.shocks.push({x,y,r:3, spd:200,life:0.60,color:'rgba(253,224,71,0.95)',lw:2.8});
-      G.shocks.push({x,y,r:8, spd:120,life:0.46,color:'rgba(192,132,252,0.88)',lw:1.8});
-      G.shocks.push({x,y,r:16,spd:65, life:0.32,color:'rgba(168,85,247,0.55)',lw:1.0});
-      // 8 rayos estelares de 4 puntas — firma visual de Nyxarion
-      for(let i=0;i<8;i++){
-        const a=(i/8)*Math.PI*2, spd2=110+Math.random()*60;
-        const c2=i%2===0?'#fde047':'#c084fc';
-        G.particles.push({x,y,vx:Math.cos(a)*spd2,vy:Math.sin(a)*spd2,life:.28,color:c2,r:3.5,isText:false});
-      }
-      try{Audio.skinCollect('nyxarion',pts);}catch(_){}
-      mkCategoryShards(x,y,col);
       break;}
 
     // ── DEFAULT: absorción orbital — diferenciada por tipo de debris ──
@@ -41875,7 +41922,6 @@ function renderSatCelestial(s,r,t,spd,sk){
 //   "compact"  — cuerpos pequeños y ágiles (phantom, quantum, shadow_mirror)
 //   "standard" — satélites equilibrados (default, nova, titan, chrono, weekly)
 //   "expanded" — presencias grandes con auras/halos amplios (celestial, void, aurora)
-//   "cosmic"   — escala épica, cuerpos muy elaborados (nyxarion)
 //
 // Multiplicadores: desktop | tablet | mobile
 const SKIN_SIZE_MULT = {
@@ -41902,8 +41948,6 @@ const SKIN_SIZE_MULT = {
   void_specter:    { desk:1.08, tab:1.03, mob:0.97 },
   // aurora_prism: escudo prismático con reflejos radiales → ligeramente expandido
   aurora_prism:    { desk:1.09, tab:1.04, mob:0.98 },
-  // ── Cosmic/epic skin — máxima presencia, diseño icónico con corona y corona de luz
-  nyxarion:        { desk:1.13, tab:1.07, mob:1.00 },
   // ── Weekly challenge skins — todas usan renderStandard, proporciones según forma base
   wc_zen_skin:     { desk:1.00, tab:0.96, mob:0.92 },   // zen: compacto y centrado
   wc_blaze_skin:   { desk:1.04, tab:0.99, mob:0.94 },   // blaze: llamas moderadas
@@ -51864,10 +51908,10 @@ function endGame(){
   $('goTime',   Math.floor(finalTime)+'s');
   $('goLevel',  finalLevel);
   $('goScoreLbl',      Lang.cur==='en'?'SCORE':Lang.cur==='pt'?'PONTUAÇÃO':Lang.cur==='ja'?'スコア':'PUNTUACIÓN');
-  $('goDetailToggleLbl',Lang.cur==='en'?'📊 DETAILED BREAKDOWN':Lang.cur==='pt'?'📊 DETALHAMENTO':Lang.cur==='ja'?'📊 詳細データ':'📊 DESGLOSE DETALLADO');
+  $('goDetailToggleLbl',Lang.cur==='en'?'DETAILED BREAKDOWN':Lang.cur==='pt'?'DETALHAMENTO':Lang.cur==='ja'?'詳細データ':'DESGLOSE DETALLADO');
   $('goByTypeLbl',     Lang.cur==='en'?'By debris type':Lang.cur==='pt'?'Por tipo de destroço':Lang.cur==='ja'?'デブリ種別':'Por tipo de debris');
-  $('goDodgeLbl',      Lang.cur==='en'?'⚡ Dodge accuracy':Lang.cur==='pt'?'⚡ Precisão de esquiva':Lang.cur==='ja'?'⚡ 回避精度':'⚡ Precisión de esquive');
-  $('goComboTimeLbl',  Lang.cur==='en'?'🌈 Time at combo x10':Lang.cur==='pt'?'🌈 Tempo em combo x10':Lang.cur==='ja'?'🌈 コンボx10の時間':'🌈 Tiempo en combo x10');
+  $('goDodgeLbl',      Lang.cur==='en'?'Dodge accuracy':Lang.cur==='pt'?'Precisão de esquiva':Lang.cur==='ja'?'回避精度':'Precisión de esquive');
+  $('goComboTimeLbl',  Lang.cur==='en'?'Time at combo x10':Lang.cur==='pt'?'Tempo em combo x10':Lang.cur==='ja'?'コンボx10の時間':'Tiempo en combo x10');
   // Fix 11: Best combo streak row
   try{
     const streakRow = document.getElementById('goComboStreakRow');
@@ -51877,14 +51921,14 @@ function endGame(){
     if(streakRow && streakVal){
       if(comboAt10s > 0){
         streakRow.style.display='flex';
-        if(streakLbl) streakLbl.textContent = Lang.cur==='en'?'🌈 BEST x10 COMBO STREAK':Lang.cur==='pt'?'🌈 MELHOR SEQUÊNCIA COMBO x10':Lang.cur==='ja'?'🌈 ベストコンボx10ストリーク':'🌈 MEJOR RACHA COMBO x10';
+        if(streakLbl) streakLbl.textContent = Lang.cur==='en'?'BEST x10 COMBO STREAK':Lang.cur==='pt'?'MELHOR SEQUÊNCIA COMBO x10':Lang.cur==='ja'?'ベストコンボx10ストリーク':'MEJOR RACHA COMBO x10';
         streakVal.textContent = comboAt10s + 's';
       } else {
         streakRow.style.display='none';
       }
     }
   }catch(_){}
-  $('goRareLbl',       Lang.cur==='en'?'✦ Rare debris':Lang.cur==='pt'?'✦ Destroços raros':Lang.cur==='ja'?'✦ レアデブリ':'✦ Debris raros');
+  $('goRareLbl',       Lang.cur==='en'?'Rare debris':Lang.cur==='pt'?'Destroços raros':Lang.cur==='ja'?'レアデブリ':'Debris raros');
 
   const _deathReasonDisplay=(function(k){
     const _lc=typeof Lang!=='undefined'?Lang.cur:'es';
@@ -83050,6 +83094,8 @@ const StreakRewards = (function(){
 // ─────────────────────────────────────────────────────────────────────────
 const ReferralSystem = (function(){
   const BASE_URL = 'https://nyxarion-ctrl.github.io/debris-surge/';
+  const XP_PER_SHARE = 15;   // Recompensa garantizada por compartir (no depende del backend)
+  const MAX_SHARES_PER_DAY = 3;
 
   function _getRefCode(){
     try{
@@ -83063,6 +83109,48 @@ const ReferralSystem = (function(){
 
   function _getStats(){
     return Store.get('orb_ref_stats', {sent:0, xp:0});
+  }
+
+  // ── Registra un compartir exitoso y otorga XP real, con tope diario anti-abuso ──
+  // Esto garantiza que "ambos ganan XP" se cumpla siempre, sin depender de que
+  // el backend externo esté disponible o tenga CORS configurado.
+  function _trackShareAndReward(){
+    let xpAwarded = 0;
+    try{
+      const s = _getStats(); s.sent = (s.sent||0)+1;
+      const today = new Date().toISOString().slice(0,10);
+      const daily = Store.get('orb_ref_daily', {date:today, count:0});
+      if(daily.date !== today){ daily.date = today; daily.count = 0; }
+      if(daily.count < MAX_SHARES_PER_DAY){
+        daily.count++;
+        Store.set('orb_ref_daily', daily);
+        s.xp = (s.xp||0) + XP_PER_SHARE;
+        xpAwarded = XP_PER_SHARE;
+        try{
+          const gs = Store.get('orb_gs', {xp:0});
+          gs.xp = (gs.xp||0) + XP_PER_SHARE;
+          Store.set('orb_gs', gs);
+        }catch(_){}
+      }
+      Store.set('orb_ref_stats', s);
+    }catch(_){}
+    _refreshStatsDisplay();
+    if(xpAwarded > 0 && typeof notify === 'function'){
+      const _tlc = typeof Lang !== 'undefined' ? Lang.cur : 'es';
+      notify('🎁',
+        _tlc==='en'?`+${xpAwarded} XP earned!`:_tlc==='pt'?`+${xpAwarded} XP ganho!`:_tlc==='ja'?`+${xpAwarded} XP獲得！`:`¡+${xpAwarded} XP ganada!`,
+        _tlc==='en'?'Thanks for sharing!':_tlc==='pt'?'Obrigado por compartilhar!':_tlc==='ja'?'シェアありがとう！':'¡Gracias por compartir!'
+      );
+    }
+    return xpAwarded;
+  }
+
+  function _refreshStatsDisplay(){
+    const stats = _getStats();
+    const cntEl = document.getElementById('referralInviteCount');
+    const xpEl  = document.getElementById('referralXpEarned');
+    if(cntEl) cntEl.textContent = stats.sent;
+    if(xpEl)  xpEl.textContent  = '+' + (stats.xp||0) + ' XP';
   }
 
   function openModal(){
@@ -83093,11 +83181,7 @@ const ReferralSystem = (function(){
     const copyBtn = document.getElementById('referralCopyBtn');
     if(copyBtn) copyBtn.textContent = _rflc==='en'?'COPY':_rflc==='pt'?'COPIAR':_rflc==='ja'?'コピー':'COPIAR';
     // Update stats
-    const stats = _getStats();
-    const cntEl = document.getElementById('referralInviteCount');
-    const xpEl  = document.getElementById('referralXpEarned');
-    if(cntEl) cntEl.textContent = stats.sent;
-    if(xpEl)  xpEl.textContent  = '+' + stats.xp + ' XP';
+    _refreshStatsDisplay();
     modal.style.display = 'flex';
     requestAnimationFrame(()=>{ modal.style.opacity='1'; });
   }
@@ -83110,8 +83194,7 @@ const ReferralSystem = (function(){
         const btn = document.getElementById('referralCopyBtn');
         {const _rclc=typeof Lang!=='undefined'?Lang.cur:'es'; if(btn){ btn.textContent = _rclc==='en'?'✓ COPIED!':_rclc==='pt'?'✓ COPIADO!':_rclc==='ja'?'✓ コピー済み！':'✓ COPIADO!'; setTimeout(()=>{ btn.textContent=_rclc==='en'?'COPY':_rclc==='pt'?'COPIAR':_rclc==='ja'?'コピー':'COPIAR'; },2000); }
         if(typeof notify === 'function') notify('🔗', _rclc==='en'?'Link copied!':_rclc==='pt'?'Link copiado!':_rclc==='ja'?'リンクをコピー！':'¡Link copiado!', _rclc==='en'?'Paste it anywhere!':_rclc==='pt'?'Cole em qualquer lugar!':_rclc==='ja'?'どこにでも貼り付け！':'¡Pégalo donde quieras!');}
-        // Track
-        const s = _getStats(); s.sent = (s.sent||0)+1; Store.set('orb_ref_stats', s);
+        _trackShareAndReward();
       }).catch(()=>_fallbackCopy(link));
     } else { _fallbackCopy(link); }
   }
@@ -83121,6 +83204,7 @@ const ReferralSystem = (function(){
     ta.value = link; ta.style.cssText='position:fixed;opacity:0;top:0;left:0;';
     document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
     if(typeof notify === 'function'){const _fblc=typeof Lang!=='undefined'?Lang.cur:'es'; notify('🔗', _fblc==='en'?'Link copied!':_fblc==='pt'?'Link copiado!':_fblc==='ja'?'リンクをコピー！':'¡Link copiado!', _fblc==='en'?'Paste it anywhere!':_fblc==='pt'?'Cole em qualquer lugar!':_fblc==='ja'?'どこにでも貼り付け！':'¡Pégalo donde quieras!');}
+    _trackShareAndReward();
   }
 
   function shareWhatsApp(){
@@ -83132,20 +83216,19 @@ const ReferralSystem = (function(){
       : _walc==='ja'
       ? encodeURIComponent('軌道を掃除中！🛰️ Debris Surgeを無料でプレイ: ' + _getLink())
       : encodeURIComponent('¡Estoy limpiando la órbita! 🛰️ Juega Debris Surge gratis: ' + _getLink());
-    const s = _getStats(); s.sent = (s.sent||0)+1; Store.set('orb_ref_stats', s);
+    _trackShareAndReward();
     window.open('https://wa.me/?text=' + msg, '_blank');
   }
 
   function shareNative(){
     const _snlc = typeof Lang !== 'undefined' ? Lang.cur : 'es';
     const link = _getLink();
-    const s = _getStats(); s.sent = (s.sent||0)+1; Store.set('orb_ref_stats', s);
     if(navigator.share){
       navigator.share({
         title: 'Debris Surge 🛰️',
         text: _snlc==='en'?'Clean the orbit! Play free:':_snlc==='pt'?'Limpe a órbita! Grátis:':_snlc==='ja'?'軌道を掃除しよう！無料でプレイ:':'¡Limpia la órbita! Gratis:',
         url: link
-      }).catch(()=>copyLink());
+      }).then(()=>{ _trackShareAndReward(); }).catch(()=>copyLink());
     } else { copyLink(); }
   }
 
@@ -83170,7 +83253,8 @@ const ReferralSystem = (function(){
           gs.xp = (gs.xp||0) + 100;
           Store.set('orb_gs', gs);
         }catch(_){}
-        // Try to notify referrer via backend (fire-and-forget)
+        // Try to notify referrer via backend (fire-and-forget, best-effort only —
+        // la recompensa garantizada del referente ya se otorga localmente en _trackShareAndReward())
         fetch('https://mi-juego-backend-production.up.railway.app/referral', {
           method:'POST', headers:{'Content-Type':'application/json'},
           body: JSON.stringify({refCode: ref, newUid: typeof PlayerID !== 'undefined' ? PlayerID.getUid() : 'anon'})
@@ -83903,6 +83987,7 @@ DebrisShare.share = function(){
     const debrisRaw = debrisEl ? parseInt(debrisEl.textContent)||0 : 0;
     const combo = parseInt(comboRaw)||1;
     const isEN = typeof Lang !== 'undefined' && Lang.cur === 'en';
+    const _shlc = typeof Lang !== 'undefined' ? Lang.cur : 'es';
     const playerName = (typeof PlayerID !== 'undefined') ? PlayerID.getName() : Lang.l('Orbitador','Pilot','Piloto','パイロット');
     const url = 'https://nyxarion-ctrl.github.io/debris-surge';
 
@@ -84257,6 +84342,14 @@ if(typeof DirectDuel !== 'undefined'){
     try{
       if((typeof Store!=='undefined')&&Store.get('orb_ob_seen',false)) return false;
       if((typeof Store!=='undefined')&&Store.get('orb_tut',false)) return false;
+      // FIX v350: si el jugador aún no tiene nombre guardado, es PlayerID._showModal()
+      // quien debe lanzar este onboarding al confirmar el nombre (ver su confirm()).
+      // Hacerlo también aquí a los 800ms se adelanta al modal de nombre (900ms) y,
+      // por tener mayor z-index, lo tapa por completo — el jugador nunca ve el campo
+      // de nombre y su única acción visible queda reducida al botón de este modal,
+      // dando la sensación de estar obligado a un único camino sin poder elegir.
+      const _nm=(typeof Store!=='undefined')?Store.get('orb_player_name',null):null;
+      if(!_nm||_nm.trim()==='') return false;
       const gs=(typeof Store!=='undefined')?Store.get('orb_gs',null):null;
       return !gs || (gs.gamesPlayed||0)===0;
     }catch(_){ return false; }
@@ -84419,15 +84512,15 @@ if(typeof DirectDuel !== 'undefined'){
       if(veil) veil.classList.add('on');
       setTimeout(()=>{ modal.classList.add('on'); }, 80);
     });
-    // CTA → cierra modal y lanza la partida directamente
+    // CTA → cierra la tarjeta. FIX v356: ya NO arranca una partida normal por
+    // sí solo (antes hacía startGame(false) automáticamente). El jugador nuevo
+    // o que borró sus datos vuelve al menú y elige manualmente Jugar, Práctica
+    // o Tutorial — nada se inicia sin que él lo pulse directamente.
     const cta=document.getElementById('npob-cta');
     if(cta) cta.onclick=function(){
       modal.classList.remove('on');
       const veil2=document.getElementById('npob-veil');
       if(veil2) veil2.classList.remove('on');
-      setTimeout(()=>{
-        try{ if(typeof startGame==='function') startGame(false); }catch(_){}
-      },300);
     };
   }
 
