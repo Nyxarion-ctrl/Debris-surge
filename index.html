@@ -15110,6 +15110,50 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
       <input type="checkbox" id="cbToggle_d" style="accent-color:var(--c);"> Modo daltónico
     </label>
 
+    <!-- ── RESPALDO DE PROGRESO — desktop ── -->
+    <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.05);">
+      <div style="background:linear-gradient(160deg,rgba(6,182,212,0.09),rgba(139,92,246,0.06));border:1px solid rgba(6,182,212,0.22);border-radius:12px;padding:11px 12px 12px;margin-bottom:8px;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(6,182,212,0.55),rgba(139,92,246,0.55),transparent);"></div>
+
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:7px;">
+          <div style="flex-shrink:0;width:20px;height:20px;border-radius:6px;background:linear-gradient(135deg,var(--c),var(--p));display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(6,182,212,0.35);">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4.5 11.5a2.5 2.5 0 0 1-.4-4.97 3.3 3.3 0 0 1 6.4-1.2 2.6 2.6 0 0 1 2.9 2.57 2.4 2.4 0 0 1-.4 3.6" stroke="#fff" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.1 9.4l1.2 1.2 2.3-2.5" stroke="#fff" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div style="font-size:11px;font-weight:700;letter-spacing:.8px;background:linear-gradient(90deg,#67e8f9,#c4b5fd);-webkit-background-clip:text;background-clip:text;color:transparent;">RESPALDO DE PROGRESO</div>
+        </div>
+
+        <div style="display:flex;align-items:flex-start;gap:6px;background:rgba(0,0,0,0.18);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:6px 8px;margin-bottom:9px;">
+          <span id="cloudStatusDot_d" style="flex-shrink:0;width:6px;height:6px;border-radius:50%;margin-top:4px;background:rgba(255,255,255,0.25);box-shadow:0 0 5px rgba(255,255,255,0.2);"></span>
+          <div id="cloudSaveStatus_d" style="font-size:10px;color:rgba(255,255,255,0.62);line-height:1.5;">Guardado local únicamente — vincula una cuenta para protegerlo</div>
+        </div>
+
+        <button id="cloudLinkBtn_d" class="btn" style="width:100%;font-size:10.5px;padding:8px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.14);color:rgba(255,255,255,0.9);gap:7px;margin-bottom:9px;">
+          <span style="flex-shrink:0;width:15px;height:15px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;">
+            <svg width="10" height="10" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84c-.21 1.13-.85 2.09-1.81 2.73v2.27h2.92c1.71-1.57 2.69-3.89 2.69-6.64z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.27c-.81.54-1.85.86-3.04.86-2.34 0-4.32-1.58-5.03-3.71H.96v2.33C2.44 15.98 5.48 18 9 18z"/><path fill="#FBBC05" d="M3.97 10.7A5.4 5.4 0 0 1 3.68 9c0-.59.1-1.17.29-1.7V4.97H.96A8.98 8.98 0 0 0 0 9c0 1.45.35 2.83.96 4.03l3.01-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.48 0 2.44 2.02.96 4.97l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z"/></svg>
+          </span>
+          Vincular con Google
+        </button>
+
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+          <div style="flex:1;height:1px;background:rgba(255,255,255,0.08);"></div>
+          <div style="font-size:8.5px;font-weight:700;letter-spacing:1.6px;color:rgba(103,232,249,0.65);white-space:nowrap;">COPIA MANUAL</div>
+          <div style="flex:1;height:1px;background:rgba(255,255,255,0.08);"></div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+          <button id="exportDataBtn_d" class="btn" style="width:auto;font-size:10px;padding:8px 6px;background:rgba(6,182,212,0.07);border:1px solid rgba(6,182,212,0.24)!important;color:var(--c)!important;gap:5px;">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M8 1.5v8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M5 7l3 3 3-3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M2.5 11v2a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Exportar
+          </button>
+          <button id="importDataBtn_d" class="btn" style="width:auto;font-size:10px;padding:8px 6px;background:rgba(139,92,246,0.07);border:1px solid rgba(139,92,246,0.28)!important;color:var(--p)!important;gap:5px;">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M8 12.5v-8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M5 6.5l3-3 3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M2.5 11v2a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Importar
+          </button>
+          <input type="file" id="importFileInput_d" accept="application/json" style="display:none;">
+        </div>
+      </div>
+    </div>
+
     <!-- ── ZONA DE PELIGRO — desktop ── -->
     <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.05);">
       <div style="background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:8px 12px;margin-bottom:6px;">
@@ -15594,6 +15638,46 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
     </label>
 
     <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.05);">
+      <div style="background:linear-gradient(160deg,rgba(6,182,212,0.09),rgba(139,92,246,0.06));border:1px solid rgba(6,182,212,0.22);border-radius:12px;padding:11px 12px 12px;margin-bottom:8px;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(6,182,212,0.55),rgba(139,92,246,0.55),transparent);"></div>
+
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:7px;">
+          <div style="flex-shrink:0;width:20px;height:20px;border-radius:6px;background:linear-gradient(135deg,var(--c),var(--p));display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(6,182,212,0.35);">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4.5 11.5a2.5 2.5 0 0 1-.4-4.97 3.3 3.3 0 0 1 6.4-1.2 2.6 2.6 0 0 1 2.9 2.57 2.4 2.4 0 0 1-.4 3.6" stroke="#fff" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.1 9.4l1.2 1.2 2.3-2.5" stroke="#fff" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div style="font-size:11px;font-weight:700;letter-spacing:.8px;background:linear-gradient(90deg,#67e8f9,#c4b5fd);-webkit-background-clip:text;background-clip:text;color:transparent;">RESPALDO DE PROGRESO</div>
+        </div>
+
+        <div style="display:flex;align-items:flex-start;gap:6px;background:rgba(0,0,0,0.18);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:6px 8px;margin-bottom:9px;">
+          <span id="cloudStatusDot" style="flex-shrink:0;width:6px;height:6px;border-radius:50%;margin-top:4px;background:rgba(255,255,255,0.25);box-shadow:0 0 5px rgba(255,255,255,0.2);"></span>
+          <div id="cloudSaveStatus" style="font-size:10px;color:rgba(255,255,255,0.62);line-height:1.5;">Guardado local únicamente — vincula una cuenta para protegerlo</div>
+        </div>
+
+        <button id="cloudLinkBtn" class="btn" style="width:100%;font-size:10.5px;padding:8px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.14);color:rgba(255,255,255,0.9);gap:7px;margin-bottom:9px;">
+          <span style="flex-shrink:0;width:15px;height:15px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;">
+            <svg width="10" height="10" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84c-.21 1.13-.85 2.09-1.81 2.73v2.27h2.92c1.71-1.57 2.69-3.89 2.69-6.64z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.27c-.81.54-1.85.86-3.04.86-2.34 0-4.32-1.58-5.03-3.71H.96v2.33C2.44 15.98 5.48 18 9 18z"/><path fill="#FBBC05" d="M3.97 10.7A5.4 5.4 0 0 1 3.68 9c0-.59.1-1.17.29-1.7V4.97H.96A8.98 8.98 0 0 0 0 9c0 1.45.35 2.83.96 4.03l3.01-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.48 0 2.44 2.02.96 4.97l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z"/></svg>
+          </span>
+          Vincular con Google
+        </button>
+
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+          <div style="flex:1;height:1px;background:rgba(255,255,255,0.08);"></div>
+          <div style="font-size:8.5px;font-weight:700;letter-spacing:1.6px;color:rgba(103,232,249,0.65);white-space:nowrap;">COPIA MANUAL</div>
+          <div style="flex:1;height:1px;background:rgba(255,255,255,0.08);"></div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+          <button id="exportDataBtn" class="btn" style="width:auto;font-size:10px;padding:8px 6px;background:rgba(6,182,212,0.07);border:1px solid rgba(6,182,212,0.24)!important;color:var(--c)!important;gap:5px;">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M8 1.5v8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M5 7l3 3 3-3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M2.5 11v2a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Exportar
+          </button>
+          <button id="importDataBtn" class="btn" style="width:auto;font-size:10px;padding:8px 6px;background:rgba(139,92,246,0.07);border:1px solid rgba(139,92,246,0.28)!important;color:var(--p)!important;gap:5px;">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M8 12.5v-8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M5 6.5l3-3 3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M2.5 11v2a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Importar
+          </button>
+          <input type="file" id="importFileInput" accept="application/json" style="display:none;">
+        </div>
+      </div>
       <div style="background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:8px 12px;margin-bottom:6px;">
         <div id="dangerZoneTitle" style="font-size:11px;color:rgba(239,68,68,0.85);font-weight:700;letter-spacing:.5px;margin-bottom:3px;">⚠️ ZONA DE PELIGRO</div>
         <div style="font-size:10px;color:rgba(255,255,255,0.65);line-height:1.5;" id="dangerZoneDesc">Esto borra <strong style="color:rgba(255,255,255,0.7);">permanentemente</strong> tu progreso, récords, skins y logros. No se puede deshacer.</div>
@@ -87927,6 +88011,310 @@ html[lang="ja"] #orbitaDiaStats_d > span[style*="font-size:8px"] {
     // DOM ya listo
     setTimeout(setup, 0);
   }
+})();
+</script>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     RESPALDO DE PROGRESO — Exportar/Importar (funciona siempre) +
+     Guardado en la nube vía Firebase (requiere configuración, ver abajo)
+     ══════════════════════════════════════════════════════════════════════
+
+     QUÉ HACE ESTE BLOQUE:
+     1) Exportar/Importar: siempre funciona, sin configurar nada. Descarga
+        un .json con todo el progreso (todas las claves "orb_*" de
+        localStorage) y lo puede volver a cargar — incluso en otro
+        dispositivo — fusionando con lo que ya haya ahí (se queda con el
+        mejor puntaje/XP/nivel de cada lado, y une skins/logros).
+     2) Guardado en la nube: si completas FIREBASE_CONFIG más abajo con las
+        credenciales de tu propio proyecto de Firebase, el juego:
+          - Crea una cuenta anónima automáticamente en la primera visita.
+          - Sube el progreso a Firestore cada vez que se guarda algo
+            localmente (con un pequeño retraso para no saturar).
+          - Al abrir el juego, descarga lo que haya en la nube y lo fusiona
+            con lo local (mismo criterio "se queda con lo mejor").
+          - El botón "Vincular con Google" convierte la cuenta anónima en
+            una cuenta permanente, para que el jugador pueda recuperar su
+            progreso en otro dispositivo iniciando sesión con el mismo
+            Google. Sin vincular, el progreso solo se protege de que el
+            propio navegador borre los datos (ITP de Safari, etc.), pero
+            sigue atado a ese navegador/dispositivo.
+
+     QUÉ NECESITAS HACER TÚ (Cristian) PARA ACTIVAR LA PARTE DE FIREBASE:
+       a) Ve a https://console.firebase.google.com → crea un proyecto
+          (gratis, capa "Spark").
+       b) En el proyecto: Compilación → Authentication → Comenzar →
+          habilita "Anónimo" y también "Google" como proveedores.
+       c) En el proyecto: Compilación → Firestore Database → Crear base
+          de datos → modo producción → elige una región.
+       d) En Firestore → Reglas, pega esto (cada usuario solo puede leer/
+          escribir su propio documento):
+             rules_version = '2';
+             service cloud.firestore {
+               match /databases/{database}/documents {
+                 match /saves/{uid} {
+                   allow read, write: if request.auth != null && request.auth.uid == uid;
+                 }
+               }
+             }
+       e) En el proyecto: ⚙️ Configuración del proyecto → General → "Tus
+          apps" → ícono web (</>) → registra una app → copia el objeto de
+          config que te da (apiKey, authDomain, projectId, etc.) y pégalo
+          reemplazando el objeto FIREBASE_CONFIG aquí abajo.
+       f) Sube el archivo actualizado a GitHub Pages. Listo — mientras
+          FIREBASE_CONFIG tenga tus llaves reales, el guardado en la nube
+          se activa solo. Si lo dejas con los valores de ejemplo, el juego
+          simplemente no lo activa (usa avisos por consola, no rompe nada)
+          y el export/import sigue funcionando igual.
+-->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+(function(){
+  'use strict';
+
+  // ════════════════════════════════════════════════════════════════
+  // PASO E (ver instrucciones arriba): pega aquí la config real de tu
+  // proyecto Firebase. Mientras tenga estos valores de ejemplo, el
+  // guardado en la nube queda desactivado automáticamente.
+  // ════════════════════════════════════════════════════════════════
+  const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyC-33RWaddPiUkfq0Jz3rVyV8UcnAQQc-Y",
+    authDomain: "debris-surge-game.firebaseapp.com",
+    projectId: "debris-surge-game",
+    storageBucket: "debris-surge-game.firebasestorage.app",
+    messagingSenderId: "721433422922",
+    appId: "1:721433422922:web:ee0c0e8f6da25354830ab3"
+  };
+
+  const SYNC_DEBOUNCE_MS = 4000;
+  let _auth=null, _db=null, _ready=false, _pushTimer=null, _pulled=false;
+
+  // ── Recolecta todas las claves orb_* del localStorage ──
+  function _collectOrbKeys(){
+    const data={};
+    try{
+      for(let i=0;i<localStorage.length;i++){
+        const k=localStorage.key(i);
+        if(k && k.indexOf('orb_')===0){
+          try{ data[k]=JSON.parse(localStorage.getItem(k)); }
+          catch(_){ data[k]=localStorage.getItem(k); }
+        }
+      }
+    }catch(_){}
+    return data;
+  }
+
+  function _applyKeys(data){
+    if(!data) return;
+    Object.keys(data).forEach(k=>{
+      try{ localStorage.setItem(k, JSON.stringify(data[k])); }catch(_){}
+    });
+  }
+
+  // ── Fusión inteligente: nunca sobrescribe a ciegas, se queda con lo
+  // mejor de cada lado (mayor puntaje/XP/nivel, unión de skins/logros) ──
+  function _mergeCloudIntoLocal(cloud){
+    if(!cloud) return false;
+    const local=_collectOrbKeys();
+    const merged=Object.assign({},cloud,local); // por defecto, lo local gana en claves simples
+    try{
+      const lgs=local.orb_gs||{}, cgs=cloud.orb_gs||{};
+      merged.orb_gs={
+        v:1,
+        totalDebris:Math.max(lgs.totalDebris||0,cgs.totalDebris||0),
+        gamesPlayed:Math.max(lgs.gamesPlayed||0,cgs.gamesPlayed||0),
+        totalTime:Math.max(lgs.totalTime||0,cgs.totalTime||0),
+        xp:Math.max(lgs.xp||0,cgs.xp||0),
+        xpLevel:Math.max(lgs.xpLevel||1,cgs.xpLevel||1),
+      };
+    }catch(_){}
+    const _numKeys=['orb_hs','orb_max_level','orb_blitz_best','orb_boss_kills','orb_total_ancient','orb_waves_survived'];
+    _numKeys.forEach(k=>{
+      try{ merged[k]=Math.max(Number(local[k])||0,Number(cloud[k])||0); }catch(_){}
+    });
+    const _arrKeys=['orb_skins','orb_ach','orb_titles'];
+    _arrKeys.forEach(k=>{
+      try{
+        const la=local[k]||[], ca=cloud[k]||[];
+        merged[k]=Array.from(new Set([...la,...ca]));
+      }catch(_){}
+    });
+    _applyKeys(merged);
+    return true;
+  }
+
+  function _refreshAfterMerge(){
+    try{ GS.load(); }catch(_){}
+    try{ if(typeof XPBar!=='undefined') XPBar.update(); }catch(_){}
+    try{ if(typeof Missions!=='undefined') Missions.load(); }catch(_){}
+    try{ if(typeof EliteChallenge!=='undefined') EliteChallenge.load(); }catch(_){}
+    try{
+      const mhs=document.getElementById('menuHS');
+      if(mhs) mhs.textContent=Store.get('orb_hs',0);
+    }catch(_){}
+    _updateCloudStatusUI();
+  }
+
+  function _pushToCloud(){
+    if(!_ready||!_auth||!_auth.currentUser||!_db) return;
+    const uid=_auth.currentUser.uid;
+    const data=_collectOrbKeys();
+    _db.collection('saves').doc(uid).set({
+      data, updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, {merge:true}).catch(e=>console.warn('[CloudSave] push falló:',e));
+  }
+
+  function _schedulePush(){
+    clearTimeout(_pushTimer);
+    _pushTimer=setTimeout(_pushToCloud, SYNC_DEBOUNCE_MS);
+  }
+
+  function _pullFromCloud(){
+    if(!_ready||!_auth||!_auth.currentUser||!_db) return;
+    const uid=_auth.currentUser.uid;
+    _db.collection('saves').doc(uid).get().then(snap=>{
+      if(snap.exists){
+        const cloud=snap.data().data;
+        if(_mergeCloudIntoLocal(cloud)) _refreshAfterMerge();
+      }
+      _pulled=true;
+      _pushToCloud(); // sube de vuelta el resultado de la fusión
+    }).catch(e=>console.warn('[CloudSave] pull falló:',e));
+  }
+
+  function _updateCloudStatusUI(){
+    const linked = _auth && _auth.currentUser && !_auth.currentUser.isAnonymous;
+    const label = linked
+      ? ('Vinculado como ' + (_auth.currentUser.email||_auth.currentUser.displayName||'cuenta'))
+      : (_ready ? 'Guardado local + respaldo anónimo activo — vincula Google para protegerlo entre dispositivos' : 'Guardado local únicamente — vincula una cuenta para protegerlo');
+    ['cloudSaveStatus','cloudSaveStatus_d'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el) el.textContent=label;
+    });
+    const dotColor = linked ? '#10b981' : (_ready ? '#f59e0b' : 'rgba(255,255,255,0.25)');
+    const dotGlow  = linked ? 'rgba(16,185,129,0.55)' : (_ready ? 'rgba(245,158,11,0.5)' : 'rgba(255,255,255,0.2)');
+    ['cloudStatusDot','cloudStatusDot_d'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el){ el.style.background=dotColor; el.style.boxShadow='0 0 5px '+dotGlow; }
+    });
+    ['cloudLinkBtn','cloudLinkBtn_d'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el) el.style.display = linked ? 'none' : '';
+    });
+  }
+
+  function _linkAccount(){
+    if(!_ready||!_auth||!window.firebase){
+      const lc=typeof Lang!=='undefined'?Lang.cur:'es';
+      if(typeof notify==='function') notify('⚠️', lc==='en'?'Cloud save not configured':'Guardado en la nube no configurado', lc==='en'?'Ask the developer to set up Firebase':'Pídele al desarrollador que configure Firebase');
+      return;
+    }
+    const provider=new firebase.auth.GoogleAuthProvider();
+    const cur=_auth.currentUser;
+    const doLink = (cur && cur.isAnonymous) ? cur.linkWithPopup(provider) : _auth.signInWithPopup(provider);
+    doLink.then(()=>{
+      _updateCloudStatusUI();
+      _pushToCloud();
+      if(typeof notify==='function') notify('✅','Cuenta vinculada','Tu progreso ya está protegido en la nube');
+    }).catch(e=>{
+      console.warn('[CloudSave] link falló:',e);
+      if(e && e.code==='auth/credential-already-in-use'){
+        // Ya existe una cuenta de ese Google con datos propios (ej. en otro
+        // dispositivo) — inicia sesión con ella y fusiona en vez de vincular.
+        _auth.signInWithPopup(provider).then(()=>{ _pulled=false; _pullFromCloud(); }).catch(()=>{});
+      }
+    });
+  }
+
+  function _initFirebase(){
+    if(!window.firebase || !FIREBASE_CONFIG.apiKey || FIREBASE_CONFIG.apiKey.indexOf('PEGA_')===0){
+      console.warn('[CloudSave] Firebase no configurado — completa FIREBASE_CONFIG en el HTML para activar el guardado en la nube. El export/import manual sigue funcionando.');
+      return;
+    }
+    try{
+      firebase.initializeApp(FIREBASE_CONFIG);
+      _auth=firebase.auth();
+      _db=firebase.firestore();
+      _auth.onAuthStateChanged(user=>{
+        if(!user){
+          _auth.signInAnonymously().catch(e=>console.warn('[CloudSave] login anónimo falló:',e));
+          return;
+        }
+        _ready=true;
+        _updateCloudStatusUI();
+        if(!_pulled) setTimeout(_pullFromCloud, 1200);
+      });
+    }catch(e){ console.warn('[CloudSave] init falló:',e); }
+  }
+
+  // ── Enganche con Store: cada guardado local agenda una subida a la nube ──
+  try{
+    if(typeof Store!=='undefined' && !Store._cloudHooked){
+      const _origSet=Store.set.bind(Store);
+      Store.set=function(k,v){
+        _origSet(k,v);
+        if(k && k.indexOf('orb_')===0) _schedulePush();
+      };
+      Store._cloudHooked=true;
+    }
+  }catch(_){}
+
+  // ── Exportar: descarga un .json con todo el progreso ──
+  function _exportData(){
+    const data=_collectOrbKeys();
+    const payload={ app:'DebrisSurge', v:1, exportedAt:new Date().toISOString(), data };
+    const blob=new Blob([JSON.stringify(payload)], {type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download='debris-surge-progreso.json';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url), 2000);
+  }
+
+  // ── Importar: lee un .json exportado y fusiona con lo local ──
+  function _importData(file){
+    const reader=new FileReader();
+    reader.onload=()=>{
+      try{
+        const payload=JSON.parse(reader.result);
+        const data=payload.data||payload; // tolera también un JSON plano de claves orb_*
+        if(_mergeCloudIntoLocal(data)){
+          _refreshAfterMerge();
+          _schedulePush();
+        }
+        const lc=typeof Lang!=='undefined'?Lang.cur:'es';
+        if(typeof notify==='function') notify('✅', lc==='en'?'Progress imported':'Progreso importado', lc==='en'?'Your best data was merged in':'Se fusionaron tus mejores datos');
+      }catch(e){
+        console.warn('[Import] archivo inválido:',e);
+        if(typeof notify==='function') notify('⚠️','Error','El archivo no es un respaldo válido de Debris Surge');
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function _wireUI(){
+    ['exportDataBtn','exportDataBtn_d'].forEach(id=>{
+      const b=document.getElementById(id); if(b) b.addEventListener('click', _exportData);
+    });
+    [['importFileInput','importDataBtn'],['importFileInput_d','importDataBtn_d']].forEach(([inpId,btnId])=>{
+      const inp=document.getElementById(inpId), btn=document.getElementById(btnId);
+      if(inp) inp.addEventListener('change', e=>{ if(e.target.files[0]) _importData(e.target.files[0]); e.target.value=''; });
+      if(btn) btn.addEventListener('click', ()=>{ if(inp) inp.click(); });
+    });
+    ['cloudLinkBtn','cloudLinkBtn_d'].forEach(id=>{
+      const b=document.getElementById(id); if(b) b.addEventListener('click', _linkAccount);
+    });
+  }
+
+  // Mejor esfuerzo: sincroniza también al perder foco o cerrar la pestaña
+  document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') _pushToCloud(); });
+  window.addEventListener('beforeunload', _pushToCloud);
+
+  function _setup(){ _wireUI(); _initFirebase(); }
+  if(document.readyState==='complete'||document.readyState==='interactive') setTimeout(_setup,50);
+  else document.addEventListener('DOMContentLoaded', _setup);
+
 })();
 </script>
 
