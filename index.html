@@ -13473,7 +13473,7 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
 <!-- ══ PRIVACY NOTICE — shown once on first visit (GDPR-lite) v2 ══ -->
 <div id="privacyBanner" style="
   display:none;position:fixed;bottom:0;left:0;right:0;z-index:99998;
-  background:rgba(6,7,20,0.97);border-top:1px solid rgba(6,182,212,0.14);
+  background:rgba(8,9,24,0.82);border-top:1px solid rgba(6,182,212,0.18);
   padding:12px 16px;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));
   backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
   align-items:center;justify-content:space-between;gap:10px;flex-wrap:nowrap;
@@ -14501,7 +14501,7 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
 <canvas id="menuBg" style="position:fixed;inset:0;z-index:19;pointer-events:none;opacity:0;transition:opacity 1.2s ease;"></canvas>
 
 <!-- ══ AUDIO UNLOCK SPLASH — desbloquea audio en el primer toque ══ -->
-<div id="audioSplash" style="position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at 40% 45%,#0d0a2e 0%,#06040f 50%,#020208 100%);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;">
+<div id="audioSplash" style="position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at 40% 55%,#0d0a2e 0%,#0a0724 45%,#0a0818 100%);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;">
   <!-- Stars layer — animated -->
   <canvas id="splashStars" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;"></canvas>
   <!-- Nebula glow -->
@@ -14715,31 +14715,16 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
   // ── ANIMATED STARS for audioSplash (bienvenida) ──
   function initAnimatedSplashStars(){
     var cv=document.getElementById('splashStars'); if(!cv) return;
-    var W=window.innerWidth, H=window.innerHeight;
-    if(!W||!H){W=window.screen.width||800;H=window.screen.height||600;}
-    var dpr=Math.min(window.devicePixelRatio||1,2);
-    cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr);
-    cv.style.width=W+'px'; cv.style.height=H+'px';
-    var ctx=cv.getContext('2d');
-    ctx.setTransform(dpr,0,0,dpr,0,0);
-
-    /* ── Nebula layer baked into offscreen canvas ── */
-    var nebCv=document.createElement('canvas'); nebCv.width=Math.max(1,W); nebCv.height=Math.max(1,H);
-    var nc=nebCv.getContext('2d');
+    var W,H,dpr,ctx,nebCv,nc;
     var nebDefs=[
       {x:.18,y:.20,r:.58,col:[6,182,212],a:.18},
       {x:.85,y:.72,r:.50,col:[139,92,246],a:.16},
       {x:.50,y:.05,r:.40,col:[245,158,11],a:.14},
       {x:.04,y:.82,r:.34,col:[168,85,247],a:.16},
-      {x:.90,y:.25,r:.30,col:[34,211,238],a:.14}
+      {x:.90,y:.25,r:.30,col:[34,211,238],a:.14},
+      {x:.62,y:.94,r:.42,col:[6,182,212],a:.13},
+      {x:.30,y:.98,r:.38,col:[139,92,246],a:.12}
     ];
-    nebDefs.forEach(function(n){
-      var g=nc.createRadialGradient(W*n.x,H*n.y,0,W*n.x,H*n.y,W*n.r);
-      g.addColorStop(0,'rgba('+n.col[0]+','+n.col[1]+','+n.col[2]+','+n.a+')');
-      g.addColorStop(0.4,'rgba('+n.col[0]+','+n.col[1]+','+n.col[2]+','+(n.a*.52)+')');
-      g.addColorStop(1,'rgba(0,0,0,0)');
-      nc.fillStyle=g; nc.fillRect(0,0,W,H);
-    });
 
     /* ── Stars — 3 depth layers ── */
     var sPal=['#ffffff','#ffffff','#ffffff','#a5f3fc','#c4b5fd','#fde68a','#f9a8d4','#86efac'];
@@ -14749,21 +14734,70 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
       {n:70, rMin:.55,rMax:1.3,aMin:.22,aMax:.58,spMin:.55,spMax:1.9},
       {n:25, rMin:1.1,rMax:2.1,aMin:.48,aMax:1.0,spMin:0.9,spMax:2.8}
     ];
-    for(var li=0;li<layerCfg.length;li++){
-      var lc=layerCfg[li];
-      for(var i=0;i<lc.n;i++){
-        stars.push({
-          x:Math.random()*W, y:Math.random()*H,
-          r:Math.random()*(lc.rMax-lc.rMin)+lc.rMin,
-          baseA:Math.random()*(lc.aMax-lc.aMin)+lc.aMin,
-          phase:Math.random()*Math.PI*2,
-          speed:Math.random()*(lc.spMax-lc.spMin)+lc.spMin,
-          color:sPal[Math.floor(Math.random()*sPal.length)],
-          layer:li,
-          cross:li===2&&Math.random()>.45
-        });
+
+    // FIX: el canvas de la bienvenida solo se dimensionaba UNA VEZ al cargar,
+    // por eso al entrar/salir de pantalla completa (o rotar/redimensionar)
+    // se quedaba con el tamaño viejo y dejaba un hueco sin cubrir abajo.
+    // _resize() recalcula todo (buffer, nebulosas, estrellas) y se reengancha
+    // a 'resize'/'orientationchange'/fullscreenchange, igual que el resto
+    // de canvases del juego (menú, gameplay).
+    function _resize(){
+      W=window.innerWidth; H=window.innerHeight;
+      if(!W||!H){W=window.screen.width||800;H=window.screen.height||600;}
+      dpr=Math.min(window.devicePixelRatio||1,2);
+      cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr);
+      cv.style.width=W+'px'; cv.style.height=H+'px';
+      ctx=cv.getContext('2d');
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+
+      /* ── Nebula layer baked into offscreen canvas ── */
+      nebCv=document.createElement('canvas'); nebCv.width=Math.max(1,W); nebCv.height=Math.max(1,H);
+      nc=nebCv.getContext('2d');
+      nebDefs.forEach(function(n){
+        var g=nc.createRadialGradient(W*n.x,H*n.y,0,W*n.x,H*n.y,W*n.r);
+        g.addColorStop(0,'rgba('+n.col[0]+','+n.col[1]+','+n.col[2]+','+n.a+')');
+        g.addColorStop(0.4,'rgba('+n.col[0]+','+n.col[1]+','+n.col[2]+','+(n.a*.52)+')');
+        g.addColorStop(1,'rgba(0,0,0,0)');
+        nc.fillStyle=g; nc.fillRect(0,0,W,H);
+      });
+
+      // Regenerar estrellas para que cubran las nuevas dimensiones completas
+      // (si solo reescaláramos las viejas, quedarían agrupadas en el área
+      // original y el resto de la pantalla nueva se vería vacío otra vez).
+      stars.length=0;
+      for(var li=0;li<layerCfg.length;li++){
+        var lc=layerCfg[li];
+        for(var i=0;i<lc.n;i++){
+          stars.push({
+            x:Math.random()*W, y:Math.random()*H,
+            r:Math.random()*(lc.rMax-lc.rMin)+lc.rMin,
+            baseA:Math.random()*(lc.aMax-lc.aMin)+lc.aMin,
+            phase:Math.random()*Math.PI*2,
+            speed:Math.random()*(lc.spMax-lc.spMin)+lc.spMin,
+            color:sPal[Math.floor(Math.random()*sPal.length)],
+            layer:li,
+            cross:li===2&&Math.random()>.45
+          });
+        }
       }
     }
+    _resize();
+
+    var _rsTimer;
+    function _onResize(){
+      clearTimeout(_rsTimer);
+      _rsTimer=setTimeout(function(){
+        // Solo tiene sentido seguir redimensionando mientras la bienvenida
+        // siga en pantalla; evita trabajo de más una vez que ya se cerró.
+        if(!document.getElementById('splashStars')) return;
+        _resize();
+      }, 120);
+    }
+    window.addEventListener('resize', _onResize);
+    window.addEventListener('orientationchange', _onResize);
+    document.addEventListener('fullscreenchange', _onResize);
+    document.addEventListener('webkitfullscreenchange', _onResize);
+    if(window.visualViewport) window.visualViewport.addEventListener('resize', _onResize);
 
     /* ── Shooting stars ── */
     var shoots=[], shootTimer=0;
@@ -19706,6 +19740,7 @@ const TRANSLATIONS = {
     debris_label_military:'Militar', debris_label_ancient:'Ancestral',
     debris_label_special:'Especial', debris_label_legendary:'Legendario',
     wave:'OLEADA', calm:'CALMA', surge:'OLEADA',
+    pill_meteor:'☄ METEOROS', pill_toxic:'☠ TÓXICOS', pill_cooldown:'PAUSA',
     meteor_wave:'⚠ OLEADA DE METEOROS',
     stat_score:'Score', stat_level:'Nivel',
     stat_record:'Récord', stat_combo:'Combo',
@@ -19802,6 +19837,7 @@ const TRANSLATIONS = {
     debris_label_military:'Military', debris_label_ancient:'Ancient',
     debris_label_special:'Special', debris_label_legendary:'Legendary',
     wave:'WAVE', calm:'CALM', surge:'WAVE',
+    pill_meteor:'☄ METEOR WAVE', pill_toxic:'☠ TOXIC WAVE', pill_cooldown:'COOLDOWN',
     meteor_wave:'⚠ METEOR WAVE',
     stat_score:'Score', stat_level:'Level',
     stat_record:'Record', stat_combo:'Combo',
@@ -19897,6 +19933,7 @@ const TRANSLATIONS = {
     debris_label_military:'Militar', debris_label_ancient:'Ancestral',
     debris_label_special:'Especial', debris_label_legendary:'Lendário',
     wave:'ONDA', calm:'CALMA', surge:'ONDA',
+    pill_meteor:'☄ METEOROS', pill_toxic:'☠ TÓXICOS', pill_cooldown:'PAUSA',
     meteor_wave:'⚠ CHUVA DE METEOROS',
     stat_score:'Pontos', stat_level:'Nível',
     stat_record:'Recorde', stat_combo:'Combo',
@@ -19992,6 +20029,7 @@ const TRANSLATIONS = {
     debris_label_military:'軍事', debris_label_ancient:'古代',
     debris_label_special:'特殊', debris_label_legendary:'伝説',
     wave:'ウェーブ', calm:'静寂', surge:'ウェーブ',
+    pill_meteor:'☄ 隕石ウェーブ', pill_toxic:'☠ 毒ウェーブ', pill_cooldown:'クールダウン',
     meteor_wave:'⚠ 隕石シャワー',
     stat_score:'スコア', stat_level:'レベル',
     stat_record:'記録', stat_combo:'コンボ',
@@ -21027,8 +21065,17 @@ const GS={
   },
   save(){Store.set('orb_gs',this.data);},
   add(debris,time){this.data.totalDebris+=debris;this.data.gamesPlayed++;this.data.totalTime+=time;this.save();},
-  // XP needed to reach next pilot level: 1000 * level^1.4
-  xpForLevel(lv){ return Math.round(1000*Math.pow(lv,1.4)); },
+  // XP needed to reach next pilot level: exponencial hasta 50 (Nivel Eterno, el hito
+  // mítico ya probado), luego se aplana a un costo fijo. Calibrado con los valores reales
+  // de puntos por debris (5-40 pts) y los tiers del juego (COMÚN <2000, MILITAR 8-20k,
+  // ÉPICO 50-100k, etc.): con eso, mantener la exponencial hasta 150 hacía que llegar ahí
+  // tomara 5-16 años según el ritmo de juego. Con el quiebre en 50 y 22,500 XP/nivel fijo,
+  // llegar a Nivel 1000 toma ~2-6 años según el promedio real de XP/partida (no verificado
+  // con telemetría real — ajustar esta constante si se consiguen datos reales de jugadores).
+  xpForLevel(lv){
+    if(lv<=50) return Math.round(1000*Math.pow(lv,1.4));
+    return 22500; // costo fijo por nivel más allá de 50
+  },
   // Total XP accumulated across all levels up to current
   xpTotalForLevel(lv){ let t=0; for(let i=1;i<lv;i++) t+=this.xpForLevel(i); return t; },
   addXP(amount){
@@ -21047,10 +21094,10 @@ const GS={
       const lv=this.data.xpLevel;
       // Milestone rewards table
       // Canonical ES keys (stored key is always ES for ALL_TITLE_DEFS lookup consistency)
-      const TITLE_ES={5:'Piloto',10:'Veterano',15:'Élite',20:'Maestro',25:'Leyenda',30:'Dios Orbital',50:'Eterno',75:'Eterno II',100:'Eterno III',150:'Trascendido',200:'Más Allá del Vacío'};
-      const TITLE_EN={5:'Pilot',10:'Veteran',15:'Elite',20:'Master',25:'Legend',30:'Orbital God',50:'Eternal',75:'Eternal II',100:'Eternal III',150:'Transcended',200:'Beyond the Void'};
-      const TITLE_PT={5:'Piloto',10:'Veterano',15:'Élite',20:'Mestre',25:'Lenda',30:'Deus Orbital',50:'Eterno',75:'Eterno II',100:'Eterno III',150:'Transcendido',200:'Além do Vazio'};
-      const TITLE_JA={5:'パイロット',10:'ベテラン',15:'エリート',20:'マスター',25:'レジェンド',30:'軌道神',50:'エターナル',75:'エターナルII',100:'エターナルIII',150:'超越者',200:'虚無の彼方'};
+      const TITLE_ES={5:'Piloto',10:'Veterano',15:'Élite',20:'Maestro',25:'Leyenda',30:'Dios Orbital',50:'Eterno',75:'Eterno II',100:'Eterno III',150:'Trascendido',200:'Más Allá del Vacío',300:'Arquitecto del Cosmos',400:'Guardián del Infinito',500:'Singularidad',750:'Convergencia Absoluta',1000:'El Único'};
+      const TITLE_EN={5:'Pilot',10:'Veteran',15:'Elite',20:'Master',25:'Legend',30:'Orbital God',50:'Eternal',75:'Eternal II',100:'Eternal III',150:'Transcended',200:'Beyond the Void',300:'Architect of the Cosmos',400:'Guardian of Infinity',500:'Singularity',750:'Absolute Convergence',1000:'The One'};
+      const TITLE_PT={5:'Piloto',10:'Veterano',15:'Élite',20:'Mestre',25:'Lenda',30:'Deus Orbital',50:'Eterno',75:'Eterno II',100:'Eterno III',150:'Transcendido',200:'Além do Vazio',300:'Arquiteto do Cosmos',400:'Guardião do Infinito',500:'Singularidade',750:'Convergência Absoluta',1000:'O Único'};
+      const TITLE_JA={5:'パイロット',10:'ベテラン',15:'エリート',20:'マスター',25:'レジェンド',30:'軌道神',50:'エターナル',75:'エターナルII',100:'エターナルIII',150:'超越者',200:'虚無の彼方',300:'宇宙の建築者',400:'無限の守護者',500:'シンギュラリティ',750:'絶対収束',1000:'唯一者'};
       const _lc=typeof Lang!=='undefined'?Lang.cur:'es';
       const titlesDisplay=_lc==='en'?TITLE_EN:_lc==='pt'?TITLE_PT:_lc==='ja'?TITLE_JA:TITLE_ES;
       // Find highest earned title (for display)
@@ -30806,18 +30853,22 @@ function activatePU(t, bypassCooldown){
   else if(t==='overcharge') Audio.overcharge();
   else Audio.powerup();
   const names = {
-    field:'Campo ×2', magnet:'Imán Total', double:'Puntos ×2',
-    shield:'Escudo', slowmo:'¡SLOWMO!', overcharge:'¡SOBRECARGA!'
+    field:     Lang.l('Campo ×2','Field ×2','Campo ×2','フィールド×2'),
+    magnet:    Lang.l('Imán Total','Full Magnet','Ímã Total','フルマグネット'),
+    double:    Lang.l('Puntos ×2','Points ×2','Pontos ×2','ポイント×2'),
+    shield:    Lang.l('Escudo','Shield','Escudo','シールド'),
+    slowmo:    Lang.l('¡SLOWMO!','SLOWMO!','SLOWMO!','スローモー！'),
+    overcharge:Lang.l('¡SOBRECARGA!','OVERLOAD!','SOBRECARGA!','オーバーロード！')
   };
   const descs = {
-    field:'Radio de succión ×2 por '+CFG.PU_DUR+'s',
-    magnet:'Atrae todo en pantalla por '+CFG.PU_DUR+'s',
-    double:'Puntos dobles por '+CFG.PU_DUR+'s',
-    shield:'Absorbe 1 impacto',
-    slowmo:'Debris al 38% de velocidad por 8s',
-    overcharge:'Pulso EMP + encadenamiento eléctrico por 10s'
+    field:     Lang.l('Radio de succión ×2 por '+CFG.PU_DUR+'s','Suction radius ×2 for '+CFG.PU_DUR+'s','Raio de sucção ×2 por '+CFG.PU_DUR+'s','吸引半径×2 '+CFG.PU_DUR+'秒間'),
+    magnet:    Lang.l('Atrae todo en pantalla por '+CFG.PU_DUR+'s','Attracts everything on screen for '+CFG.PU_DUR+'s','Atrai tudo na tela por '+CFG.PU_DUR+'s','画面上の全てを吸引 '+CFG.PU_DUR+'秒間'),
+    double:    Lang.l('Puntos dobles por '+CFG.PU_DUR+'s','Double points for '+CFG.PU_DUR+'s','Pontos em dobro por '+CFG.PU_DUR+'s','ポイント2倍 '+CFG.PU_DUR+'秒間'),
+    shield:    Lang.l('Absorbe 1 impacto','Absorbs 1 hit','Absorve 1 impacto','1回の衝撃を吸収'),
+    slowmo:    Lang.l('Debris al 38% de velocidad por 8s','Debris at 38% speed for 8s','Detritos a 38% de velocidade por 8s','デブリの速度38%に 8秒間'),
+    overcharge:Lang.l('Pulso EMP + encadenamiento eléctrico por 10s','EMP pulse + chain lightning for 10s','Pulso EMP + relâmpago em cadeia por 10s','EMPパルス+連鎖稲妻 10秒間')
   };
-  notify('⚡',names[t]||'Power-up',descs[t]||'¡Activo!');
+  notify('⚡',names[t]||Lang.l('Power-up','Power-up','Power-up','パワーアップ'),descs[t]||Lang.l('¡Activo!','Active!','Ativo!','発動中！'));
 }
 
 // ── PARTICLES ──
@@ -32126,15 +32177,15 @@ function updateWavePill(){
     if(_nwbH){_nwbH.classList.remove('show');_nwbH.classList.remove('hide');};
     return;
   }
-  const isENpill=typeof Lang!=='undefined'&&Lang.cur==='en';
+  const _wl=(typeof Lang!=='undefined'&&typeof TRANSLATIONS!=='undefined'&&TRANSLATIONS[Lang.cur])?TRANSLATIONS[Lang.cur]:TRANSLATIONS.es;
   if(w.phase==='SURGE'||w.phase==='PRE_SURGE'){
     pill.classList.add('surge');
-    if(w.isMeteorWave) lbl.textContent=isENpill?'☄ METEOR WAVE':'☄ METEOROS';
-    else if(w.isToxicWave) { lbl.textContent=isENpill?'☠ TOXIC WAVE':'☠ TÓXICOS'; pill.classList.add('toxic-wave'); }
-    else lbl.textContent=isENpill?'SURGE #'+w.count:'OLEADA #'+w.count;
+    if(w.isMeteorWave) lbl.textContent=_wl.pill_meteor;
+    else if(w.isToxicWave) { lbl.textContent=_wl.pill_toxic; pill.classList.add('toxic-wave'); }
+    else lbl.textContent=_wl.surge+' #'+w.count;
   }
-  else if(w.phase==='COOLDOWN'){pill.classList.add('cool');lbl.textContent=isENpill?'COOLDOWN':'PAUSA';}
-  else{lbl.textContent=isENpill?'CALM':'CALMA';}
+  else if(w.phase==='COOLDOWN'){pill.classList.add('cool');lbl.textContent=_wl.pill_cooldown;}
+  else{lbl.textContent=_wl.calm;}
 }
 
 // ═══════════════════ GAME BACKGROUND CACHE ═══════════════════
@@ -48994,8 +49045,8 @@ const Leaderboard = {
     const name=PlayerID.getName(), uid=PlayerID.getUid();
     const entries=this.load();
     const now=new Date();
-    const isENlb = typeof Lang!=='undefined' && Lang.cur==='en';
-    const locale = isENlb ? 'en' : 'es';
+    const _lbc = typeof Lang!=='undefined' ? Lang.cur : 'es';
+    const locale = _lbc==='en'?'en':_lbc==='pt'?'pt-BR':_lbc==='ja'?'ja-JP':'es';
     const date=now.toLocaleDateString(locale,{month:'short',day:'numeric'})+' '+now.toLocaleTimeString(locale,{hour:'2-digit',minute:'2-digit'});
     entries.push({score,debris,time:Math.floor(time),level,combo,date,name,uid});
     entries.sort((a,b)=>b.score-a.score);
@@ -54231,7 +54282,8 @@ const SkinPanel = {
       if(bundleBtn) bundleBtn.style.display='none';
     } else if(id==='void_specter'||id==='aurora_prism'||id==='chrono_bastion'){
       const isEN_p=typeof Lang!=='undefined'&&Lang.cur==='en';
-      btn.textContent=isEN_p?'💎 Purchase':'💎 Adquirir — $'+(PayPalShop.skins[id]?PayPalShop.skins[id].price:'2.99');
+      const _price='$'+(PayPalShop.skins[id]?PayPalShop.skins[id].price:'2.99');
+      btn.textContent=Lang.l('💎 Adquirir — '+_price,'💎 Purchase — '+_price,'💎 Adquirir — '+_price,'💎 購入 — '+_price);
       btn.style.background='linear-gradient(135deg,#b45309,#d97706)';
       btn.style.color='#fff'; btn.style.boxShadow='0 0 18px rgba(251,191,36,0.30)';
       btn.style.border='1px solid rgba(251,191,36,0.35)';
@@ -54544,10 +54596,9 @@ const SkinPanel = {
 
     // ── Etiqueta ──
     const lp=0.50+0.50*Math.sin(t*3.0);
-    const _isEN_df=typeof Lang!=='undefined'&&Lang.cur==='en';
     cx.font='bold 9px "Space Grotesk",sans-serif'; cx.textAlign='center';
     cx.fillStyle=`rgba(34,211,238,${lp.toFixed(2)})`;
-    cx.fillText(_isEN_df?'SUCTION \xd72  \u2022  METEORS \u2192 DEBRIS':'SUCCI\xd3N \xd72  \u2022  METEOROS \u2192 DEBRIS', cx2, 12);
+    cx.fillText(Lang.l('SUCCIÓN ×2  •  METEOROS → DEBRIS','SUCTION ×2  •  METEORS → DEBRIS','SUCÇÃO ×2  •  METEOROS → DETRITOS','吸引×2 • 隕石→デブリ'), cx2, 12);
   },
 
   // ── PHANTOM: Ghost Mode — sigilo + invencibilidad + speed ──
@@ -54652,10 +54703,9 @@ const SkinPanel = {
 
     // ── Etiqueta ──
     const lp=0.55+0.45*Math.abs(Math.sin(t*2.6));
-    const _isEN_ph=typeof Lang!=='undefined'&&Lang.cur==='en';
     cx.font='bold 9px "Space Grotesk",sans-serif'; cx.textAlign='center';
     cx.fillStyle=`rgba(186,230,253,${lp.toFixed(2)})`;
-    cx.fillText(_isEN_ph?'STEALTH  \u2022  INVINCIBLE  \u2022  SPEED \xd71.8':'SIGILO  \u2022  INVENCIBLE  \u2022  VEL \xd71.8', cx2, 12);
+    cx.fillText(Lang.l('SIGILO  •  INVENCIBLE  •  VEL ×1.8','STEALTH  •  INVINCIBLE  •  SPEED ×1.8','FURTIVO  •  INVENCÍVEL  •  VEL ×1.8','ステルス • 無敵 • 速度×1.8'), cx2, 12);
   },
 
   // ── NOVA: Solar Burst — vaporiza peligros + ×5 puntos ──
@@ -54855,11 +54905,10 @@ const SkinPanel = {
 
     cx.restore();
 
-    const _isEN_nv=typeof Lang!=='undefined'&&Lang.cur==='en';
     cx.font='bold 9px "Space Grotesk",sans-serif'; cx.textAlign='center';
     const lp=0.60+0.40*Math.sin(t*3.2);
     cx.fillStyle=`rgba(244,63,94,${lp.toFixed(2)})`;
-    cx.fillText(_isEN_nv?'SOLAR BURST  \u2022  VAPORIZES ALL':'ERUPCI\xd3N SOLAR  \u2022  VAPORIZA TODO', cx2, 12);
+    cx.fillText(Lang.l('ERUPCIÓN SOLAR  •  VAPORIZA TODO','SOLAR BURST  •  VAPORIZES ALL','EXPLOSÃO SOLAR  •  VAPORIZA TUDO','太陽バースト • 全て蒸発'), cx2, 12);
   },
 
   // ── TITAN: Titan Salvo — destruye amenazas + ×4 puntos ──
@@ -55030,10 +55079,9 @@ const SkinPanel = {
 
     // ── Etiqueta ──
     const lp=0.60+0.40*Math.sin(t*2.8);
-    const _isEN_tt=typeof Lang!=='undefined'&&Lang.cur==='en';
     cx.font='bold 9px "Space Grotesk",sans-serif'; cx.textAlign='center';
     cx.fillStyle=`rgba(251,191,36,${lp.toFixed(2)})`;
-    cx.fillText(_isEN_tt?'TITAN SALVO  \u2022  DESTROY ALL  \u2022  \xd74 PTS':'SALVO TIT\xc1N  \u2022  DESTRUYE TODO  \u2022  \xd74 PTS', cx2, 12);
+    cx.fillText(Lang.l('SALVO TITÁN  •  DESTRUYE TODO  •  ×4 PTS','TITAN SALVO  •  DESTROY ALL  •  ×4 PTS','SALVA TITÃ  •  DESTRÓI TUDO  •  ×4 PTS','タイタン斉射 • 全破壊 • ×4pt'), cx2, 12);
   },
 
   // ── QUANTUM: Quantum Collapse — congela + auto-absorbe todo ──
@@ -55440,12 +55488,11 @@ const SkinPanel = {
 
     // ── Etiqueta ──
     cx.font='bold 9px "Space Grotesk",sans-serif'; cx.textAlign='center';
-    const _isEN_sm=typeof Lang!=='undefined'&&Lang.cur==='en';
     const lc=active?`rgba(232,121,249,${(0.70+0.30*pulse).toFixed(2)})`:decay?'rgba(192,132,252,0.55)':'rgba(148,130,200,0.42)';
     const lt=active
-      ?(_isEN_sm?'\u{1FAB5} MIRROR VEIL  \u2022  \xd72 PTS':'\u{1FAB5} VELO ESPEJO  \u2022  \xd72 PTS')
-      :decay?(_isEN_sm?'\u2022 VEIL FADING \u2022':'\u2022 VELO DESVANECI\xc9NDOSE \u2022')
-      :(_isEN_sm?'\u2022 STANDBY \u2022':'\u2022 EN ESPERA \u2022');
+      ?Lang.l('🪵 VELO ESPEJO  •  ×2 PTS','🪵 MIRROR VEIL  •  ×2 PTS','🪵 VÉU ESPELHO  •  ×2 PTS','🪵 ミラーヴェール • ×2pt')
+      :decay?Lang.l('• VELO DESVANECIÉNDOSE •','• VEIL FADING •','• VÉU DESVANECENDO •','• ヴェール消失中 •')
+      :Lang.l('• EN ESPERA •','• STANDBY •','• EM ESPERA •','• スタンバイ •');
     cx.fillStyle=lc; cx.fillText(lt,cx2,12);
   },
 
@@ -55550,11 +55597,10 @@ const SkinPanel = {
     cx.fillStyle=`rgba(255,255,255,${(0.60+0.30*pulse).toFixed(2)})`; cx.fill();
     cx.restore();
 
-    const _isEN_cl=typeof Lang!=='undefined'&&Lang.cur==='en';
     cx.font='bold 9px "Space Grotesk",sans-serif'; cx.textAlign='center';
     const _cl_lp=0.58+0.42*Math.sin(t*3.2);
     cx.fillStyle=`rgba(252,211,77,${_cl_lp.toFixed(2)})`;
-    cx.fillText(_isEN_cl?'DIVINE CORONA  \u2022  AUTO-ABSORBS ALL':'CORONA DIVINA  \u2022  AUTO-ABSORBE TODO', cx2, 12);
+    cx.fillText(Lang.l('CORONA DIVINA  •  AUTO-ABSORBE TODO','DIVINE CORONA  •  AUTO-ABSORBS ALL','COROA DIVINA  •  AUTO-ABSORVE TUDO','神聖なコロナ • 全自動吸収'), cx2, 12);
   },
 
   // ── VOID SPECTER: Singularity Collapse — animación fiel al juego ──
@@ -55806,21 +55852,16 @@ const SkinPanel = {
     // ── Etiqueta de estado (igual que otros skins) ──
     cx.font='bold 9px sans-serif'; cx.textAlign='center';
     const lp=0.55+0.45*Math.sin(t*3.2);
-    const _isEN_vs=typeof Lang!=='undefined'&&Lang.cur==='en';
     if(isActive){
       cx.fillStyle=`rgba(255,90,0,${lp.toFixed(2)})`;
-      cx.fillText(_isEN_vs
-        ?'\u26A1 SINGULARITY COLLAPSE  \u2022  PULLS ALL  \u2022  INVINCIBLE'
-        :'\u26A1 COLAPSO SINGULARIDAD  \u2022  ATRAE TODO  \u2022  INVENCIBLE', cx2, 12);
+      cx.fillText(Lang.l('⚡ COLAPSO SINGULARIDAD  •  ATRAE TODO  •  INVENCIBLE','⚡ SINGULARITY COLLAPSE  •  PULLS ALL  •  INVINCIBLE','⚡ COLAPSO DE SINGULARIDADE  •  ATRAI TUDO  •  INVENCÍVEL','⚡ 特異点崩壊 • 全吸引 • 無敵'), cx2, 12);
     } else if(isCharging){
       const pct=Math.round(chargeP*100);
       cx.fillStyle=`rgba(255,130,0,${(lp*0.85).toFixed(2)})`;
-      cx.fillText(_isEN_vs
-        ?`\u25B6 CHARGING ABILITY  ${pct}%`
-        :`\u25B6 CARGANDO HABILIDAD  ${pct}%`, cx2, 12);
+      cx.fillText(Lang.l(`▶ CARGANDO HABILIDAD  ${pct}%`,`▶ CHARGING ABILITY  ${pct}%`,`▶ CARREGANDO HABILIDADE  ${pct}%`,`▶ 能力チャージ中  ${pct}%`), cx2, 12);
     } else {
       cx.fillStyle=`rgba(180,30,0,${(lp*0.55).toFixed(2)})`;
-      cx.fillText(_isEN_vs?'SINGULARITY COLLAPSE  \u2022  DESTROY DANGERS':'COLAPSO SINGULARIDAD  \u2022  DESTRUYE PELIGROS', cx2, 12);
+      cx.fillText(Lang.l('COLAPSO SINGULARIDAD  •  DESTRUYE PELIGROS','SINGULARITY COLLAPSE  •  DESTROY DANGERS','COLAPSO DE SINGULARIDADE  •  DESTRÓI PERIGOS','特異点崩壊 • 危険を破壊'), cx2, 12);
     }
   },
   _demoAuroraPrism(cx,W,H,sk,t){
@@ -56082,11 +56123,10 @@ const SkinPanel = {
     });
 
     const lp=0.55+0.45*Math.sin(t*3.2);
-    const _isEN_ap=typeof Lang!=='undefined'&&Lang.cur==='en';
     cx.font='bold 9px "Space Grotesk",sans-serif'; cx.textAlign='center';
     const [_lr,_lg,_lb]=hx2(SPEC[Math.floor(t*1.5)%6]);
     cx.fillStyle=`rgba(${_lr},${_lg},${_lb},${lp.toFixed(2)})`;
-    cx.fillText(_isEN_ap?'PRISM SHIELD  \u2022  IMPACT \u2192 +300 PTS':'ESCUDO PRISM\xc1TICO  \u2022  IMPACTO \u2192 +300 PTS', cx2, 12);
+    cx.fillText(Lang.l('ESCUDO PRISMÁTICO  •  IMPACTO → +300 PTS','PRISM SHIELD  •  IMPACT → +300 PTS','ESCUDO PRISMA  •  IMPACTO → +300 PTS','プリズムシールド • 命中→+300pt'), cx2, 12);
   },
 
     _demoChronoBastion(cx,W,H,sk,t){
@@ -56363,10 +56403,9 @@ const SkinPanel = {
 
     // ── Etiqueta ──
     const lp=0.55+0.45*Math.sin(t*2.5);
-    const _isEN_cb=typeof Lang!=='undefined'&&Lang.cur==='en';
     cx.font='bold 9px "Space Grotesk",sans-serif'; cx.textAlign='center';
     cx.fillStyle=`rgba(0,212,255,${lp.toFixed(2)})`;
-    cx.fillText(_isEN_cb?'CHRONO FIELD  \u2022  THREATS FROZEN  +500 PTS':'CAMPO CHRONO  \u2022  AMENAZAS CONGELADAS  +500 PTS', cx2, 12);
+    cx.fillText(Lang.l('CAMPO CHRONO  •  AMENAZAS CONGELADAS  +500 PTS','CHRONO FIELD  •  THREATS FROZEN  +500 PTS','CAMPO CHRONO  •  AMEAÇAS CONGELADAS  +500 PTS','クロノフィールド • 脅威凍結 +500pt'), cx2, 12);
   },
 
     _buildGrid(){
@@ -60823,11 +60862,13 @@ wire('shareBtn',      ()=>{
   const sc  = HS.get() || (G&&G.score) || 0;
   const nm  = (typeof PlayerID!=='undefined') ? PlayerID.getName() : Lang.l('Orbitador','Pilot','Piloto','パイロット');
   const url = LB.shareURL(sc, nm) || location.href;
-  const _isENs = typeof Lang!=='undefined'&&Lang.cur==='en';
   const title = '🛰️ Debris Surge';
-  const text  = _isENs
-    ? `I scored ${sc.toLocaleString()} pts in Debris Surge! Can you beat me? 🏆 #DebrisSurge`
-    : `¡Conseguí ${sc.toLocaleString()} pts en Debris Surge! ¿Puedes superarme? 🏆 #DebrisSurge`;
+  const text  = Lang.l(
+    `¡Conseguí ${sc.toLocaleString()} pts en Debris Surge! ¿Puedes superarme? 🏆 #DebrisSurge`,
+    `I scored ${sc.toLocaleString()} pts in Debris Surge! Can you beat me? 🏆 #DebrisSurge`,
+    `Consegui ${sc.toLocaleString()} pts em Debris Surge! Você consegue me superar? 🏆 #DebrisSurge`,
+    `Debris Surgeで${sc.toLocaleString()}ptsを獲得！超えられるか？🏆 #DebrisSurge`
+  );
   // Try Web Share API first (opens WhatsApp, Instagram, etc. natively on mobile)
   if(navigator.share){
     navigator.share({title, text, url})
@@ -61000,6 +61041,24 @@ const ALL_TITLE_DEFS = [
    src:'XP · Nivel 30', srcEn:'XP · Level 30',         srcPt:'XP · Nível 30',       srcJa:'XP · レベル30',       icon:'☀️'},
   {key:'Eterno',         keyEn:'Eternal',               keyPt:'Eterno',               keyJa:'エターナル',
    src:'XP · Nivel 50', srcEn:'XP · Level 50',         srcPt:'XP · Nível 50',       srcJa:'XP · レベル50',       icon:'♾️'},
+  {key:'Eterno II',      keyEn:'Eternal II',            keyPt:'Eterno II',            keyJa:'エターナルII',
+   src:'XP · Nivel 75', srcEn:'XP · Level 75',         srcPt:'XP · Nível 75',       srcJa:'XP · レベル75',       icon:'♾️'},
+  {key:'Eterno III',     keyEn:'Eternal III',           keyPt:'Eterno III',           keyJa:'エターナルIII',
+   src:'XP · Nivel 100',srcEn:'XP · Level 100',        srcPt:'XP · Nível 100',      srcJa:'XP · レベル100',      icon:'♾️'},
+  {key:'Trascendido',    keyEn:'Transcended',           keyPt:'Transcendido',        keyJa:'超越者',
+   src:'XP · Nivel 150',srcEn:'XP · Level 150',        srcPt:'XP · Nível 150',      srcJa:'XP · レベル150',      icon:'♾️'},
+  {key:'Más Allá del Vacío', keyEn:'Beyond the Void',  keyPt:'Além do Vazio',        keyJa:'虚無の彼方',
+   src:'XP · Nivel 200',srcEn:'XP · Level 200',        srcPt:'XP · Nível 200',      srcJa:'XP · レベル200',      icon:'♾️'},
+  {key:'Arquitecto del Cosmos', keyEn:'Architect of the Cosmos', keyPt:'Arquiteto do Cosmos', keyJa:'宇宙の建築者',
+   src:'XP · Nivel 300',srcEn:'XP · Level 300',        srcPt:'XP · Nível 300',      srcJa:'XP · レベル300',      icon:'🌌'},
+  {key:'Guardián del Infinito', keyEn:'Guardian of Infinity',    keyPt:'Guardião do Infinito', keyJa:'無限の守護者',
+   src:'XP · Nivel 400',srcEn:'XP · Level 400',        srcPt:'XP · Nível 400',      srcJa:'XP · レベル400',      icon:'🌠'},
+  {key:'Singularidad',        keyEn:'Singularity',              keyPt:'Singularidade',        keyJa:'シンギュラリティ',
+   src:'XP · Nivel 500',srcEn:'XP · Level 500',        srcPt:'XP · Nível 500',      srcJa:'XP · レベル500',      icon:'🕳️'},
+  {key:'Convergencia Absoluta', keyEn:'Absolute Convergence',   keyPt:'Convergência Absoluta', keyJa:'絶対収束',
+   src:'XP · Nivel 750',srcEn:'XP · Level 750',        srcPt:'XP · Nível 750',      srcJa:'XP · レベル750',      icon:'🌀'},
+  {key:'El Único',            keyEn:'The One',                  keyPt:'O Único',              keyJa:'唯一者',
+   src:'XP · Nivel 1000',srcEn:'XP · Level 1000',      srcPt:'XP · Nível 1000',     srcJa:'XP · レベル1000',     icon:'👁️'},
   // Weekly challenge titles
   {key:'Maestro Zen',          keyEn:'Zen Master',              keyPt:'Mestre Zen',            keyJa:'禅マスター',
    src:'Desafío Semanal',      srcEn:'Weekly Challenge',        srcPt:'Desafio Semanal',       srcJa:'週間チャレンジ',  icon:'☯️'},
@@ -61009,7 +61068,7 @@ const ALL_TITLE_DEFS = [
    src:'Desafío Semanal',      srcEn:'Weekly Challenge',        srcPt:'Desafio Semanal',       srcJa:'週間チャレンジ',  icon:'✦'},
   {key:'Destructor',           keyEn:'Destroyer',               keyPt:'Destruidor',            keyJa:'破壊者',
    src:'Desafío Semanal',      srcEn:'Weekly Challenge',        srcPt:'Desafio Semanal',       srcJa:'週間チャレンジ',  icon:'💀'},
-  {key:'Eterno',               keyEn:'Eternal',                 keyPt:'Eterno',                keyJa:'エターナル',
+  {key:'Atemporal',            keyEn:'Timeless',                keyPt:'Atemporal',             keyJa:'永遠の者',
    src:'Desafío Semanal',      srcEn:'Weekly Challenge',        srcPt:'Desafio Semanal',       srcJa:'週間チャレンジ',  icon:'⌛'},
   {key:'Purista',              keyEn:'Purist',                  keyPt:'Purista',               keyJa:'ピュアリスト',
    src:'Desafío Semanal',      srcEn:'Weekly Challenge',        srcPt:'Desafio Semanal',       srcJa:'週間チャレンジ',  icon:'🏹'},
@@ -61029,6 +61088,15 @@ const ALL_TITLE_DEFS = [
    src:'Desafío Semanal',      srcEn:'Weekly Challenge',        srcPt:'Desafio Semanal',       srcJa:'週間チャレンジ',  icon:'🕰️'},
   {key:'Superador Nato',       keyEn:'Born Overcomer',          keyPt:'Superador Nato',        keyJa:'生まれながらの克服者',
    src:'Desafío Semanal',      srcEn:'Weekly Challenge',        srcPt:'Desafio Semanal',       srcJa:'週間チャレンジ',  icon:'🔱'},
+  // Season VELO titles (must mirror SEASON_TITLES keys exactly — orb_titles stores the .es text as key)
+  {key:'Recluta VELO',              keyEn:'VELO Recruit',            keyPt:'Recruta VELO',              keyJa:'VELO新兵',
+   src:'Temporada VELO',            srcEn:'VELO Season',             srcPt:'Temporada VELO',            srcJa:'VELOシーズン', icon:'📡'},
+  {key:'Informante de Ana Hara',    keyEn:"Ana Hara's Informant",    keyPt:'Informante de Ana Hara',    keyJa:'アナ・ハラの情報提供者',
+   src:'Temporada VELO',            srcEn:'VELO Season',             srcPt:'Temporada VELO',            srcJa:'VELOシーズン', icon:'🛰️'},
+  {key:'Centinela del Núcleo',      keyEn:'Core Sentinel',           keyPt:'Sentinela do Núcleo',       keyJa:'コアの哨兵',
+   src:'Temporada VELO',            srcEn:'VELO Season',             srcPt:'Temporada VELO',            srcJa:'VELOシーズン', icon:'📶'},
+  {key:'Agente VELO',               keyEn:'VELO Agent',              keyPt:'Agente VELO',               keyJa:'VELOエージェント',
+   src:'Temporada VELO',            srcEn:'VELO Season',             srcPt:'Temporada VELO',            srcJa:'VELOシーズン', icon:'🎖️'},
 ];
 
 function _getTitleDef(titleKey){
@@ -62905,6 +62973,77 @@ const MenuBg = {
       c.fillStyle=p3Body;c.fill();
       c.beginPath();c.arc(p3X,p3Y,p3R,0,Math.PI*2);c.clip();
 
+      // ── RELIEVE DE FONDO — cráteres y cordilleras con cobertura de 360° ──
+      // Los mares/placas de lava solo existen en 6 fases fijas de rotación
+      // (dejando huecos de hasta 90° sin ningún diseño). Esta capa cubre
+      // TODA la longitud del planeta con cráteres y montañas rocosas para
+      // que nunca se vea "pulido y vacío", sin importar el ángulo de giro.
+      // Se dibuja ANTES de los mares/placas para que estos la tapen donde
+      // corresponda y solo quede visible en las zonas sin lava.
+      c.save();
+      // Cráteres de impacto — repartidos cada ~22.5° de longitud
+      [
+        [ 0.00,-0.62,0.075,0.046, 0.10, 0.0            ],
+        [ 0.30,-0.50,0.062,0.038,-0.35, Math.PI/8       ],
+        [ 0.55,-0.30,0.070,0.043, 0.55, Math.PI/4       ],
+        [ 0.65, 0.00,0.058,0.036,-0.20, Math.PI*3/8     ],
+        [ 0.55, 0.32,0.066,0.041, 0.40, Math.PI/2       ],
+        [ 0.30, 0.55,0.060,0.037,-0.45, Math.PI*5/8     ],
+        [ 0.00, 0.66,0.072,0.044, 0.15, Math.PI*3/4     ],
+        [-0.30, 0.55,0.064,0.039,-0.30, Math.PI*7/8     ],
+        [-0.55, 0.32,0.058,0.036, 0.50, Math.PI         ],
+        [-0.65, 0.00,0.068,0.042,-0.15, Math.PI*9/8     ],
+        [-0.55,-0.30,0.062,0.038, 0.35, Math.PI*5/4     ],
+        [-0.30,-0.55,0.056,0.034,-0.40, Math.PI*11/8    ],
+        [ 0.15,-0.30,0.050,0.031, 0.20, Math.PI*13/8    ],
+        [-0.18, 0.20,0.052,0.032,-0.25, Math.PI*15/8    ],
+        [ 0.40,-0.10,0.048,0.030, 0.30, Math.PI*7/4     ],
+        [-0.42, 0.05,0.054,0.033,-0.10, Math.PI*3/2     ],
+      ].forEach(([ox,oy,rx,ry,rot,ph],i)=>{
+        const _crm=sphRot(ox,oy,rot3+ph);
+        const crAlp=(0.85+0.08*Math.sin(t*0.18+i*1.7)).toFixed(3);
+        c.save();c.globalAlpha=sphVis(_crm.vis)*parseFloat(crAlp);
+        const crx=p3X+p3R*_crm.x, cry=p3Y+p3R*oy;
+        // Sombra exterior — profundidad del cráter
+        c.fillStyle='rgba(28,10,3,0.85)';
+        c.beginPath();c.ellipse(crx,cry,p3R*rx,p3R*ry,rot,0,Math.PI*2);c.fill();
+        // Interior — roca basáltica media
+        c.fillStyle='rgba(55,24,8,0.90)';
+        c.beginPath();c.ellipse(crx,cry,p3R*rx*0.72,p3R*ry*0.72,rot,0,Math.PI*2);c.fill();
+        // Borde iluminado — arista del cráter
+        c.strokeStyle='rgba(110,62,30,0.55)';c.lineWidth=p3R*0.010;
+        c.beginPath();c.ellipse(crx,cry,p3R*rx*0.95,p3R*ry*0.95,rot,Math.PI*1.05,Math.PI*1.85);c.stroke();
+        c.restore();
+      });
+      // Cordilleras montañosas — crestas rocosas alargadas con luz/sombra,
+      // desfasadas respecto a los cráteres para llenar los espacios entre ellos
+      [
+        [ 0.42,-0.70,0.16,0.045, 0.35, Math.PI/6        ],
+        [ 0.68,-0.24,0.15,0.042,-0.25, Math.PI*5/12      ],
+        [ 0.62, 0.44,0.14,0.040, 0.45, Math.PI*2/3       ],
+        [ 0.10, 0.72,0.15,0.043,-0.10, Math.PI*11/12     ],
+        [-0.48, 0.66,0.16,0.044, 0.30, Math.PI*7/6       ],
+        [-0.70, 0.10,0.14,0.041,-0.35, Math.PI*17/12     ],
+        [-0.55,-0.48,0.15,0.043, 0.20, Math.PI*11/6      ],
+        [ 0.08,-0.35,0.12,0.036,-0.15, Math.PI*23/12     ],
+      ].forEach(([ox,oy,rx,ry,rot,ph],i)=>{
+        const _mtm=sphRot(ox,oy,rot3+ph);
+        const mtAlp=(0.80+0.10*Math.sin(t*0.15+i*2.1)).toFixed(3);
+        c.save();c.globalAlpha=sphVis(_mtm.vis)*parseFloat(mtAlp);
+        const mtx=p3X+p3R*_mtm.x, mty=p3Y+p3R*oy;
+        // Sombra base de la cordillera
+        c.fillStyle='rgba(20,7,2,0.70)';
+        c.beginPath();c.ellipse(mtx,mty+p3R*ry*0.30,p3R*rx,p3R*ry,rot,0,Math.PI*2);c.fill();
+        // Cuerpo rocoso medio
+        c.fillStyle='rgba(48,20,6,0.85)';
+        c.beginPath();c.ellipse(mtx,mty,p3R*rx*0.92,p3R*ry*0.92,rot,0,Math.PI*2);c.fill();
+        // Cresta iluminada — picos que reciben la luz
+        c.fillStyle='rgba(95,52,24,0.55)';
+        c.beginPath();c.ellipse(mtx-p3R*ry*0.15,mty-p3R*ry*0.35,p3R*rx*0.55,p3R*ry*0.42,rot,0,Math.PI*2);c.fill();
+        c.restore();
+      });
+      c.restore();
+
       // ── MARES DE LAVA — zonas incandescentes como "océanos" del planeta ──
       // Todo el terreno (mares+placas+grietas+islotes) gira como un solo bloque:
       // las grietas conectan mares con placas por coordenadas fijas, así que deben
@@ -64540,7 +64679,6 @@ const DirectDuel = {
   },
 
   _showChallengeBanner() {
-    const isEN = typeof Lang!=='undefined' && Lang.cur==='en';
     const banner = document.createElement('div');
     banner.id = 'duelBanner';
     banner.style.cssText = [
@@ -64558,9 +64696,12 @@ const DirectDuel = {
           ${_bslc==='en'?'DIRECT DUEL':_bslc==='pt'?'DUELO DIRETO':_bslc==='ja'?'ダイレクトデュエル':'DUELO DIRECTO'}
         </div>
         <div style="font-size:11px;color:rgba(255,255,255,0.75);margin-top:1px;">
-          ${isEN
-            ? `<strong style="color:#fff">${this._challengerName}</strong> challenges you: beat <strong style="color:#f59e0b">${this._targetScore.toLocaleString()} pts</strong>`
-            : `<strong style="color:#fff">${this._challengerName}</strong> te reta: supera <strong style="color:#f59e0b">${this._targetScore.toLocaleString()} pts</strong>`}
+          ${Lang.l(
+            `<strong style="color:#fff">${this._challengerName}</strong> te reta: supera <strong style="color:#f59e0b">${this._targetScore.toLocaleString()} pts</strong>`,
+            `<strong style="color:#fff">${this._challengerName}</strong> challenges you: beat <strong style="color:#f59e0b">${this._targetScore.toLocaleString()} pts</strong>`,
+            `<strong style="color:#fff">${this._challengerName}</strong> te desafia: supere <strong style="color:#f59e0b">${this._targetScore.toLocaleString()} pts</strong>`,
+            `<strong style="color:#fff">${this._challengerName}</strong>があなたに挑戦：<strong style="color:#f59e0b">${this._targetScore.toLocaleString()}pts</strong>を超えろ`
+          )}
         </div>
       </div>
       <button onclick="this.parentNode.remove()" style="background:none;border:none;color:rgba(255,255,255,0.4);font-size:18px;cursor:pointer;padding:4px 6px;line-height:1;">×</button>`;
@@ -64998,7 +65139,7 @@ const WeeklyChallenge = {
       titleColor:'#fb923c', titleGlow:'rgba(251,146,60,0.45)',  titleIcon:'🔥' },
     { id:'wc_ancient50', icon:'✦',  goal:50,      key:'anc',       titleES:'Absorbe 50 Ancestral en una sola partida', titleEN:'Absorb 50 Ancient debris in one game',   titlePT:'Absorva 50 Ancestral em uma partida',      titleJA:'1ゲームで古代50個吸収',
       skinId:'shadow_mirror',skinName:'Shadow Mirror',   skinNameEN:'Shadow Mirror',   skinColor:'#c084fc', skinIcon:'🪞',
-      rewardTitle:'Arqueólogo Galáctico', rewardTitleEN:'Galactic Archaeologist', rewardTitlePT:'Arqueólogo Galáctico', rewardTitleJA:'銀河の考古学者',
+      rewardTitle:'Arqueólogo Galáctico', rewardTitleEN:'Galactic Archaeologist', rewardTitlePT:'Arqueólogo Galáctico', rewardTitleJA:'銀河考古学者',
       titleColor:'#c084fc', titleGlow:'rgba(192,132,252,0.45)', titleIcon:'✦' },
     { id:'wc_boss3',     icon:'💀', goal:3,        key:'_boss',     titleES:'Derrota 3 jefes esta semana', titleEN:'Defeat 3 bosses this week',                  titlePT:'Derrote 3 chefes esta semana',             titleJA:'今週ボス3体撃破',
       skinId:'titan',        skinName:'Golden Titan',    skinNameEN:'Golden Titan',    skinColor:'#f59e0b', skinIcon:'💥',
@@ -65006,11 +65147,11 @@ const WeeklyChallenge = {
       titleColor:'#f59e0b', titleGlow:'rgba(245,158,11,0.45)',  titleIcon:'💥' },
     { id:'wc_survive10m',icon:'⌛', goal:600,      key:'t',         titleES:'Sobrevive 10 minutos sin pausa en una partida', titleEN:'Survive 10 min straight in one game', titlePT:'Sobreviva 10 min sem pausar em uma partida', titleJA:'1ゲームでポーズなし10分生存',
       skinId:'quantum',      skinName:'Quantum Void',    skinNameEN:'Quantum Void',    skinColor:'#e879f9', skinIcon:'🌀',
-      rewardTitle:'Eterno', rewardTitleEN:'Eternal',             rewardTitlePT:'Eterno',           rewardTitleJA:'永遠の者',
+      rewardTitle:'Atemporal', rewardTitleEN:'Timeless',            rewardTitlePT:'Atemporal',        rewardTitleJA:'永遠の者',
       titleColor:'#e879f9', titleGlow:'rgba(232,121,249,0.45)', titleIcon:'🌀' },
     { id:'wc_nozen_l20', icon:'🏹', goal:20,       key:'l',         titleES:'Alcanza Nivel 20 usando solo la skin Default', titleEN:'Reach Level 20 using only Default skin', titlePT:'Alcance Nível 20 usando só a skin Default', titleJA:'デフォルトスキンのみでレベル20',
       skinId:'phantom',      skinName:'Phantom Recon',   skinNameEN:'Phantom Recon',   skinColor:'#e2e8f0', skinIcon:'👁️',
-      rewardTitle:'Purista', rewardTitleEN:'The Purist',         rewardTitlePT:'Purista',          rewardTitleJA:'純粋主義者',
+      rewardTitle:'Purista', rewardTitleEN:'Purist',         rewardTitlePT:'Purista',          rewardTitleJA:'ピュアリスト',
       titleColor:'#e2e8f0', titleGlow:'rgba(226,232,240,0.35)', titleIcon:'🏹' },
     { id:'wc_legendary5',icon:'👑', goal:5,        key:'leg',       titleES:'Absorbe 5 Legendarios en una partida', titleEN:'Absorb 5 Legendary debris in one game',  titlePT:'Absorva 5 Lendários em uma partida',       titleJA:'1ゲームで伝説5個吸収',
       skinId:'celestial',    skinName:'Celestial Divine',skinNameEN:'Celestial Divine',skinColor:'#fcd34d', skinIcon:'✨',
@@ -65022,27 +65163,27 @@ const WeeklyChallenge = {
       titleColor:'#a78bfa', titleGlow:'rgba(167,139,250,0.45)', titleIcon:'⚡' },
     { id:'wc_chaos_l15', icon:'☠️', goal:15,       key:'l',         titleES:'Llega al Nivel 15 en Modo Caos (1 vida, sin power-ups)', titleEN:'Reach Level 15 in Chaos Mode (1 life, no power-ups)', titlePT:'Alcance Nível 15 no Modo Caos (1 vida, sem power-ups)', titleJA:'カオスモードでレベル15（ライフ1、パワーアップなし）',
       skinId:'shadow_mirror',skinName:'Shadow Mirror',   skinNameEN:'Shadow Mirror',   skinColor:'#c084fc', skinIcon:'🪞',
-      rewardTitle:'Sin Miedo a Morir', rewardTitleEN:'Fearless',       rewardTitlePT:'Sem Medo de Morrer', rewardTitleJA:'死を恐れぬ者',
+      rewardTitle:'Sin Miedo a Morir', rewardTitleEN:'Fearless',       rewardTitlePT:'Destemido', rewardTitleJA:'無謀者',
       titleColor:'#ef4444', titleGlow:'rgba(239,68,68,0.40)',   titleIcon:'☠️' },
     { id:'wc_anc_blitz', icon:'✦',  goal:15,       key:'anc',       titleES:'Absorbe 15 Ancestral en 60 seg en Modo Blitz', titleEN:'Absorb 15 Ancient in 60s in Blitz Mode', titlePT:'Absorva 15 Ancestral em 60s no Modo Blitz', titleJA:'ブリッツモードで60秒以内に古代15個吸収',
       skinId:'nova',         skinName:'Solar Nova',      skinNameEN:'Solar Nova',      skinColor:'#f43f5e', skinIcon:'🔥',
-      rewardTitle:'Arqueólogo de Guerra', rewardTitleEN:'War Archaeologist', rewardTitlePT:'Arqueólogo de Guerra', rewardTitleJA:'戦場の考古学者',
+      rewardTitle:'Arqueólogo de Guerra', rewardTitleEN:'War Archaeologist', rewardTitlePT:'Arqueólogo de Guerra', rewardTitleJA:'戦場考古学者',
       titleColor:'#f43f5e', titleGlow:'rgba(244,63,94,0.40)',   titleIcon:'✦' },
     { id:'wc_nopu_2m',   icon:'🚫', goal:2000000,  key:'sc',        titleES:'2,000,000 pts sin usar power-ups en una partida', titleEN:'2,000,000 pts without power-ups in one game', titlePT:'2.000.000 pts sem power-ups em uma partida', titleJA:'1ゲームでパワーアップなし2,000,000pt',
       skinId:'titan',        skinName:'Golden Titan',    skinNameEN:'Golden Titan',    skinColor:'#f59e0b', skinIcon:'💥',
-      rewardTitle:'El Intocable', rewardTitleEN:'The Untouchable',  rewardTitlePT:'O Intocável',      rewardTitleJA:'無敵の者',
+      rewardTitle:'El Intocable', rewardTitleEN:'The Untouchable',  rewardTitlePT:'O Intocável',      rewardTitleJA:'無敵者',
       titleColor:'#fbbf24', titleGlow:'rgba(251,191,36,0.45)',  titleIcon:'🚫' },
     { id:'wc_5boss',     icon:'💥', goal:5,        key:'_boss',     titleES:'Derrota 5 jefes esta semana', titleEN:'Defeat 5 bosses this week',                  titlePT:'Derrote 5 chefes esta semana',             titleJA:'今週ボス5体撃破',
       skinId:'celestial',    skinName:'Celestial Divine',skinNameEN:'Celestial Divine',skinColor:'#fcd34d', skinIcon:'✨',
-      rewardTitle:'Cazador Implacable', rewardTitleEN:'Relentless Hunter', rewardTitlePT:'Caçador Implacável', rewardTitleJA:'執拗な狩人',
+      rewardTitle:'Cazador Implacable', rewardTitleEN:'Relentless Hunter', rewardTitlePT:'Caçador Implacável', rewardTitleJA:'執拗なハンター',
       titleColor:'#34d399', titleGlow:'rgba(52,211,153,0.40)',  titleIcon:'💥' },
     { id:'wc_20min',     icon:'🕰️',goal:1200,     key:'t',         titleES:'Sobrevive 20 minutos sin pausa en una partida', titleEN:'Survive 20 minutes without pausing in one game', titlePT:'Sobreviva 20 min sem pausar em uma partida', titleJA:'1ゲームでポーズなし20分生存',
       skinId:'quantum',      skinName:'Quantum Void',    skinNameEN:'Quantum Void',    skinColor:'#e879f9', skinIcon:'🌀',
-      rewardTitle:'El Inmortal', rewardTitleEN:'The Immortal',    rewardTitlePT:'O Imortal',        rewardTitleJA:'不死身の者',
+      rewardTitle:'El Inmortal', rewardTitleEN:'The Immortal',    rewardTitlePT:'O Imortal',        rewardTitleJA:'不死者',
       titleColor:'#818cf8', titleGlow:'rgba(129,140,248,0.45)', titleIcon:'🕰️' },
     { id:'wc_pb10',      icon:'🔱', goal:10,       key:'pb',        titleES:'Bate tu récord personal 10 veces esta semana', titleEN:'Beat your personal best 10 times this week', titlePT:'Bata seu recorde pessoal 10 vezes esta semana', titleJA:'今週自己ベスト10回更新',
       skinId:'celestial',    skinName:'Celestial Divine',skinNameEN:'Celestial Divine',skinColor:'#fcd34d', skinIcon:'✨',
-      rewardTitle:'Superador Nato', rewardTitleEN:'Born Overcomer',  rewardTitlePT:'Superador Nato',   rewardTitleJA:'天性の超越者',
+      rewardTitle:'Superador Nato', rewardTitleEN:'Born Overcomer',  rewardTitlePT:'Superador Nato',   rewardTitleJA:'生まれながらの克服者',
       titleColor:'#22d3ee', titleGlow:'rgba(34,211,238,0.45)',  titleIcon:'🔱' },
   ],
 
@@ -68789,9 +68930,13 @@ BossWave = Object.assign(BossWave, {
           }
           notify('💀',
             _bslc==='en'?'VIRUS INJECTION!':_bslc==='pt'?'INJEÇÃO VIRAL!':_bslc==='ja'?'ウイルス注入！':'¡INYECCIÓN VIRAL!',
-            isEN
+            _bslc==='en'
               ? (this._phase>=2 ? 'Find the gap — escape route marked!' : this._phase>=1 ? 'Hex nodes locking on — gap marked!' : 'Viral nodes deploying — follow the arrow!')
-              : (this._phase>=2 ? '¡Busca el hueco — ¡ruta marcada!' : this._phase>=1 ? '¡Nodos hex — ¡sigue el indicador!' : '¡Nodos virales — ¡sigue la flecha!'));
+              : _bslc==='pt'
+              ? (this._phase>=2 ? 'Encontre o vão — rota marcada!' : this._phase>=1 ? 'Nós hex travando — vão marcado!' : 'Nós virais implantando — siga a seta!')
+              : _bslc==='ja'
+              ? (this._phase>=2 ? '隙間を見つけろ — 脱出ルート表示！' : this._phase>=1 ? 'ヘックスノード固定中 — 隙間表示！' : 'ウイルスノード展開中 — 矢印に従え！')
+              : (this._phase>=2 ? '¡Busca el hueco — ruta marcada!' : this._phase>=1 ? '¡Nodos hex — sigue el indicador!' : '¡Nodos virales — sigue la flecha!'));
           try{ if(navigator.vibrate) navigator.vibrate([25,8,25,8,50]); }catch(_){}
         }
 
@@ -68819,8 +68964,8 @@ BossWave = Object.assign(BossWave, {
             this._mvPreCollapseT = 0;
             const isEN_pc = typeof Lang !== 'undefined' && Lang.cur === 'en';
             notify('💀',
-              isEN_pc ? '⚡ VIRAL COLLAPSE IMMINENT!' : '⚡ ¡COLAPSO VIRAL INMINENTE!',
-              isEN_pc ? 'Nodes firing NOW — move away!' : '¡Nodos disparando AHORA — ¡aléjate!');
+              Lang.l('⚡ ¡COLAPSO VIRAL INMINENTE!','⚡ VIRAL COLLAPSE IMMINENT!','⚡ COLAPSO VIRAL IMINENTE!','⚡ ウイルス崩壊間近！'),
+              Lang.l('¡Nodos disparando AHORA — ¡aléjate!','Nodes firing NOW — move away!','Nós disparando AGORA — afaste-se!','今すぐノードが発射！離れろ！'));
             try{ if(navigator.vibrate) navigator.vibrate([60,6,60,6,60]); }catch(_){}
           }
           if(this._mvPreCollapse && !this._mvFired){
@@ -71501,9 +71646,13 @@ BossWave = Object.assign(BossWave, {
           this._cbWarnCount  = Math.min(sc.attackCount||6, 8);
           notify('💥',
             _bslc==='en'?'SHARD BURST INCOMING!':_bslc==='pt'?'EXPLOSÃO DE FRAGMENTOS CHEGANDO!':_bslc==='ja'?'破片爆発が来る！':'¡RÁFAGA DE ESQUIRLAS INMINENTE!',
-            isEN
+            _bslc==='en'
               ? (this._phase>=2?'Wide fan — move sideways!':this._phase>=1?'Fan burst charging!':'Burst charging!')
-              : (this._phase>=2?'¡Abanico amplio — ¡muévete lateral!':this._phase>=1?'¡Abanico cargando!':'¡Cargando ráfaga!'));
+              : _bslc==='pt'
+              ? (this._phase>=2?'Leque amplo — mova-se de lado!':this._phase>=1?'Explosão em leque carregando!':'Carregando explosão!')
+              : _bslc==='ja'
+              ? (this._phase>=2?'広範囲扇状 — 横に移動！':this._phase>=1?'扇状バースト充填中！':'バースト充填中！')
+              : (this._phase>=2?'¡Abanico amplio — muévete lateral!':this._phase>=1?'¡Abanico cargando!':'¡Cargando ráfaga!'));
           try{ if(navigator.vibrate) navigator.vibrate([20,8,20]); }catch(_){}
         }
         // Si el turno se ocupó mientras el aviso estaba activo, cancelar el aviso
@@ -71578,7 +71727,7 @@ BossWave = Object.assign(BossWave, {
       // ── Notificación única por jefe al entrar en BERSERK ──────────────────
       const berserkNotifs = {
         corrupt: ['☠️',
-          isEN?'TOTAL CORRUPTION — LAST RESORT!':'¡CORRUPCIÓN TOTAL — ÚLTIMO RECURSO!',
+          _bslc==='en'?'TOTAL CORRUPTION — LAST RESORT!':_bslc==='pt'?'CORRUPÇÃO TOTAL — ÚLTIMO RECURSO!':_bslc==='ja'?'完全汚染 — 最終手段！':'¡CORRUPCIÓN TOTAL — ÚLTIMO RECURSO!',
           _bslc==='en'?'6 burst lines + berserk pulse — dodge everything!':_bslc==='pt'?'6 linhas + pulso berserk — desvie de tudo!':_bslc==='ja'?'6バースト + バーサクパルス — 全部回避！':'¡6 líneas + pulso berserk — ¡esquívalos todos!'],
         toxic:   ['☣️',
           _bslc==='en'?'TOXIC OVERLOAD — LAST RESORT!':_bslc==='pt'?'SOBRECARGA TÓXICA — ÚLTIMO RECURSO!':_bslc==='ja'?'毒性過負荷 — ラストリゾート！':'¡SOBRECARGA TÓXICA — ÚLTIMO RECURSO!',
@@ -71781,8 +71930,8 @@ BossWave = Object.assign(BossWave, {
             const count   = 5 + Math.floor(BossWave._cycle*1.0);
             const isEN_t  = _isEN;
             notify('☣️',
-              isEN_t?'TOXIC SATURATION FIELD!':'¡CAMPO DE SATURACIÓN TÓXICA!',
-              isEN_t?'Berserk — full-screen toxic zones!':'¡Berserk — zonas tóxicas en toda la pantalla!');
+              Lang.l('¡Campo de Saturación Tóxica!','Toxic Saturation Field!','Campo de Saturação Tóxica!','毒飽和フィールド！'),
+              Lang.l('¡Berserk — zonas tóxicas en toda la pantalla!','Berserk — full-screen toxic zones!','Frenético — zonas tóxicas em toda a tela!','バーサーク——画面全体が毒ゾーンに！'));
             try{ if(navigator.vibrate) navigator.vibrate([50,10,50,10,100]); }catch(_){}
 
             // Pre-marcar los spots con aviso visual (reutiliza el sistema de pfSpots)
@@ -72693,8 +72842,8 @@ BossWave = Object.assign(BossWave, {
               const _isEN_cw = typeof Lang!=='undefined' && Lang.cur==='en';
               if(typeof notify === 'function'){
                 notify('🌞',
-                  _isEN_cw ? '☄️ SOLAR CORONA ERUPTION!' : '☄️ ¡ERUPCIÓN DE CORONA SOLAR!',
-                  _isEN_cw ? 'Dodge the bolide ring!' : '¡Esquiva el anillo de bolides!');
+                  Lang.l('☄️ ¡Erupción de Corona Solar!','☄️ SOLAR CORONA ERUPTION!','☄️ ERUPÇÃO DE COROA SOLAR!','☄️ 太陽コロナ噴出！'),
+                  Lang.l('¡Esquiva el anillo de bólidos!','Dodge the bolide ring!','Desvie do anel de bólidos!','隕石の輪を避けろ！'));
               }
               try{ if(navigator.vibrate) navigator.vibrate([30,10,60]); }catch(_){}
             }, warnDelay);
@@ -72712,8 +72861,8 @@ BossWave = Object.assign(BossWave, {
               const _isEN_sf = typeof Lang!=='undefined' && Lang.cur==='en';
               if(typeof notify === 'function'){
                 notify('🌟',
-                  _isEN_sf ? '🌟 SOLAR FLARE INCOMING!' : '🌟 ¡LLAMARADA SOLAR ENTRANTE!',
-                  _isEN_sf ? 'Plasma burst — spread out!' : '¡Ráfaga de plasma — ¡dispérsate!');
+                  Lang.l('🌟 ¡Llamarada Solar Entrante!','🌟 SOLAR FLARE INCOMING!','🌟 LABAREDA SOLAR CHEGANDO!','🌟 太陽フレア接近中！'),
+                  Lang.l('¡Ráfaga de plasma — dispérsate!','Plasma burst — spread out!','Explosão de plasma — espalhem-se!','プラズマ爆発——散開せよ！'));
               }
               try{ if(navigator.vibrate) navigator.vibrate([20,8,35]); }catch(_){}
             }, sfWarnDelay);
@@ -73000,7 +73149,7 @@ BossWave = Object.assign(BossWave, {
         this._cwCoronaT     = 0;
         this._cwCoronaRings = cappedCount;
         notify('☄️',
-          isEN ? '☄️ CORONA ERUPTION!' : '☄️ ¡ERUPCIÓN DE CORONA ÍGNEA!',
+          _bslc==='en'?'☄️ CORONA ERUPTION!':_bslc==='pt'?'☄️ ERUPÇÃO DE COROA!':_bslc==='ja'?'☄️ コロナ噴出！':'☄️ ¡ERUPCIÓN DE CORONA ÍGNEA!',
           _bslc==='en'?'Stay at the edges!':_bslc==='pt'?'Fique nas bordas!':_bslc==='ja'?'端に留まれ！':'¡Quédate en los bordes!');
         try{ if(navigator.vibrate) navigator.vibrate([30,10,60]); }catch(_){}
 
@@ -73047,10 +73196,10 @@ BossWave = Object.assign(BossWave, {
             }
           }
           const eruptMsg = BossWave._phase>=2
-            ? (isEN?'DOUBLE CORONA ERUPTION!':'¡DOBLE ERUPCIÓN DE CORONA ÍGNEA!')
+            ? (_bslc==='en'?'DOUBLE CORONA ERUPTION!':_bslc==='pt'?'ERUPÇÃO DUPLA DE COROA!':_bslc==='ja'?'二重コロナ噴出！':'¡DOBLE ERUPCIÓN DE CORONA ÍGNEA!')
             : BossWave._phase>=1
-              ? (isEN?'CORONA ERUPTION — ENRAGED!':'¡ERUPCIÓN DE CORONA — ¡ENFURECIDA!')
-              : (isEN?'Corona eruption!':'¡Erupción de corona solar!');
+              ? (_bslc==='en'?'CORONA ERUPTION — ENRAGED!':_bslc==='pt'?'ERUPÇÃO DE COROA — ENFURECIDA!':_bslc==='ja'?'コロナ噴出 — 激怒！':'¡ERUPCIÓN DE CORONA — ENFURECIDA!')
+              : (_bslc==='en'?'Corona eruption!':_bslc==='pt'?'Erupção de coroa solar!':_bslc==='ja'?'太陽コロナ噴出！':'¡Erupción de corona solar!');
           const eruptSub = BossWave._phase>=2
             ? (_bslc==='en'?'Double ring — no safe angle!':_bslc==='pt'?'Anel duplo — sem ângulo seguro!':_bslc==='ja'?'二重リング — 安全な角度なし！':'¡Doble anillo — ¡sin ángulo seguro!')
             : (_bslc==='en'?'Stay at the edges!':_bslc==='pt'?'Fique nas bordas!':_bslc==='ja'?'端に留まれ！':'¡Quédate en los bordes!');
@@ -75673,7 +75822,7 @@ BossWave = Object.assign(BossWave, {
       if(progress > 0.55){
         const txtAlpha = ((progress-0.55)/0.45) * urgency;
         const isEN_mv = typeof Lang !== 'undefined' && Lang.cur === 'en';
-        const label = isEN_mv ? '⚠ VIRAL' : '⚠ VIRUS';
+        const label = Lang.l('⚠ VIRUS','⚠ VIRAL','⚠ VÍRUS','⚠ ウイルス');
         ctx.font = `bold ${Math.max(Math.round(boss.r*0.50),8)}px monospace`;
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         ctx.fillStyle = `rgba(0,0,0,${(0.45*txtAlpha).toFixed(3)})`;
@@ -75865,7 +76014,7 @@ BossWave = Object.assign(BossWave, {
         // Texto "FIRE" / "¡DISPARO!" sobre el nodo — aparece al 60% de pre-colapso
         if(_preP > 0.55 && _ni === 0){
           const isEN_fire = typeof Lang !== 'undefined' && Lang.cur === 'en';
-          const _fireLabel = isEN_fire ? '⚡ FIRE!' : '⚡ ¡DISPARO!';
+          const _fireLabel = Lang.l('⚡ ¡DISPARO!','⚡ FIRE!','⚡ DISPARO!','⚡ 発射！');
           ctx.font = `bold ${Math.max(9, Math.round(_r * 0.85))}px monospace`;
           ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
           ctx.fillStyle = `rgba(0,0,0,${(_ringA*0.55).toFixed(3)})`;
@@ -76002,10 +76151,10 @@ BossWave = Object.assign(BossWave, {
       // ── Texto "VE AQUÍ / GO HERE" —al 25% del timer, urgente en pre-colapso ─
       if(progress > 0.20){
         const isEN_gap = typeof Lang !== 'undefined' && Lang.cur === 'en';
-        const _label1  = isEN_gap ? '✦ GO HERE' : '✦ VE AQUÍ';
+        const _label1  = Lang.l('✦ VE AQUÍ','✦ GO HERE','✦ VÁ AQUI','✦ ここへ');
         const _label2  = _preC2
-          ? (isEN_gap ? 'ESCAPE NOW!' : '¡ESCAPA YA!')
-          : (isEN_gap ? 'Escape route' : 'Ruta de escape');
+          ? Lang.l('¡ESCAPA YA!','ESCAPE NOW!','ESCAPE AGORA!','今すぐ脱出！')
+          : Lang.l('Ruta de escape','Escape route','Rota de fuga','脱出ルート');
         const _txtDist = _arrowTip + (_preC2 ? 28 + _preP2*10 : 22);
         const _txtX    = sat.x + Math.cos(_ga)*_txtDist;
         const _txtY    = sat.y + Math.sin(_ga)*_txtDist;
@@ -76062,12 +76211,13 @@ BossWave = Object.assign(BossWave, {
       }
       // Texto "HEX BURST" sobre el jefe
       const isEN_bw = typeof Lang !== 'undefined' && Lang.cur === 'en';
+      const _hexLabel = Lang.l('⚠ PULSO HEX!','⚠ HEX BURST!','⚠ PULSO HEX!','⚠ ヘックスバースト！');
       ctx.font = `bold ${Math.max(10,Math.round(boss.r*0.45))}px monospace`;
       ctx.textAlign='center'; ctx.textBaseline='middle';
       ctx.fillStyle=`rgba(0,0,0,${(_warnA2*0.5).toFixed(3)})`;
-      ctx.fillText(isEN_bw?'⚠ HEX BURST!':'⚠ PULSO HEX!', boss.x+1.5, boss.y - boss.r*2.6 + 1.5);
+      ctx.fillText(_hexLabel, boss.x+1.5, boss.y - boss.r*2.6 + 1.5);
       ctx.fillStyle=`rgba(252,165,165,${_warnA2.toFixed(3)})`;
-      ctx.fillText(isEN_bw?'⚠ HEX BURST!':'⚠ PULSO HEX!', boss.x, boss.y - boss.r*2.6);
+      ctx.fillText(_hexLabel, boss.x, boss.y - boss.r*2.6);
       ctx.restore();
     }
 
@@ -76106,7 +76256,7 @@ BossWave = Object.assign(BossWave, {
     if(!collapsed){
       const _satX = sat.x, _satY = sat.y;
       const _satR = sat.r || 14;
-      const isEN_mv2 = typeof Lang !== 'undefined' && Lang.cur === 'en';
+
 
       // Radio del anillo de peligro — crece con el progreso para transmitir urgencia
       const _dangerR = _satR * (3.5 + progress * 3.0);
@@ -76160,7 +76310,7 @@ BossWave = Object.assign(BossWave, {
         const _txtProg  = (progress - 0.40) / 0.60;
         const _txtPulse = 0.65 + 0.35*Math.abs(Math.sin(ft*_pulseF*0.8));
         const _txtA     = Math.min(1, _txtProg * 2.5) * _txtPulse;
-        const _label    = isEN_mv2 ? '⚠ MOVE!' : '⚠ ¡MUÉVETE!';
+        const _label    = Lang.l('⚠ ¡MUÉVETE!','⚠ MOVE!','⚠ MEXA-SE!','⚠ 移動しろ！');
         const _fontSize = Math.max(12, Math.round(_satR * 1.25 + progress * 4));
         ctx.font = `bold ${_fontSize}px monospace`;
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -76171,7 +76321,7 @@ BossWave = Object.assign(BossWave, {
         ctx.fillStyle = `rgba(252,165,165,${_txtA.toFixed(3)})`;
         ctx.fillText(_label, _satX, _satY - _dangerR - _fontSize*0.7);
         // Segunda línea "¡NODOS!" / "NODES!" con fuente más pequeña
-        const _sub = isEN_mv2 ? 'Nodes converging here!' : '¡Nodos convergen aquí!';
+        const _sub = Lang.l('¡Nodos convergen aquí!','Nodes converging here!','Nós convergindo aqui!','ノードがここに集結！');
         const _subSz = Math.max(9, _fontSize - 3);
         ctx.font = `${_subSz}px monospace`;
         ctx.fillStyle = `rgba(0,0,0,${(_txtA*0.45).toFixed(3)})`;
@@ -76501,9 +76651,12 @@ BossWave = Object.assign(BossWave, {
       // ── CAPA 6: ETIQUETA DE ADVERTENCIA ─────────────────────────────────
       if(progress > 0.32){
         const isEN  = typeof Lang!=='undefined' && Lang.cur==='en';
-        const label = isEN
-          ? (laserCount>2?'◈ ×3 LAVA BEAM ◈':laserCount>1?'◈ ×2 LAVA BEAM ◈':'◈ LAVA BEAM ◈')
-          : (laserCount>2?'◈ RAYO MAGMA ×3 ◈':laserCount>1?'◈ RAYO MAGMA ×2 ◈':'◈ RAYO MAGMA ◈');
+        const label = Lang.l(
+          laserCount>2?'◈ RAYO MAGMA ×3 ◈':laserCount>1?'◈ RAYO MAGMA ×2 ◈':'◈ RAYO MAGMA ◈',
+          laserCount>2?'◈ ×3 LAVA BEAM ◈':laserCount>1?'◈ ×2 LAVA BEAM ◈':'◈ LAVA BEAM ◈',
+          laserCount>2?'◈ RAIO DE LAVA ×3 ◈':laserCount>1?'◈ RAIO DE LAVA ×2 ◈':'◈ RAIO DE LAVA ◈',
+          laserCount>2?'◈ 溶岩ビーム ×3 ◈':laserCount>1?'◈ 溶岩ビーム ×2 ◈':'◈ 溶岩ビーム ◈'
+        );
         const txtA  = (progress-0.32)/0.68 * urgency * fadeIn;
         const scale = 0.86 + 0.14*urgency;
         ctx.save();
@@ -82851,11 +83004,12 @@ OrbitaDelDia = Object.assign(OrbitaDelDia, {
         const medals = ['🥇','🥈','🥉'];
         const myUid = (typeof PlayerID !== 'undefined') ? PlayerID.getUid() : '';
         const _isENlb3 = typeof Lang!=='undefined'&&Lang.cur==='en';
+        const _youLbl = Lang.l('tú','you','você','あなた');
         lbEl.innerHTML = data.top.slice(0, 5).map((e, i) => {
           const isMe = e.uid === myUid;
           return `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.05);${isMe?'color:#06b6d4;':''}" >
             <span style="font-size:13px;">${medals[i] || '#'+(i+1)}</span>
-            <span style="flex:1;padding:0 8px;font-size:11px;${isMe?'font-weight:700;':''}">${(e.name||'Orbital').substring(0,16)}${isMe?` (${_isENlb3?'you':'tú'})`:''}</span>
+            <span style="flex:1;padding:0 8px;font-size:11px;${isMe?'font-weight:700;':''}">${(e.name||'Orbital').substring(0,16)}${isMe?` (${_youLbl})`:''}</span>
             <span style="font-size:12px;font-weight:700;">${(e.score||0).toLocaleString()}</span>
           </div>`;
         }).join('');
@@ -84090,7 +84244,6 @@ const PushNotifs = (function(){
 
   function _sendTestNotif(){
     if(Notification.permission !== 'granted') return;
-    const en = _isEN();
     try{
       new Notification('Debris Surge \uD83D\uDEF0\uFE0F',{
         body: _lc("¡Notificaciones activadas! Te avisamos a las 9am.","Notifications enabled! We'll remind you at 9am.",'Notificações ativadas! Avisamos às 9h.','通知を有効化しました！9時にリマインドします。'),
@@ -84109,7 +84262,6 @@ const PushNotifs = (function(){
     const btn = document.getElementById('menuPushBtn');
     const lbl = document.getElementById('menuPushLbl');
     if(!btn) return;
-    const en = _isEN();
     btn.style.transition = 'all 0.25s ease';
     btn.style.transform  = 'scale(1)';
     btn.style.opacity    = '1';
@@ -84149,7 +84301,6 @@ const PushNotifs = (function(){
       return;
     }
     const allowBtn = document.getElementById('pushAllowBtn');
-    const en = _isEN();
     if(allowBtn){ allowBtn.textContent = _lc('Solicitando...','Requesting...','Solicitando...','リクエスト中...'); allowBtn.style.opacity='0.7'; allowBtn.disabled=true; }
     Notification.requestPermission().then(perm=>{
       if(allowBtn){ allowBtn.style.opacity='1'; allowBtn.disabled=false; }
@@ -84159,13 +84310,13 @@ const PushNotifs = (function(){
         _scheduleNotification();
         setTimeout(_sendTestNotif, 800);
         _updateMenuBtn('granted');
-        if(typeof notify==='function') notify('\uD83D\uDD14', en?'Notifications on!':'¡Alertas activadas!', en?"We'll remind you at 9am":'Te avisamos a las 9am');
+        if(typeof notify==='function') notify('\uD83D\uDD14', _lc('¡Alertas activadas!','Notifications on!','Alertas ativadas!','通知オンになりました！'), _lc('Te avisamos a las 9am',"We'll remind you at 9am",'Avisamos você às 9h','9時にお知らせします'));
       } else if(perm === 'denied'){
         _updateMenuBtn('blocked');
         if(typeof notify==='function') notify('\uD83D\uDD15', _lc('Notificaciones bloqueadas','Notifications blocked','Notificações bloqueadas','通知がブロックされています'), _lc('Toca BLOQUEADO para ver cómo reactivarlas','Tap BLOCKED to see how to re-enable','Toque BLOQUEADO para reativar','ブロック中をタップして再有効化'));
       } else {
         _updateMenuBtn('default');
-        if(typeof notify==='function') notify('\uD83D\uDD14', en?'Tap again to enable':'Toca de nuevo para activar', en?'You can enable alerts anytime':'Puedes activar alertas cuando quieras');
+        if(typeof notify==='function') notify('\uD83D\uDD14', _lc('Toca de nuevo para activar','Tap again to enable','Toque novamente para ativar','再度タップして有効化'), _lc('Puedes activar alertas cuando quieras','You can enable alerts anytime','Você pode ativar alertas quando quiser','いつでもアラートを有効にできます'));
       }
     }).catch(()=>{ if(allowBtn){ allowBtn.style.opacity='1'; allowBtn.disabled=false; } _hidePromptCard(); _updateMenuBtn('default'); });
   }
@@ -84179,10 +84330,9 @@ const PushNotifs = (function(){
   //  denied   → show blocked card with step-by-step unlock guide
   //  default  → show permission request card
   function toggleFromMenu(){
-    const en = _isEN();
     if(!_isSupported()){
       _pulseBtn();
-      if(typeof notify==='function') notify('\uD83D\uDD15', en?'Not supported':'No disponible', en?"Your browser doesn't support web notifications":'Tu navegador no soporta notificaciones web');
+      if(typeof notify==='function') notify('\uD83D\uDD15', _lc('No disponible','Not supported','Não suportado','非対応'), _lc('Tu navegador no soporta notificaciones web',"Your browser doesn't support web notifications",'Seu navegador não suporta notificações web','お使いのブラウザはWeb通知に対応していません'));
       return;
     }
     const cur = Notification.permission;
@@ -84191,7 +84341,7 @@ const PushNotifs = (function(){
       _updateMenuBtn('granted');
       _pulseBtn();
       _scheduleNotification();
-      if(typeof notify==='function') notify('\uD83D\uDD14', en?'Alerts active!':'¡Alertas activas!', en?'Daily reminder at 9am':'Recordatorio diario a las 9am');
+      if(typeof notify==='function') notify('\uD83D\uDD14', _lc('¡Alertas activas!','Alerts active!','Alertas ativos!','アラート有効！'), _lc('Recordatorio diario a las 9am','Daily reminder at 9am','Lembrete diário às 9h','毎日9時にリマインド'));
     } else if(cur === 'denied'){
       _setState('denied');
       _updateMenuBtn('blocked');
@@ -84209,7 +84359,7 @@ const PushNotifs = (function(){
       if(evt.data && evt.data.type === 'FIRE_NOTIF'){
         try{
           new Notification('Debris Surge \uD83D\uDEF0\uFE0F',{
-            body: evt.data.body || (_isEN()?'The Daily Orbit awaits! \uD83C\uDF0D Can you beat your record?':'¡La Órbita del Día te espera! \uD83C\uDF0D ¿Puedes batir tu récord?'),
+            body: evt.data.body || _lc('¡La Órbita del Día te espera! \uD83C\uDF0D ¿Puedes batir tu récord?','The Daily Orbit awaits! \uD83C\uDF0D Can you beat your record?','A Órbita do Dia te espera! \uD83C\uDF0D Você consegue bater seu recorde?','今日のオービットが待っています！\uD83C\uDF0D 記録を更新できるか？'),
             icon: 'https://nyxarion-ctrl.github.io/debris-surge/og-image.png',
             tag: 'debris-surge-daily',
             renotify: true
@@ -84718,9 +84868,12 @@ if(typeof DirectDuel !== 'undefined'){
     try{
       const base = 'https://nyxarion-ctrl.github.io/debris-surge';
       const duelUrl = base + '?duel=' + encodeURIComponent(score) + '&from=' + encodeURIComponent(playerName||(Lang.cur==='en'?'Pilot':Lang.cur==='pt'?'Piloto':Lang.cur==='ja'?'パイロット':'Orbitador'));
-      const text = isEN
-        ? `🛰️ ${playerName} challenges you: beat ${(score||0).toLocaleString()} pts in Debris Surge! #DebrisSurge`
-        : `🛰️ ${playerName} te reta: supera ${(score||0).toLocaleString()} pts en Debris Surge! #DebrisSurge`;
+      const text = Lang.l(
+        `🛰️ ${playerName} te reta: supera ${(score||0).toLocaleString()} pts en Debris Surge! #DebrisSurge`,
+        `🛰️ ${playerName} challenges you: beat ${(score||0).toLocaleString()} pts in Debris Surge! #DebrisSurge`,
+        `🛰️ ${playerName} te desafia: supere ${(score||0).toLocaleString()} pts em Debris Surge! #DebrisSurge`,
+        `🛰️ ${playerName}があなたに挑戦：Debris Surgeで${(score||0).toLocaleString()}ptsを超えろ！#DebrisSurge`
+      );
       const shareText = text + '\n' + duelUrl;
 
       if(navigator.share){
@@ -88326,7 +88479,7 @@ html[lang="ja"] #orbitaDiaStats_d > span[style*="font-size:8px"] {
           _schedulePush();
         }
         const lc=typeof Lang!=='undefined'?Lang.cur:'es';
-        if(typeof notify==='function') notify('✅', lc==='en'?'Progress imported':'Progreso importado', lc==='en'?'Your best data was merged in':'Se fusionaron tus mejores datos');
+        if(typeof notify==='function') notify('✅', lc==='en'?'Progress imported':lc==='pt'?'Progresso importado':lc==='ja'?'進行状況をインポート':'Progreso importado', lc==='en'?'Your best data was merged in':lc==='pt'?'Seus melhores dados foram mesclados':lc==='ja'?'最良のデータをマージしました':'Se fusionaron tus mejores datos');
       }catch(e){
         console.warn('[Import] archivo inválido:',e);
         const lc3=typeof Lang!=='undefined'?Lang.cur:'es';
@@ -88362,6 +88515,8 @@ html[lang="ja"] #orbitaDiaStats_d > span[style*="font-size:8px"] {
 
 })();
 </script>
+
+
 
 </body>
 </html>
