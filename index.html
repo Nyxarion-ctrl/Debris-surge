@@ -49502,6 +49502,8 @@ function showScreen(s){
   if(typeof Lang!=='undefined'){
     if(s==='menu') Lang.showBtn(); else Lang.hideBtn();
   }
+  // Aviso de notificaciones push: solo debe verse en el menú principal
+  if(s!=='menu' && typeof PushNotifs!=='undefined' && PushNotifs.dismissPrompt) PushNotifs.dismissPrompt();
   const isGame=s==='playing'||s==='paused';
   const isPlay=s==='playing';
 
@@ -84115,6 +84117,32 @@ const PushNotifs = (function(){
   const STORAGE_KEY = 'orb_push_state';
   const VISIT_KEY   = 'orb_visit_count';
   const PROMPT_DELAY = 4 * 60 * 1000;
+  let _menuWatchInterval = null;
+
+  // ── Solo debe aparecer en el menú principal, nunca durante gameplay ──
+  function _isMenuActive(){
+    const el = document.getElementById('menuScreen');
+    return !!el && !el.classList.contains('hidden');
+  }
+  function _tryShowPrompt(){
+    if(Notification.permission !== 'default') return;
+    if(_getState() === 'dismissed') return;
+    if(_isMenuActive()){
+      _showPromptCard('request');
+      return;
+    }
+    if(_menuWatchInterval) return;
+    _menuWatchInterval = setInterval(()=>{
+      if(Notification.permission !== 'default' || _getState() === 'dismissed'){
+        clearInterval(_menuWatchInterval); _menuWatchInterval = null;
+        return;
+      }
+      if(_isMenuActive()){
+        clearInterval(_menuWatchInterval); _menuWatchInterval = null;
+        _showPromptCard('request');
+      }
+    }, 3000);
+  }
 
   function _getState(){ return Store.get(STORAGE_KEY, null); }
   function _setState(v){ Store.set(STORAGE_KEY, v); }
@@ -84422,9 +84450,7 @@ const PushNotifs = (function(){
     _updateMenuBtn('default');
     if(state === 'dismissed') return;
     if(visitCount < 2) return;
-    setTimeout(()=>{
-      if(Notification.permission === 'default') _showPromptCard('request');
-    }, PROMPT_DELAY);
+    setTimeout(_tryShowPrompt, PROMPT_DELAY);
   }
 
   return { init, requestPermission, dismiss, dismissPrompt, toggleFromMenu };
