@@ -12867,7 +12867,7 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
     var W=cv.width=window.innerWidth, H=cv.height=window.innerHeight;
     if(!W||!H){W=window.screen.width||800;H=window.screen.height||600;}
     var ctx=cv.getContext('2d');
-    var dpr=window.devicePixelRatio||1;
+    var dpr=Math.min(window.devicePixelRatio||1, 2); // v375 PERF: cap a 2, igual que el juego principal
     cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);
     cv.style.width=W+'px';cv.style.height=H+'px';
     ctx.setTransform(dpr,0,0,dpr,0,0);
@@ -12927,19 +12927,23 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
       nc.fillStyle=g;nc.fillRect(0,0,W,H);
     });
 
+    var _haSSCache={}; // v375 PERF: cachear parseo hex — paleta fija de ~7 colores, se reparsaba cada llamada
     function hexAlphaSS(h,a){
-      var v=parseInt(h.slice(1),16);
+      var v=_haSSCache[h];
+      if(v===undefined){ v=parseInt(h.slice(1),16); _haSSCache[h]=v; }
       return'rgba('+((v>>16)&255)+','+((v>>8)&255)+','+(v&255)+','+a.toFixed(3)+')';
     }
+    // v375 PERF: fondo cacheado una sola vez — antes se recreaba con createLinearGradient
+    // en cada frame de animStars(), 60 veces por segundo, sin necesidad (es estático).
+    var bgGrad=ctx.createLinearGradient(0,0,W*.5,H);
+    bgGrad.addColorStop(0,'#07051c');bgGrad.addColorStop(.5,'#0a0620');bgGrad.addColorStop(1,'#050318');
     var t0=performance.now();
     var shootTimer=0;
     function animStars(ts){
       var t=(ts-t0)*.001;
       ctx.clearRect(0,0,W,H);
       /* deep space gradient */
-      var bg=ctx.createLinearGradient(0,0,W*.5,H);
-      bg.addColorStop(0,'#07051c');bg.addColorStop(.5,'#0a0620');bg.addColorStop(1,'#050318');
-      ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+      ctx.fillStyle=bgGrad;ctx.fillRect(0,0,W,H);
       /* nebulae */
       if(nebCanvas.width>0&&nebCanvas.height>0) ctx.drawImage(nebCanvas,0,0);
 
@@ -27722,9 +27726,12 @@ function maxDebris(){
     mobileScale = _dynQTier >= 3 ? 0.65 : _dynQTier >= 2 ? 0.78 : 0.88;
   }
   const scaledBase = Math.max(8, Math.round(base * mobileScale));
-  // Durante oleada tóxica (o pre-aviso): cap más bajo — tóxicos grandes son costosos al render
-  if(G && G.wave && (G.wave.phase==='SURGE'||G.wave.phase==='PRE_SURGE') && G.wave.isToxicWave){
-    return Math.min(scaledBase, _IS_MOBILE ? 9 : 14);
+  // Durante oleada tóxica o de meteoros (o pre-aviso): cap más bajo — ambos son costosos al render
+  // v372: meteoros no tenían este freno pese a ser el objeto más caro de dibujar (cola de fuego con
+  // gradiente + halos + curvas). Se agrega el mismo patrón que ya existía para tóxico.
+  if(G && G.wave && (G.wave.phase==='SURGE'||G.wave.phase==='PRE_SURGE') && (G.wave.isToxicWave || G.wave.isMeteorWave)){
+    const _isMet = G.wave.isMeteorWave;
+    return Math.min(scaledBase, _IS_MOBILE ? (_isMet?7:9) : (_isMet?11:14));
   }
   return scaledBase;
 }
@@ -32402,11 +32409,10 @@ function _renderStarsInner(){
   const px  = G.px||{ox:0,oy:0};
   const _ft = (typeof ft!=='undefined'&&ft>0) ? ft : performance.now()*0.001;
 
-  // Función helper hex→rgba (igual que menuBg hexAlpha)
-  function ha(hex, a){
-    const v=parseInt(hex.slice(1),16)||0xffffff;
-    return `rgba(${(v>>16)&255},${(v>>8)&255},${v&255},${a.toFixed(3)})`;
-  }
+  // v374 PERF: se eliminó una versión local de ha() que tapaba (shadowing) la versión
+  // global ya cacheada (hexAlpha, con caché de RGB parseado + caché de string rgba por
+  // alpha) definida más abajo en el archivo. La local reparseaba el hex desde cero en
+  // cada llamada — hasta 380 estrellas × hasta 3 llamadas c/u en desktop, cada frame.
 
   // ── 1. Twinkling + drift stars — renderizado individual igual al menuBg ──
   for(const s of G.stars){
@@ -49651,6 +49657,22 @@ function _doStartGame(practiceMode){
   try{ if(typeof Tut !== 'undefined') Tut._spawnPaused = false; }catch(_){}
   if(typeof Lang!=='undefined') Lang._apply();
   _initWavePillCache(); // cache wavePill DOM refs once per game start
+  // FIX v371: pauseGame() fuerza missionHud a mostrarse con
+  // style.setProperty('display','flex','important') para verse en la pantalla
+  // de pausa. Solo resumeGame() limpiaba ese inline style — si el jugador
+  // pausaba y salía al menú (o la partida terminaba) en vez de reanudar, el
+  // inline !important quedaba pegado y ganaba a la regla CSS que debe ocultar
+  // missionHud durante el gameplay, mostrando las misiones flotando toda la
+  // partida siguiente hasta que el jugador pausaba y reanudaba una vez.
+  // Limpiar aquí, al iniciar CUALQUIER partida nueva, cubre todas las rutas
+  // de salida (menú, game over, tutorial) sin tener que parchear cada una.
+  try{
+    const _mh0=document.getElementById('missionHud');
+    if(_mh0){
+      _mh0.style.removeProperty('display');
+      if(window.innerWidth < 768) _mh0.style.setProperty('display','none','important');
+    }
+  }catch(_){}
   stopLoop();
   _sessionId++;         // invalidate all pending callbacks from previous session
   _pendingEnd        = false;
@@ -52372,6 +52394,15 @@ function endGame(){
 
 function goToMenu(){
   if(typeof Lang!=='undefined') Lang._apply();
+  // FIX v371: ver comentario equivalente en _doStartGame — limpiar aquí también
+  // por si el menú llega a quedar con el inline !important de pauseGame() pegado.
+  try{
+    const _mh0=document.getElementById('missionHud');
+    if(_mh0){
+      _mh0.style.removeProperty('display');
+      if(window.innerWidth < 768) _mh0.style.setProperty('display','none','important');
+    }
+  }catch(_){}
   stopLoop();
   try{ ZenMusic.stop(); BlitzMusic.stop(); PracticeMusic.stop(); OrbitaMusic.stop(); try{ChaosMusic.stop();}catch(_){} try{TutorialMusic.stop();}catch(_){} Music.stop(); }catch(e){}
   // FIX v106: detener BossMusic y ocultar el banner del jefe ANTES de incrementar
@@ -88515,8 +88546,6 @@ html[lang="ja"] #orbitaDiaStats_d > span[style*="font-size:8px"] {
 
 })();
 </script>
-
-
 
 </body>
 </html>
