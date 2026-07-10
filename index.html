@@ -19120,18 +19120,36 @@ var ChaosMode = {
       setTimeout(()=>{ if(el.parentNode) el.parentNode.removeChild(el); try{cb();}catch(_){} }, 260);
     }
 
+    // ── SVG icons — propios del juego, consistentes con el resto de modales ──
+    // "Jugar de nuevo": anillo fracturado (temática Chaos) + rayo-grieta central,
+    // variante del sistema de iconos ya usado en Blitz pero con un núcleo más
+    // anguloso/roto que encaja con la estética "shatter" de Chaos Mode.
+    const _svgChaosAgain=`<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:inline-block;vertical-align:middle;margin-right:8px;flex-shrink:0;">
+      <circle cx="9" cy="9" r="7.2" stroke="rgba(255,255,255,0.5)" stroke-width="1.2" stroke-dasharray="1.6 2.4" stroke-linecap="round"/>
+      <path d="M10.3 2.4 5.6 9.9h2.9L7.2 15.6l5.2-8.1H9.6z" fill="#fff"/>
+    </svg>`;
+    // "Menú principal": silueta del satélite del juego (icono insignia, reutilizado
+    // en todas las pantallas de fin de partida para dar identidad consistente).
+    const _svgChaosMenu=`<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:inline-block;vertical-align:middle;margin-right:8px;flex-shrink:0;">
+      <rect x="6.5" y="7" width="5" height="4" rx="1" fill="rgba(255,255,255,0.75)"/>
+      <rect x="1.5" y="8" width="4" height="1.8" rx="0.9" fill="rgba(255,255,255,0.5)"/>
+      <rect x="12.5" y="8" width="4" height="1.8" rx="0.9" fill="rgba(255,255,255,0.5)"/>
+      <rect x="8.1" y="4" width="1.8" height="2.5" rx="0.7" fill="rgba(255,255,255,0.5)"/>
+      <rect x="8.1" y="11.5" width="1.8" height="2.5" rx="0.7" fill="rgba(255,255,255,0.5)"/>
+    </svg>`;
+
     const btnAgain=document.createElement('button');
-    btnAgain.style.cssText='width:100%;padding:14px 20px;background:linear-gradient(135deg,#ff2d55,#cc1a3a);border:none;border-radius:13px;font-family:"Space Grotesk",sans-serif;font-size:14px;font-weight:800;color:#fff;letter-spacing:.8px;cursor:pointer;touch-action:manipulation;box-shadow:0 4px 20px rgba(255,45,85,.45);transition:transform .12s,box-shadow .12s;';
-    btnAgain.textContent=typeof Lang!=='undefined'&&Lang.cur==='en'?'💀 PLAY AGAIN':typeof Lang!=='undefined'&&Lang.cur==='pt'?'💀 JOGAR DE NOVO':typeof Lang!=='undefined'&&Lang.cur==='ja'?'💀 もう一度':'💀 JUGAR DE NUEVO';
-    btnAgain.onmouseenter=()=>{ btnAgain.style.transform='scale(1.03)'; btnAgain.style.boxShadow='0 6px 28px rgba(255,45,85,.65)'; };
-    btnAgain.onmouseleave=()=>{ btnAgain.style.transform=''; btnAgain.style.boxShadow='0 4px 20px rgba(255,45,85,.45)'; };
+    btnAgain.style.cssText='width:100%;padding:14px 20px;background:linear-gradient(135deg,#ff2d55,#cc1a3a);border:none;border-radius:14px;font-family:"Space Grotesk",sans-serif;font-size:14px;font-weight:800;color:#fff;letter-spacing:.9px;cursor:pointer;touch-action:manipulation;box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 4px 20px rgba(255,45,85,.45);transition:transform .15s ease,box-shadow .15s ease,filter .15s ease;display:flex;align-items:center;justify-content:center;';
+    btnAgain.innerHTML=_svgChaosAgain+(typeof Lang!=='undefined'&&Lang.cur==='en'?'PLAY AGAIN':typeof Lang!=='undefined'&&Lang.cur==='pt'?'JOGAR DE NOVO':typeof Lang!=='undefined'&&Lang.cur==='ja'?'もう一度プレイ':'JUGAR DE NUEVO');
+    btnAgain.onmouseenter=()=>{ btnAgain.style.transform='translateY(-1px) scale(1.02)'; btnAgain.style.boxShadow='inset 0 1px 0 rgba(255,255,255,.28),0 8px 30px rgba(255,45,85,.6)'; btnAgain.style.filter='brightness(1.06)'; };
+    btnAgain.onmouseleave=()=>{ btnAgain.style.transform=''; btnAgain.style.boxShadow='inset 0 1px 0 rgba(255,255,255,.22),0 4px 20px rgba(255,45,85,.45)'; btnAgain.style.filter=''; };
     btnAgain.onclick=()=>{ _closeOverlay(()=>{ try{ ChaosMode.start(); }catch(_){} }); };
 
     const btnMenu=document.createElement('button');
-    btnMenu.style.cssText='width:100%;padding:13px 20px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.20);border-radius:13px;font-family:"Space Grotesk",sans-serif;font-size:13px;font-weight:700;color:rgba(255,255,255,0.85);letter-spacing:.6px;cursor:pointer;touch-action:manipulation;transition:background .15s,border-color .15s,color .15s;';
-    btnMenu.textContent=typeof Lang!=='undefined'&&Lang.cur==='en'?'🏠 MAIN MENU':typeof Lang!=='undefined'&&Lang.cur==='pt'?'🏠 MENU PRINCIPAL':typeof Lang!=='undefined'&&Lang.cur==='ja'?'🏠 メインメニュー':'🏠 MENÚ PRINCIPAL';
-    btnMenu.onmouseenter=()=>{ btnMenu.style.background='rgba(255,255,255,0.11)'; btnMenu.style.borderColor='rgba(255,255,255,0.32)'; btnMenu.style.color='rgba(255,255,255,1)'; };
-    btnMenu.onmouseleave=()=>{ btnMenu.style.background='rgba(255,255,255,0.06)'; btnMenu.style.borderColor='rgba(255,255,255,0.20)'; btnMenu.style.color='rgba(255,255,255,0.85)'; };
+    btnMenu.style.cssText='width:100%;padding:13px 20px;background:rgba(255,255,255,0.055);border:1px solid rgba(255,255,255,0.20);border-radius:14px;font-family:"Space Grotesk",sans-serif;font-size:13px;font-weight:700;color:rgba(255,255,255,0.85);letter-spacing:.7px;cursor:pointer;touch-action:manipulation;transition:background .15s ease,border-color .15s ease,color .15s ease,transform .15s ease;display:flex;align-items:center;justify-content:center;';
+    btnMenu.innerHTML=_svgChaosMenu+(typeof Lang!=='undefined'&&Lang.cur==='en'?'MAIN MENU':typeof Lang!=='undefined'&&Lang.cur==='pt'?'MENU PRINCIPAL':typeof Lang!=='undefined'&&Lang.cur==='ja'?'メインメニュー':'MENÚ PRINCIPAL');
+    btnMenu.onmouseenter=()=>{ btnMenu.style.background='rgba(255,255,255,0.11)'; btnMenu.style.borderColor='rgba(255,255,255,0.34)'; btnMenu.style.color='rgba(255,255,255,1)'; btnMenu.style.transform='translateY(-1px)'; };
+    btnMenu.onmouseleave=()=>{ btnMenu.style.background='rgba(255,255,255,0.055)'; btnMenu.style.borderColor='rgba(255,255,255,0.20)'; btnMenu.style.color='rgba(255,255,255,0.85)'; btnMenu.style.transform=''; };
     btnMenu.onclick=()=>{ _closeOverlay(()=>{ try{ goToMenu(); }catch(_){} }); };
 
     btnWrap.appendChild(btnAgain);
@@ -25358,6 +25376,14 @@ const Music={
   setPhase(ph){
     if(this.phase===ph)return;
     this.phase=ph;
+    // FIX v378i: si Music no está sonando (p.ej. Chaos/Blitz/Practice usan su
+    // propio sistema de música y dejan este objeto detenido), no tiene sentido
+    // reconstruir su capa de audio en cada transición de oleada — antes esto
+    // creaba osciladores/filtros y reiniciaba el scheduler en segundo plano
+    // aunque el volumen fuera 0, causando hitches de CPU perceptibles cuando
+    // las oleadas se ciclan rápido (como en Chaos Mode). this.phase ya quedó
+    // actualizado arriba para cuando Music.start() retome más adelante.
+    if(!this.playing) return;
     if(ph==='SURGE') this.setIntensity(Math.max(3,this.intensity));
     else if(ph==='COOLDOWN'){ this.bpm=90; this._restartInterval(); }
     else{ this.bpm=108+this.intensity*4; this._restartInterval(); }
@@ -29261,9 +29287,31 @@ function updateSpawn(dt){
   // Los hazards sueltos de fondo SÍ pueden aparecer para mantener la presión.
   let _bossActive = false;
   try{ _bossActive = BossWave.active; }catch(_){}
+
+  // FIX v378g: el freeze del panel tráiler (F2) debe cubrir TODO el ciclo de
+  // invocación —banner de pre-aparición + combate activo—, no solo mientras
+  // BossWave.active ya es true. El bug real: BossWave.active tarda varios
+  // segundos en activarse (dura lo que dura el banner _showBanner), así que
+  // justo después de TP.boss() poner _tpFreezeDebris=true, _bossActive seguía
+  // siendo false en el próximo tick de updateSpawn y el bloque `else` de abajo
+  // apagaba el freeze de inmediato, dejando el spawn normal goteando debris
+  // durante la pre-aparición Y durante toda la pelea. Ahora el freeze persiste
+  // hasta que el boss haya estado realmente activo y luego deje de estarlo
+  // (derrotado/cerrado), momento en el que se libera el spawn normal.
+  if(window._tpFreezeDebris){
+    if(_bossActive) window._tpBossSeenActive = true;
+    if(window._tpBossSeenActive && !_bossActive){
+      window._tpFreezeDebris   = false;
+      window._tpBossSeenActive = false; // boss derrotado/cerrado — reanudar spawn normal
+    } else {
+      return; // pre-aparición o combate en curso: sin spawn de debris sueltos
+    }
+  }
+
   if(_bossActive){
     if(g.wave.phase==='SURGE' && (g.wave.isMeteorWave || g.wave.isToxicWave)) return;
     // Debris normal, meteoros sueltos y tóxicos sueltos: continuar spawn normalmente
+    // (esto es el diseño original para partidas reales, fuera del modo tráiler)
   }
 
   // Tutorial info steps: spawn muy lento para que el usuario pueda leer
@@ -29584,6 +29632,13 @@ function updatePuSpawn(dt){
   if(!G || G._noPowerUps) return;
   if(typeof STATE !== 'undefined' && STATE !== 'playing') return;
   if(G._isTutorial) return;
+  // FIX v378h: mismo freeze del panel tráiler (F2) que ya congela el spawn de
+  // debris sueltos durante la invocación del jefe (pre-aparición + combate).
+  // updateSpawn(dt) se ejecuta justo antes en el mismo frame y es quien
+  // mantiene window._tpFreezeDebris actualizado, así que aquí basta con leerlo.
+  // Fuera del modo tráiler esta bandera nunca se activa, así que el spawn de
+  // power-ups en partidas normales durante peleas de jefe sigue igual que antes.
+  if(window._tpFreezeDebris) return;
   G.puSpawnT = (G.puSpawnT || 0) + dt;
   if(G.puSpawnT >= _nextPuSpawnInterval){
     G.puSpawnT = 0;
@@ -66136,9 +66191,23 @@ BossWave = Object.assign(BossWave, {
     // Si está pausado cuando dispara, esperar. Una vez que se reanude,
     // lanzar la animación y spawner el jefe ENTRY_DELAY_MS después (delay relativo preservado).
     // El delay varía por jefe para sincronizar el spawn con el momento visual correcto de la animación FX.
-    const ENTRY_DELAY_MS = data.id === 'corrupt' ? 1000  // FX=2.4s; BOSS_APPEAR_T=1.0s → boss spawna exactamente cuando el núcleo "aparece" en la animación
+    // AJUSTE v378b: se alargaron ~30% las entradas de 'corrupt' y 'toxic'
+    // (1000→1300ms, 2000→2600ms) para devolverles el "aire" narrativo que
+    // tenían antes de corregir el reloj de tiempo fijo — ver constantes
+    // BOSS_APPEAR_T/IMPACT_T y FX_DUR/BOSS_SPAWN_S más abajo, escaladas en
+    // conjunto para mantener el sincronismo exacto de llegada.
+    const ENTRY_DELAY_MS = data.id === 'corrupt' ? 1300  // FX=3.1s; BOSS_APPEAR_T=1.3s → boss spawna exactamente cuando el núcleo "aparece" en la animación
                          : data.id === 'meteor' ? 700   // FX dura 3.2s; el boss se mueve desde prog=0.22≈700ms
-                         : data.id === 'toxic'  ? 2000  // FX dura 3.2s; el boss aparece a los 2s — llega al centro al terminar el FX (2.0+1.2=3.2s)
+                         : data.id === 'toxic'  ? 2600  // FX dura 4.2s; el boss aparece a los 2.6s — llega al centro al terminar el FX (2.6+1.6=4.2s)
+                         // FIX v378: 'stellar' usaba el delay genérico (2000ms) sin relación con su FX.
+                         // El FX (3.4s) narra "dissolve perfecto al boss" justo al final (F5, 82–100%),
+                         // pero el boss real —con el _entryDur anterior de 2.8s— llegaba recién a los
+                         // 4.8s (2000ms delay + 2.8s de vuelo), 1.4s DESPUÉS de que el FX ya había
+                         // terminado: se veía al Dios Estelar seguir volando desde el borde con el
+                         // overlay ya apagado. Ahora spawnea a los 1.0s (30% del FX, cuando empieza a
+                         // formarse la silueta) y su _entryDur se ajustó a 2.4s → llega exactamente
+                         // a los 3.4s, sincronizado con el final del FX (ver switch de _entryDur más abajo).
+                         : data.id === 'stellar' ? 1000
                          : ENTRY_DUR;                   // resto de jefes: 2000ms por defecto
     setTimeout(()=>{
       _whenPlaying(()=>{
@@ -66169,6 +66238,21 @@ BossWave = Object.assign(BossWave, {
 
     let t = 0;
     let animId;
+    // FIX v378: reloj de la animación de entrada basado en tiempo real transcurrido
+    // (no en un paso fijo de 1/60s). Antes cada callback de rAF sumaba siempre
+    // 1/60s a "t" sin importar cuánto tiempo real había pasado — en dispositivos
+    // que no sostienen 60fps (típico en móvil durante la entrada del jefe, con
+    // partículas + halo + boss real renderizando a la vez) el FX quedaba en
+    // cámara lenta respecto al jefe real, que sí avanza con dt real. Esto
+    // descuadraba visualmente los jefes 1, 2, 3 y 5, cuya entrada sincroniza un
+    // halo/estela con la posición real del boss en vivo.
+    let _entryLastTs = null;
+    const _entryRealDt = (ts) => {
+      if(_entryLastTs === null) _entryLastTs = ts;
+      const real = (ts - _entryLastTs) / 1000;
+      _entryLastTs = ts;
+      return Math.max(0, Math.min(0.05, real));
+    };
 
     // ── ANIMACIONES DE ENTRADA — completamente únicas por jefe ─────────────────
     // Cada jefe tiene su propio sistema de partículas, duración, trayectoria visual
@@ -66183,9 +66267,9 @@ BossWave = Object.assign(BossWave, {
     //   rojo, escudos convocados con destello.
     // TOTAL: 2.4s — sincronizado con _entryDur=1.4s del boss (boss aparece a t=1.0s).
     if(data.id === 'corrupt'){
-      const dur = 2.4;
-      const BOSS_APPEAR_T = 1.00; // segundo en que el boss es spawneado (relativo al FX)
-      const IMPACT_T      = 2.05; // segundo del impacto visual
+      const dur = 3.1;
+      const BOSS_APPEAR_T = 1.30; // segundo en que el boss es spawneado (relativo al FX)
+      const IMPACT_T      = 2.65; // segundo del impacto visual
 
       // ── Partículas hexagonales convergentes — 3 capas ──
       const hexRings = [];
@@ -66284,8 +66368,8 @@ BossWave = Object.assign(BossWave, {
 
       let _impacted=false;
 
-      const anim=()=>{
-        const dt2=Math.min(0.05,1/60); t+=dt2;
+      const anim=(ts)=>{
+        const dt2=_entryRealDt(ts); t+=dt2;
         if(t>dur+0.10){ cv.classList.remove('on'); c.clearRect(0,0,cW,cH); return; }
         c.clearRect(0,0,cW,cH);
         const prog=Math.min(1,t/dur);
@@ -66531,9 +66615,9 @@ BossWave = Object.assign(BossWave, {
     //   • F5 [2.9–3.2s]:  Impacto de asentamiento — ondas de choque biológicas concéntricas,
     //                     contaminación que irradia desde el núcleo del boss al llegar al centro.
     } else if(data.id === 'toxic'){
-      const FX_DUR       = 3.2;
-      const BOSS_SPAWN_S = 2.0;   // segundo en que el boss aparece (=ENTRY_DELAY_MS/1000)
-      const BOSS_DUR_S   = 1.2;   // _entryDur del boss
+      const FX_DUR       = 4.2;
+      const BOSS_SPAWN_S = 2.6;   // segundo en que el boss aparece (=ENTRY_DELAY_MS/1000)
+      const BOSS_DUR_S   = 1.6;   // _entryDur del boss
 
       // ── Venas de ácido (F1): líneas segmentadas que emergen del borde izquierdo ──
       const acidVeins = Array.from({length:14}, (_, i) => {
@@ -66612,8 +66696,8 @@ BossWave = Object.assign(BossWave, {
         life: FX_DUR, maxLife: FX_DUR,
       }));
 
-      const anim=()=>{
-        const dt2=Math.min(0.05,1/60); t+=dt2;
+      const anim=(ts)=>{
+        const dt2=_entryRealDt(ts); t+=dt2;
         if(t>FX_DUR){ cv.classList.remove('on'); c.clearRect(0,0,cW,cH); return; }
         c.clearRect(0,0,cW,cH);
         const prog=t/FX_DUR;
@@ -66729,29 +66813,39 @@ BossWave = Object.assign(BossWave, {
         c.globalAlpha=1;
 
         // ── F2: ESPORAS FLOTANTES [0.5→2.5s] ──
+        // FIX v378e: antes las esporas apenas se movían (deriva mínima, bamboleo
+        // de ~2px) y al agotar su vida desaparecían de golpe (if(life<=0) continue
+        // cortaba el dibujo en seco) — por eso se veían como un racimo estático
+        // que se esfuma sin transición. Ahora: deriva más notoria, bamboleo en X
+        // e Y (movimiento orgánico tipo burbuja), pulso de escala respirando, y
+        // un desvanecido suave en el último 28% de su vida en vez de un corte.
         for(const sp of spores){
           if(t < sp.phase) continue;
-          sp.x += sp.vx*dt2; sp.y += sp.vy*dt2; sp.life -= dt2;
-          sp.wobble += dt2 * (1.8 + sp.r*0.08);
+          sp.x += sp.vx*dt2*1.45; sp.y += sp.vy*dt2*1.45; sp.life -= dt2;
+          sp.wobble += dt2 * (2.4 + sp.r*0.10);
           if(sp.life <= 0) continue;
-          const lr  = Math.min(1, sp.life/sp.maxLife);
-          const fin = Math.min(1,(t-sp.phase)/0.18);
-          const wx  = Math.sin(sp.wobble)*sp.r*0.18;
+          const ageFrac = 1 - Math.max(0, sp.life/sp.maxLife); // 0=recién nacida → 1=al morir
+          const fin     = Math.min(1,(t-sp.phase)/0.18);        // fade-in de entrada
+          const fout    = ageFrac > 0.72 ? Math.max(0,1-(ageFrac-0.72)/0.28) : 1; // fade-out suave
+          const lr      = Math.min(1, sp.life/sp.maxLife) * fout;
+          const pulse   = 0.85 + 0.18*Math.sin(sp.wobble*1.3);   // respiración de tamaño
+          const wx  = Math.sin(sp.wobble)*sp.r*0.55;
+          const wy  = Math.cos(sp.wobble*0.8)*sp.r*0.40;
           // Halo exterior difuso
           c.globalAlpha = lr*0.22*fin;
-          const spHalo = c.createRadialGradient(sp.x+wx,sp.y,0,sp.x+wx,sp.y,sp.r*2.4);
+          const spHalo = c.createRadialGradient(sp.x+wx,sp.y+wy,0,sp.x+wx,sp.y+wy,sp.r*2.4*pulse);
           spHalo.addColorStop(0,`rgba(${sp.col},0.6)`);
           spHalo.addColorStop(1,'rgba(0,0,0,0)');
-          c.fillStyle=spHalo; c.beginPath(); c.arc(sp.x+wx,sp.y,sp.r*2.4,0,Math.PI*2); c.fill();
+          c.fillStyle=spHalo; c.beginPath(); c.arc(sp.x+wx,sp.y+wy,sp.r*2.4*pulse,0,Math.PI*2); c.fill();
           // Membrana de la espora
           c.globalAlpha = lr*0.65*fin;
-          c.beginPath(); c.arc(sp.x+wx,sp.y,sp.r*lr,0,Math.PI*2);
+          c.beginPath(); c.arc(sp.x+wx,sp.y+wy,sp.r*lr*pulse,0,Math.PI*2);
           c.fillStyle=`rgba(${sp.col},0.55)`; c.fill();
           c.strokeStyle=`rgba(${sp.col},0.85)`; c.lineWidth=0.8+sp.r*0.06; c.stroke();
           // Núcleo bioluminiscente
           if(sp.hasNucleus){
             c.globalAlpha = lr*0.55*fin;
-            c.beginPath(); c.arc(sp.x+wx-sp.r*0.22,sp.y-sp.r*0.22,sp.r*lr*0.28,0,Math.PI*2);
+            c.beginPath(); c.arc(sp.x+wx-sp.r*0.22,sp.y+wy-sp.r*0.22,sp.r*lr*0.28*pulse,0,Math.PI*2);
             c.fillStyle='rgba(220,255,100,1)'; c.fill();
           }
         }
@@ -66986,8 +67080,8 @@ BossWave = Object.assign(BossWave, {
                  col:i%2===0?'249,115,22':'251,191,36', trail:[], dead:false };
       });
 
-      const anim = () => {
-        const dt2 = Math.min(0.05, 1/60); t += dt2;
+      const anim = (ts) => {
+        const dt2 = _entryRealDt(ts); t += dt2;
         // Parar cuando se acaba el tiempo O cuando la materialización ya terminó
         const _matDone = t > (BOSS_SPAWN_S + BOSS_DUR_S) &&
                          (typeof BossWave === 'undefined' || BossWave._meteorMaterializeT === undefined);
@@ -67410,8 +67504,8 @@ BossWave = Object.assign(BossWave, {
         ctx2.restore();
       }
 
-      const anim = () => {
-        const dt2=Math.min(0.05,1/60); t+=dt2;
+      const anim = (ts) => {
+        const dt2=_entryRealDt(ts); t+=dt2;
         if(t>dur){ cv.classList.remove('on'); c.clearRect(0,0,cW,cH); return; }
         c.clearRect(0,0,cW,cH);
         const prog=t/dur;
@@ -67654,7 +67748,12 @@ BossWave = Object.assign(BossWave, {
 
 
     // ── Fallback genérico ─────────────────────────────────────────────────────
-    } else {
+    // FIX v378: excluir 'chaos' — tiene su propio bloque dedicado más abajo.
+    // Antes este "else" también se ejecutaba para 'chaos' (porque su "if" está
+    // fuera de esta cadena if/else-if), duplicando el loop de animación: dos
+    // requestAnimationFrame independientes incrementaban el mismo reloj "t" a
+    // la vez, acelerando el timeline y descuadrando la entrada de Astro Roto.
+    } else if(data.id !== 'chaos'){
       const dur=2.0;
       const particles=[];
       const col=data.id==='corrupt'?'239,68,68':'249,115,22';
@@ -67664,8 +67763,8 @@ BossWave = Object.assign(BossWave, {
           vx:-Math.cos(a)*d/dur*0.6,vy:-Math.sin(a)*d/dur*0.6,
           r:3+Math.random()*5,col,life:dur,maxLife:dur});
       }
-      const anim=()=>{
-        const dt2=Math.min(0.05,1/60); t+=dt2;
+      const anim=(ts)=>{
+        const dt2=_entryRealDt(ts); t+=dt2;
         if(t>dur){ cv.classList.remove('on'); c.clearRect(0,0,cW,cH); return; }
         c.clearRect(0,0,cW,cH);
         for(const p of particles){
@@ -67763,8 +67862,8 @@ BossWave = Object.assign(BossWave, {
         col:    i%3===0?'255,60,160': i%3===1?'255,120,196':'255,230,245',
       }));
 
-      const anim = () => {
-        const dt2 = Math.min(0.05, 1/60); t += dt2;
+      const anim = (ts) => {
+        const dt2 = _entryRealDt(ts); t += dt2;
         if(t > dur){ cv.classList.remove('on'); c.clearRect(0,0,cW,cH); return; }
         c.clearRect(0,0,cW,cH);
         const prog = t/dur;
@@ -68208,11 +68307,12 @@ BossWave = Object.assign(BossWave, {
     }
 
     // Duración y estilo de entrada únicos por jefe
-    const _entryDur = data.id==='corrupt'  ? 1.40  // FX=2.4s, boss spawna a t=1.0s → 1.4s de vuelo hasta centro
-                    : data.id==='toxic'    ? 1.2   // se arrastra con humo — sincronizado: 2.0s delay + 1.2s = 3.2s FX total
+    const _entryDur = data.id==='corrupt'  ? 1.80  // FX=3.1s, boss spawna a t=1.3s → 1.8s de vuelo hasta centro
+                    : data.id==='toxic'    ? 1.6   // se arrastra con humo — sincronizado: 2.6s delay + 1.6s = 4.2s FX total
                     : data.id==='meteor'   ? 2.4   // arco parabólico sincronizado con animación 3.2s (el boss empieza a moverse en el 22% de la anim)
                     : data.id==='chaos'    ? 2.0   // fragmentación dramática convergiendo al centro
-                    : data.id==='stellar'  ? 2.8   // emerge con corona de luz
+                    : data.id==='stellar'  ? 2.4   // FIX v378: antes 2.8 — con el nuevo delay de 1.0s (ENTRY_DELAY_MS)
+                                                    // 1.0 + 2.4 = 3.4s = FX_DUR exacto, sincronizado con el dissolve final
                     : 1.2;
 
     const bossDebris = {
@@ -70911,10 +71011,25 @@ BossWave = Object.assign(BossWave, {
           // ── TOXIC: inyectar escudos escalonados desde reserva ──────────────
           const _tReserve = this._toxicShieldsReserve || [];
           _tReserve.forEach((_ts, _ti) => {
+            // FIX v378d: el intento anterior (v378c) ocultaba el sprite
+            // (_bossShieldHidden=true) hasta que su animación individual
+            // terminaba — si esa cadena de condiciones fallaba por cualquier
+            // motivo, la burbuja quedaba invisible para siempre (el "hueco").
+            // Revertido: el sprite NUNCA se oculta, así no hay forma de que
+            // falte. En vez de eso se anima de verdad: nace en la posición
+            // del núcleo con escala casi cero y se interpola —posición y
+            // escala— hasta su punto final de órbita, guiado por
+            // _toxicSummonT en update(). El filamento/cristalización se
+            // sigue dibujando encima como decoración extra.
             _ts._bossShieldHidden  = false;
             _ts._toxicSummonT      = 0;
             _ts._toxicSummonDelay  = _ti * 0.16;
             _ts._bossShieldRevealT = 0;
+            _ts._toxicDestX = _ts.x;
+            _ts._toxicDestY = _ts.y;
+            _ts.x = boss.x;
+            _ts.y = boss.y;
+            _ts._bossSpawnScale = 0.05;
             G.debris.push(_ts);
             this.shieldDebris.push(_ts);
           });
@@ -71156,9 +71271,32 @@ BossWave = Object.assign(BossWave, {
             // También avanzar bossShieldRevealT para compatibilidad con hitbox
             _ts._bossShieldRevealT = (_ts._bossShieldRevealT||0) + dt;
             if(_ts._bossShieldRevealT > 0.8) _ts._bossShieldRevealT = undefined;
-            if(_ts._toxicSummonT < _ts._toxicSummonDur) _allDone = false;
+            // FIX v378d: interpolar posición (núcleo → destino) y escala (0→1)
+            // real del sprite — así la burbuja viaja y crece de verdad, sin
+            // depender de ocultarla (evita el "hueco" del intento anterior).
+            const _durS = _ts._toxicSummonDur || 0.90;
+            const _rawP = Math.min(1, _ts._toxicSummonT / _durS);
+            const _ep   = _rawP < 0.5 ? 2*_rawP*_rawP : 1-Math.pow(-2*_rawP+2,2)/2; // ease in-out
+            if(_ts._toxicDestX !== undefined){
+              _ts.x = boss.x + (_ts._toxicDestX - boss.x) * _ep;
+              _ts.y = boss.y + (_ts._toxicDestY - boss.y) * _ep;
+            }
+            _ts._bossSpawnScale = Math.max(0.05, _ep);
+            if(_ts._toxicSummonT < _durS){
+              _allDone = false;
+            } else {
+              // Llegada exacta al destino final, escala completa, animación cerrada.
+              if(_ts._toxicDestX !== undefined){
+                _ts.x = _ts._toxicDestX; _ts.y = _ts._toxicDestY;
+              }
+              _ts._bossSpawnScale = 1;
+            }
           } else {
-            _allDone = false; // aún esperando delay
+            // Aún esperando su turno en el stagger — permanece en el núcleo,
+            // diminuta (casi invisible, se funde con el glow del boss).
+            _ts._bossSpawnScale = 0.05;
+            if(_ts._toxicDestX !== undefined){ _ts.x = boss.x; _ts.y = boss.y; }
+            _allDone = false;
           }
         }
       }
@@ -75248,7 +75386,11 @@ BossWave = Object.assign(BossWave, {
           if(_trt < 0.52){
             const _fP  = _trt / 0.45;
             const _fE  = 1-Math.pow(1-Math.min(1,_fP),3);
-            const _dstX = _ts.x, _dstY = _ts.y;
+            // FIX v378d: destino FIJO — _ts.x/_ts.y ahora se interpolan cada
+            // frame en update() (el sprite real viaja de verdad), así que ya
+            // no sirven como "punto de destino" para este filamento decorativo.
+            const _dstX = _ts._toxicDestX !== undefined ? _ts._toxicDestX : _ts.x;
+            const _dstY = _ts._toxicDestY !== undefined ? _ts._toxicDestY : _ts.y;
             const _tipX = boss.x + (_dstX-boss.x)*_fE;
             const _tipY = boss.y + (_dstY-boss.y)*_fE;
             const _talX = boss.x + (_dstX-boss.x)*Math.max(0,_fE-0.30);
@@ -75324,6 +75466,11 @@ BossWave = Object.assign(BossWave, {
                 color:Math.random()<0.60?`#${_varIdx===5?'22d3ee':'a3e635'}`:(_varIdx===2?'#4ade80':'#bef264'),
                 r:1.2+Math.random()*2.5,isText:false});
             }
+            // Nota v378d: el sprite real del escudo (icono, color, glow) ya se
+            // dibuja siempre por el pipeline normal de renderDebris(), en su
+            // posición y escala interpoladas por update() — no hace falta
+            // forzar un dibujo extra aquí; esta fase solo aporta las ondas y
+            // el halo de cristalización como decoración sobre el sprite real.
           }
         }
         ctx.restore();
