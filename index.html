@@ -608,6 +608,37 @@ canvas{display:block;position:fixed;inset:0;z-index:1;
 /* canvas activa pointer-events solo durante gameplay — via JS */
 canvas.game-active{pointer-events:auto;cursor:none;}
 
+/* ══ CUSTOM PC CURSOR ══════════════════════════════════════════════════
+   Reticle temático (anillo orbital + crosshair + núcleo) que reemplaza al
+   cursor nativo SOLO en el menú principal y SOLO en escritorio (_IS_MOBILE
+   controla la activación vía JS con la clase body.pc-cursor-on). En juego,
+   paneles y móvil se usa el cursor nativo/táctil normal — sin cambios ahí. */
+#pcCursor{
+  position:fixed;top:0;left:0;width:40px;height:40px;
+  transform:translate3d(-50%,-50%,0);
+  pointer-events:none;z-index:100000;
+  display:none;
+  filter:drop-shadow(0 0 6px rgba(6,182,212,.55));
+  will-change:transform;
+}
+body.pc-cursor-on #pcCursor{display:block;}
+body.pc-cursor-on,
+body.pc-cursor-on #menuScreen,
+body.pc-cursor-on #menuScreen *,
+body.pc-cursor-on #audioSplash,
+body.pc-cursor-on #audioSplash *{cursor:none !important;}
+@keyframes _pcCursorSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes _pcCursorPulse{0%,100%{opacity:.85;r:2.6}50%{opacity:1;r:3.2}}
+#pcCursorRing{transform-origin:20px 20px;animation:_pcCursorSpin 5s linear infinite;transition:stroke .15s ease;}
+#pcCursorCore{transition:fill .15s ease;}
+#pcCursorCore{animation:_pcCursorPulse 1.6s ease-in-out infinite;}
+/* Estado hover: al pasar sobre elementos interactivos, el reticle se cierra
+   y cambia a acento violeta — feedback de "objetivo listo para interactuar".
+   (La escala se aplica desde JS en el mismo transform que la posición, ya
+   que un transform inline por posición pisaría cualquier regla CSS aquí) */
+body.pc-cursor-on.pc-cursor-hover #pcCursorRing{stroke:#8b5cf6;stroke-dasharray:26 0;animation-duration:2.2s;}
+body.pc-cursor-on.pc-cursor-hover #pcCursorCore{fill:#8b5cf6;}
+
 /* v209: durante gameplay, desactivar backdrop-filter en toda la UI —
    reduce carga de compositing GPU significativamente en Android */
 body.game-playing .screen,
@@ -12487,6 +12518,16 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
 </style>
 </head>
 <body>
+<!-- ══ CUSTOM PC CURSOR — reticle temático del juego, solo menú principal en escritorio ══ -->
+<div id="pcCursor" aria-hidden="true">
+  <svg viewBox="0 0 40 40" width="40" height="40" style="overflow:visible;">
+    <circle id="pcCursorRing" cx="20" cy="20" r="13" fill="none" stroke="#06b6d4" stroke-width="1.4" stroke-dasharray="4 5" stroke-linecap="round" opacity="0.85"/>
+    <circle cx="20" cy="20" r="17.5" fill="none" stroke="#8b5cf6" stroke-width="0.8" opacity="0.28"/>
+    <path d="M20 3.5V9M20 31V36.5M3.5 20H9M31 20H36.5" stroke="#06b6d4" stroke-width="1.2" stroke-linecap="round" opacity="0.75"/>
+    <circle id="pcCursorCore" cx="20" cy="20" r="2.6" fill="#fff"/>
+    <circle cx="20" cy="20" r="2.6" fill="none" stroke="#06b6d4" stroke-width="4" opacity="0.22"/>
+  </svg>
+</div>
 <!-- ══ SPLASH SCREEN v182 — Loading with new logo + thruster liftoff ══ -->
 <div id="splashScreen" style="position:fixed;inset:0;z-index:99999;background:#0f0a2e;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;">
   <style>
@@ -13570,7 +13611,7 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
     font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:700;letter-spacing:.5px;
     touch-action:manipulation;-webkit-tap-highlight-color:transparent;
     white-space:nowrap;transition:background .15s,border-color .15s;
-    display:flex;align-items:center;gap:5px;" id="privacyOkBtn">
+    display:flex;align-items:center;gap:5px;">
     <svg viewBox="0 0 12 12" fill="none" width="11" height="11"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
     <span id="privacyOkLabel">OK</span>
   </button>
@@ -15075,14 +15116,14 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
     <!-- Explorar -->
     <div class="rp-section-label" id="exploreSectionLbl_d">Explorar</div>
     <div class="rp-icon-grid">
-      <button class="menu-icon-btn mib-logros" id="menuAchBtn_d"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 0 5px rgba(251,191,36,0.7));">
+      <button class="menu-icon-btn mib-logros" id="menuAchBtn_d" data-cursor-accent="#fbbf24"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 0 5px rgba(251,191,36,0.7));">
   <path d="M8 21h8M12 17v4" stroke="#fbbf24" stroke-width="1.6" stroke-linecap="round"/>
   <path d="M7 3H4a1 1 0 0 0-1 1v2c0 2.5 1.5 4.5 4 5" stroke="#fbbf24" stroke-width="1.5" stroke-linecap="round"/>
   <path d="M17 3h3a1 1 0 0 1 1 1v2c0 2.5-1.5 4.5-4 5" stroke="#fbbf24" stroke-width="1.5" stroke-linecap="round"/>
   <path d="M7 3h10v7a5 5 0 0 1-10 0V3z" fill="rgba(251,191,36,0.15)" stroke="#fbbf24" stroke-width="1.6"/>
   <path d="M12 6l.9 1.8 2 .3-1.45 1.4.34 2L12 10.5l-1.79.94.34-2L9.1 8.1l2-.3L12 6z" fill="#fbbf24"/>
 </svg><span data-i18n="achievements">LOGROS</span></button>
-      <button class="menu-icon-btn mib-misiones" id="menuMissionBtn_d"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 0 5px rgba(34,211,238,0.7));">
+      <button class="menu-icon-btn mib-misiones" id="menuMissionBtn_d" data-cursor-accent="#22d3ee"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 0 5px rgba(34,211,238,0.7));">
   <circle cx="12" cy="12" r="9" stroke="rgba(34,211,238,0.3)" stroke-width="1.2" stroke-dasharray="3 2"/>
   <circle cx="12" cy="12" r="5.5" stroke="#22d3ee" stroke-width="1.5"/>
   <circle cx="12" cy="12" r="2" fill="#22d3ee"/>
@@ -15092,7 +15133,7 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
   <line x1="18" y1="12" x2="22" y2="12" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/>
   <circle cx="17.5" cy="6.5" r="1.5" fill="rgba(34,211,238,0.5)" stroke="#22d3ee" stroke-width="1"/>
 </svg><span data-i18n="missions">MISIONES</span></button>
-      <button class="menu-icon-btn mib-perfil" id="menuProfileBtn_d"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 0 5px rgba(167,139,250,0.7));">
+      <button class="menu-icon-btn mib-perfil" id="menuProfileBtn_d" data-cursor-accent="#a78bfa"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 0 5px rgba(167,139,250,0.7));">
   <path d="M12 2C8.13 2 5 5.13 5 9v1.5C5 13.54 7.24 16 10 16.8V19h4v-2.2C16.76 16 19 13.54 19 10.5V9c0-3.87-3.13-7-7-7z" fill="rgba(167,139,250,0.12)" stroke="#a78bfa" stroke-width="1.5"/>
   <path d="M8 10.5c0 2.21 1.79 4 4 4s4-1.79 4-4V9.5H8v1z" fill="rgba(167,139,250,0.2)" stroke="#a78bfa" stroke-width="1.2"/>
   <path d="M9.5 10.5c.8 1.2 2 1.8 3 1.5" stroke="rgba(255,255,255,0.4)" stroke-width="1" stroke-linecap="round"/>
@@ -15100,7 +15141,7 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
   <path d="M19 9h1.5a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H19" stroke="#a78bfa" stroke-width="1.4" stroke-linecap="round"/>
   <rect x="9" y="19" width="6" height="2.5" rx="1.2" fill="rgba(167,139,250,0.2)" stroke="#a78bfa" stroke-width="1.2"/>
 </svg><span id="menuProfileLbl_d">PERFIL</span></button>
-      <div style="position:relative;"><span id="skinsPremBadge_d" class="skins-buy-badge">💎</span><button class="menu-icon-btn mib-skins has-offer" id="menuSkinsBtn_d" style="width:100%;height:100%;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 0 5px rgba(52,211,153,0.7));">
+      <div style="position:relative;"><span id="skinsPremBadge_d" class="skins-buy-badge">💎</span><button class="menu-icon-btn mib-skins has-offer" id="menuSkinsBtn_d" data-cursor-accent="#34d399" style="width:100%;height:100%;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 0 5px rgba(52,211,153,0.7));">
   <circle cx="12" cy="12" r="8.5" stroke="rgba(52,211,153,0.2)" stroke-width="1" stroke-dasharray="2 3"/>
   <rect x="9.5" y="9.5" width="5" height="5" rx="1" fill="rgba(52,211,153,0.2)" stroke="#34d399" stroke-width="1.5"/>
   <rect x="2" y="10.5" width="6" height="3" rx="1" fill="rgba(52,211,153,0.15)" stroke="#34d399" stroke-width="1.3"/>
@@ -15111,7 +15152,7 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
   <circle cx="18" cy="6" r="1.2" fill="rgba(52,211,153,0.6)" stroke="#34d399" stroke-width="0.8"/>
   <line x1="17.2" y1="6.8" x2="14.5" y2="9.5" stroke="rgba(52,211,153,0.5)" stroke-width="0.9" stroke-dasharray="1.5 1"/>
 </svg><span data-i18n="skins">SKINS</span></button></div>
-      <button class="menu-icon-btn mib-ranking" id="menuLbBtn_d"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 0 5px rgba(251,146,60,0.7));">
+      <button class="menu-icon-btn mib-ranking" id="menuLbBtn_d" data-cursor-accent="#fb923c"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 0 5px rgba(251,146,60,0.7));">
   <path d="M4 20h4v-6H4v6z" fill="rgba(251,146,60,0.15)" stroke="#fb923c" stroke-width="1.4" stroke-linejoin="round"/>
   <path d="M10 20h4v-9h-4v9z" fill="rgba(251,146,60,0.25)" stroke="#fb923c" stroke-width="1.4" stroke-linejoin="round"/>
   <path d="M16 20h4v-4h-4v4z" fill="rgba(251,146,60,0.12)" stroke="#fb923c" stroke-width="1.4" stroke-linejoin="round"/>
@@ -15121,11 +15162,11 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
     </div>
 
     <div class="menu-secondary-row">
-      <button id="menuHowBtn_d">
+      <button id="menuHowBtn_d" data-cursor-accent="#8b5cf6">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2.2" style="flex-shrink:0;filter:drop-shadow(0 0 5px rgba(167,139,250,0.6));"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r="0.5" fill="#c4b5fd"/></svg>
         <span id="menuHowLbl_d" style="text-shadow:0 0 12px rgba(167,139,250,0.4);">CÓMO JUGAR</span>
       </button>
-      <button id="menuArchivesBtn_d">
+      <button id="menuArchivesBtn_d" data-cursor-accent="#8b5cf6">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;filter:drop-shadow(0 0 5px rgba(139,92,246,0.6));"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="#c4b5fd" stroke-width="1.8" stroke-linejoin="round"/><path d="M14 2v6h6" stroke="#c4b5fd" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 13h8M8 17h5" stroke="rgba(196,181,253,0.65)" stroke-width="1.5" stroke-linecap="round"/></svg>
         <span data-i18n="archives" style="text-shadow:0 0 12px rgba(139,92,246,0.4);">ARCHIVOS</span>
         <span id="menuArchivesCounter_d" class="mar-counter"></span>
@@ -15533,7 +15574,7 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
     </div>
 
     <!-- ══ PLAY ══ -->
-    <button class="btn btn-primary" id="startBtn" style="margin-top:8px;">
+    <button class="btn btn-primary" id="startBtn" data-cursor-accent="#06b6d4" style="margin-top:8px;">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="filter:drop-shadow(0 0 6px rgba(255,255,255,0.4));flex-shrink:0;"><path d="M8 5v14l11-7z"/></svg>
       <span data-i18n="play">PLAY</span>
     </button>
@@ -15541,19 +15582,19 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
     <div class="menu-section-label" style="margin-top:10px;" id="modeSectionLbl_m">Modos de juego</div>
 
     <div id="modesGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;width:100%;">
-    <button class="btn" id="blitzBtn">
+    <button class="btn" id="blitzBtn" data-cursor-accent="#ef4444">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="filter:drop-shadow(0 0 4px rgba(239,68,68,0.6));flex-shrink:0;"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
       <span id="blitzBtnLbl">MODO BLITZ</span>
       <span id="blitzBtnSub_m" style="font-size:9px;opacity:0.65;font-weight:600;">60 seg máximos</span>
     </button>
-    <button class="btn" id="chaosBtn">
+    <button class="btn" id="chaosBtn" data-cursor-accent="#ff2d55">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="filter:drop-shadow(0 0 4px rgba(255,45,85,0.6));flex-shrink:0;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
       <span id="chaosBtnLbl">MODO CAOS</span>
       <span id="chaosBtnSub_m" style="font-size:9px;opacity:0.65;font-weight:600;">1 vida · sin power-ups</span>
     </button>
     </div>
 
-    <button id="orbitaDiaBtn">
+    <button id="orbitaDiaBtn" data-cursor-accent="#22d3ee">
       <div style="display:flex;align-items:center;justify-content:center;gap:9px;width:100%;position:relative;">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;filter:drop-shadow(0 0 5px rgba(6,182,212,0.7));"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
         <span id="orbitaDiaBtnLbl">ÓRBITA DEL DÍA</span>
@@ -15563,12 +15604,12 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
     </button>
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px;">
-      <button id="practiceBtn">
+      <button id="practiceBtn" data-cursor-accent="#10b981">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.2" style="filter:drop-shadow(0 0 4px rgba(52,211,153,0.5));"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
         <span data-i18n="practice">PRÁCTICA</span>
         <span id="practiceBtnSub_m" style="font-size:9px;color:rgba(52,211,153,0.55);font-weight:600;letter-spacing:.3px;">Sin daño · Sin límite</span>
       </button>
-      <button id="zenBtn" title="Sin peligros · No hazards">
+      <button id="zenBtn" data-cursor-accent="#10b981" title="Sin peligros · No hazards">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
         <span id="zenBtnLabel">MODO ZEN ☯</span>
         <span id="zenBtnSub_m" style="font-size:9px;color:rgba(16,185,129,0.55);font-weight:600;letter-spacing:.3px;">Sin peligros · Relax</span>
@@ -15602,14 +15643,14 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
 
     <div class="menu-section-label" style="margin-top:8px;" id="exploreSectionLbl_m">Explorar</div>
     <div class="menu-icon-grid">
-      <button class="menu-icon-btn mib-logros" id="menuAchBtn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 0 5px rgba(251,191,36,0.7));">
+      <button class="menu-icon-btn mib-logros" id="menuAchBtn" data-cursor-accent="#fbbf24"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 0 5px rgba(251,191,36,0.7));">
   <path d="M8 21h8M12 17v4" stroke="#fbbf24" stroke-width="1.6" stroke-linecap="round"/>
   <path d="M7 3H4a1 1 0 0 0-1 1v2c0 2.5 1.5 4.5 4 5" stroke="#fbbf24" stroke-width="1.5" stroke-linecap="round"/>
   <path d="M17 3h3a1 1 0 0 1 1 1v2c0 2.5-1.5 4.5-4 5" stroke="#fbbf24" stroke-width="1.5" stroke-linecap="round"/>
   <path d="M7 3h10v7a5 5 0 0 1-10 0V3z" fill="rgba(251,191,36,0.15)" stroke="#fbbf24" stroke-width="1.6"/>
   <path d="M12 6l.9 1.8 2 .3-1.45 1.4.34 2L12 10.5l-1.79.94.34-2L9.1 8.1l2-.3L12 6z" fill="#fbbf24"/>
 </svg><span data-i18n="achievements">LOGROS</span></button>
-      <button class="menu-icon-btn mib-misiones" id="menuMissionBtn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 0 5px rgba(34,211,238,0.7));">
+      <button class="menu-icon-btn mib-misiones" id="menuMissionBtn" data-cursor-accent="#22d3ee"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 0 5px rgba(34,211,238,0.7));">
   <circle cx="12" cy="12" r="9" stroke="rgba(34,211,238,0.3)" stroke-width="1.2" stroke-dasharray="3 2"/>
   <circle cx="12" cy="12" r="5.5" stroke="#22d3ee" stroke-width="1.5"/>
   <circle cx="12" cy="12" r="2" fill="#22d3ee"/>
@@ -15619,7 +15660,7 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
   <line x1="18" y1="12" x2="22" y2="12" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/>
   <circle cx="17.5" cy="6.5" r="1.5" fill="rgba(34,211,238,0.5)" stroke="#22d3ee" stroke-width="1"/>
 </svg><span data-i18n="missions">MISIONES</span></button>
-      <button class="menu-icon-btn mib-perfil" id="menuProfileBtn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 0 5px rgba(167,139,250,0.7));">
+      <button class="menu-icon-btn mib-perfil" id="menuProfileBtn" data-cursor-accent="#a78bfa"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 0 5px rgba(167,139,250,0.7));">
   <path d="M12 2C8.13 2 5 5.13 5 9v1.5C5 13.54 7.24 16 10 16.8V19h4v-2.2C16.76 16 19 13.54 19 10.5V9c0-3.87-3.13-7-7-7z" fill="rgba(167,139,250,0.12)" stroke="#a78bfa" stroke-width="1.5"/>
   <path d="M8 10.5c0 2.21 1.79 4 4 4s4-1.79 4-4V9.5H8v1z" fill="rgba(167,139,250,0.2)" stroke="#a78bfa" stroke-width="1.2"/>
   <path d="M9.5 10.5c.8 1.2 2 1.8 3 1.5" stroke="rgba(255,255,255,0.4)" stroke-width="1" stroke-linecap="round"/>
@@ -15627,7 +15668,7 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
   <path d="M19 9h1.5a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H19" stroke="#a78bfa" stroke-width="1.4" stroke-linecap="round"/>
   <rect x="9" y="19" width="6" height="2.5" rx="1.2" fill="rgba(167,139,250,0.2)" stroke="#a78bfa" stroke-width="1.2"/>
 </svg><span id="menuProfileLbl">PERFIL</span></button>
-      <div style="position:relative;"><span id="skinsPremBadge_m" class="skins-buy-badge">💎</span><button class="menu-icon-btn mib-skins has-offer" id="menuSkinsBtn" style="width:100%;height:100%;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 0 5px rgba(52,211,153,0.7));">
+      <div style="position:relative;"><span id="skinsPremBadge_m" class="skins-buy-badge">💎</span><button class="menu-icon-btn mib-skins has-offer" id="menuSkinsBtn" data-cursor-accent="#34d399" style="width:100%;height:100%;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 0 5px rgba(52,211,153,0.7));">
   <circle cx="12" cy="12" r="8.5" stroke="rgba(52,211,153,0.2)" stroke-width="1" stroke-dasharray="2 3"/>
   <rect x="9.5" y="9.5" width="5" height="5" rx="1" fill="rgba(52,211,153,0.2)" stroke="#34d399" stroke-width="1.5"/>
   <rect x="2" y="10.5" width="6" height="3" rx="1" fill="rgba(52,211,153,0.15)" stroke="#34d399" stroke-width="1.3"/>
@@ -15638,7 +15679,7 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
   <circle cx="18" cy="6" r="1.2" fill="rgba(52,211,153,0.6)" stroke="#34d399" stroke-width="0.8"/>
   <line x1="17.2" y1="6.8" x2="14.5" y2="9.5" stroke="rgba(52,211,153,0.5)" stroke-width="0.9" stroke-dasharray="1.5 1"/>
 </svg><span data-i18n="skins">SKINS</span></button></div>
-      <button class="menu-icon-btn mib-ranking" id="menuLbBtn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 0 5px rgba(251,146,60,0.7));">
+      <button class="menu-icon-btn mib-ranking" id="menuLbBtn" data-cursor-accent="#fb923c"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 0 5px rgba(251,146,60,0.7));">
   <path d="M4 20h4v-6H4v6z" fill="rgba(251,146,60,0.15)" stroke="#fb923c" stroke-width="1.4" stroke-linejoin="round"/>
   <path d="M10 20h4v-9h-4v9z" fill="rgba(251,146,60,0.25)" stroke="#fb923c" stroke-width="1.4" stroke-linejoin="round"/>
   <path d="M16 20h4v-4h-4v4z" fill="rgba(251,146,60,0.12)" stroke="#fb923c" stroke-width="1.4" stroke-linejoin="round"/>
@@ -15648,11 +15689,11 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
     </div>
 
     <div class="menu-secondary-row">
-      <button id="menuHowBtn" style="touch-action:manipulation;">
+      <button id="menuHowBtn" data-cursor-accent="#8b5cf6" style="touch-action:manipulation;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2.2" style="flex-shrink:0;filter:drop-shadow(0 0 5px rgba(167,139,250,0.6));"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r="0.5" fill="#c4b5fd"/></svg>
         <span data-i18n="howto" style="text-shadow:0 0 12px rgba(167,139,250,0.4);">CÓMO JUGAR</span>
       </button>
-      <button id="menuArchivesBtn" style="touch-action:manipulation;">
+      <button id="menuArchivesBtn" data-cursor-accent="#8b5cf6" style="touch-action:manipulation;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;filter:drop-shadow(0 0 5px rgba(139,92,246,0.6));"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="#c4b5fd" stroke-width="1.8" stroke-linejoin="round"/><path d="M14 2v6h6" stroke="#c4b5fd" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 13h8M8 17h5" stroke="rgba(196,181,253,0.65)" stroke-width="1.5" stroke-linecap="round"/></svg>
         <span data-i18n="archives" style="text-shadow:0 0 12px rgba(139,92,246,0.4);">ARCHIVOS</span>
         <span id="menuArchivesCounter" class="mar-counter"></span>
@@ -15865,7 +15906,7 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
     </div>
 
     <!-- PLAY — Hero CTA -->
-    <button class="btn btn-primary" id="startBtn_d">
+    <button class="btn btn-primary" id="startBtn_d" data-cursor-accent="#06b6d4">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="filter:drop-shadow(0 0 6px rgba(255,255,255,0.4));flex-shrink:0;"><path d="M8 5v14l11-7z"/></svg>
       <span data-i18n="play">JUGAR</span>
     </button>
@@ -15873,19 +15914,19 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
     <!-- Modos de juego -->
     <div class="rp-section-label" id="modeSectionLbl_d">Modos de juego</div>
 
-    <button class="btn" id="blitzBtn_d">
+    <button class="btn" id="blitzBtn_d" data-cursor-accent="#ef4444">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="filter:drop-shadow(0 0 4px rgba(239,68,68,0.6));flex-shrink:0;"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
       <span id="blitzBtnLbl_d">MODO BLITZ</span>
       <span id="blitzBtnSub_d" class="rp-btn-sub">60 seg máximos</span>
     </button>
 
-    <button class="btn" id="chaosBtn_d">
+    <button class="btn" id="chaosBtn_d" data-cursor-accent="#ff2d55">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="filter:drop-shadow(0 0 4px rgba(255,45,85,0.6));flex-shrink:0;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
       <span id="chaosBtnLbl_d">MODO CAOS</span>
       <span id="chaosBtnSub_d" class="rp-btn-sub">1 vida · sin power-ups</span>
     </button>
 
-    <button id="orbitaDiaBtn_d">
+    <button id="orbitaDiaBtn_d" data-cursor-accent="#22d3ee">
       <div style="display:flex;align-items:center;justify-content:center;gap:9px;width:100%;position:relative;">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;filter:drop-shadow(0 0 5px rgba(6,182,212,0.7));"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
         <span id="orbitaDiaBtnLbl_d">ÓRBITA DEL DÍA</span>
@@ -15895,12 +15936,12 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
     </button>
 
     <div class="rp-chill-grid">
-      <button id="practiceBtn_d">
+      <button id="practiceBtn_d" data-cursor-accent="#10b981">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.2" style="filter:drop-shadow(0 0 4px rgba(52,211,153,0.5));"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
         <span id="practiceBtnLbl_d">PRÁCTICA</span>
         <span id="practiceBtnSub_d" class="rp-btn-sub">Sin daño · Sin límite</span>
       </button>
-      <button id="zenBtn_d">
+      <button id="zenBtn_d" data-cursor-accent="#10b981">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
         <span id="zenBtnLbl_d">MODO ZEN ☯</span>
         <span id="zenBtnSub_d" class="rp-btn-sub">Sin peligros · Relax</span>
@@ -26428,8 +26469,29 @@ const ChaosMusic = {
     // Entrada agresiva — ramp corto, golpe inmediato
     this.mg.gain.linearRampToValueAtTime(0.28, this.ctx.currentTime+0.4);
     if(this._ivl){clearInterval(this._ivl);this._ivl=null;}
-    this._tick();
-    this._ivl=setInterval(()=>{ if(this.playing) this._tick(); }, Math.round(60000/this.BPM));
+    // FIX v380: AudioContext lookahead scheduler (igual que Music, v377/v378i) —
+    // el setInterval crudo anterior ejecutaba _tick() (creación de varios osciladores
+    // por beat) directamente en el callback del timer; si el hilo principal se
+    // retrasaba un instante (spawn de debris, colisiones, etc.) el beat sonaba tarde
+    // y de golpe, produciendo el corte/friso perceptible reportado en Modo Caos.
+    // Con lookahead, los nodos se programan con timestamps futuros del AudioContext
+    // (sample-accurate) en vez de "ahora mismo", así que un retraso del JS no
+    // produce un salto audible ni un pico de trabajo síncrono.
+    this._nextBeatTime = this.ctx.currentTime + 0.1;
+    this._scheduleLoop();
+  },
+
+  _scheduleLoop(){
+    if(this._ivl){clearInterval(this._ivl);this._ivl=null;}
+    const LOOKAHEAD=0.12;
+    this._ivl=setInterval(()=>{
+      if(!this.playing||!this.ctx) return;
+      const beatDur=60/this.BPM;
+      while(this._nextBeatTime < this.ctx.currentTime+LOOKAHEAD){
+        this._tickAt(this._nextBeatTime);
+        this._nextBeatTime+=beatDur;
+      }
+    },40);
   },
 
   stop(){
@@ -26512,10 +26574,10 @@ const ChaosMusic = {
   },
 
   // Kick industrial — impacto de martillo, pitch drop largo
-  _kick(){
+  _kick(when){
     if(!this.ctx||!this.playing) return;
     try{
-      const now=this.ctx.currentTime;
+      const now=when!=null?when:this.ctx.currentTime;
       const o=this.ctx.createOscillator(), g=this.ctx.createGain();
       o.type='sine';
       o.frequency.setValueAtTime(220, now);
@@ -26532,10 +26594,10 @@ const ChaosMusic = {
   },
 
   // Snare industrial — ruido + tono metálico, más seco y agresivo
-  _snare(){
+  _snare(when){
     if(!this.ctx||!this.playing) return;
     try{
-      const now=this.ctx.currentTime;
+      const now=when!=null?when:this.ctx.currentTime;
       const buf=this.ctx.createBuffer(1,Math.ceil(this.ctx.sampleRate*0.12),this.ctx.sampleRate);
       const d=buf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
       const src=this.ctx.createBufferSource(); src.buffer=buf;
@@ -26552,10 +26614,10 @@ const ChaosMusic = {
   },
 
   // Hi-hat agresivo — muy corto, denso
-  _hat(vol=0.10, dur=0.010, open=false){
+  _hat(vol=0.10, dur=0.010, open=false, when){
     if(!this.ctx||!this.playing) return;
     try{
-      const now=this.ctx.currentTime;
+      const now=when!=null?when:this.ctx.currentTime;
       const len=open?0.06:dur;
       const buf=this.ctx.createBuffer(1,Math.ceil(this.ctx.sampleRate*(len+0.01)),this.ctx.sampleRate);
       const d=buf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
@@ -26568,12 +26630,12 @@ const ChaosMusic = {
   },
 
   // Arpegio de amenaza — staccato, cortante, sin resonancia
-  _arp(step){
+  _arp(step, when){
     if(!this.ctx||!this.playing) return;
     const ch=this.PROG[this.ci];
     const freq=ch.arp[step%ch.arp.length];
     try{
-      const now=this.ctx.currentTime;
+      const now=when!=null?when:this.ctx.currentTime;
       const o=this.ctx.createOscillator(), flt=this.ctx.createBiquadFilter(), g=this.ctx.createGain();
       flt.type='bandpass'; flt.frequency.value=freq*2.5; flt.Q.value=3.5;
       o.type='sawtooth'; o.frequency.value=freq;
@@ -26584,11 +26646,11 @@ const ChaosMusic = {
   },
 
   // Lead de amenaza — riff de tensión semitonal
-  _threatLead(step){
+  _threatLead(step, when){
     if(!this.ctx||!this.playing) return;
     const freq=this.THREAT_RIFF[step%this.THREAT_RIFF.length];
     try{
-      const now=this.ctx.currentTime;
+      const now=when!=null?when:this.ctx.currentTime;
       const o=this.ctx.createOscillator(), flt=this.ctx.createBiquadFilter(), g=this.ctx.createGain();
       flt.type='lowpass'; flt.frequency.value=1800; flt.Q.value=5.0;
       o.type='sawtooth'; o.frequency.value=freq;
@@ -26600,37 +26662,43 @@ const ChaosMusic = {
     }catch(_){}
   },
 
-  _tick(){
+  _tick(){ if(this.ctx&&this.playing) this._tickAt(this.ctx.currentTime); },
+
+  // FIX v380: recibe schedTime (timestamp futuro del AudioContext) en vez de
+  // usar this.ctx.currentTime — así el beat suena exactamente cuando debe,
+  // incluso si el callback del scheduler se ejecutó un poco tarde.
+  _tickAt(schedTime){
     if(!this.ctx||!this.playing) return;
     const bp=this.beat%16;
     const bc=this.beat%64;
     const itx=this.intensity;
+    const now=schedTime;
 
     if(bc===0&&this.beat>0){ this.ci=(this.ci+1)%this.PROG.length; this._movePads(); }
 
     // Kick — four on the floor + ghost en contratiempos (intensidad alta)
-    if(bp===0||bp===4||bp===8||bp===12) this._kick();
-    if(itx>=3&&(bp===2||bp===6||bp===10||bp===14)&&Math.random()<0.35) this._kick();
+    if(bp===0||bp===4||bp===8||bp===12) this._kick(now);
+    if(itx>=3&&(bp===2||bp===6||bp===10||bp===14)&&Math.random()<0.35) this._kick(now);
 
     // Snare en 2 y 4
-    if(bp===4||bp===12) this._snare();
-    if(itx>=4&&(bp===2||bp===6||bp===10||bp===14)&&Math.random()<0.22) this._snare();
+    if(bp===4||bp===12) this._snare(now);
+    if(itx>=4&&(bp===2||bp===6||bp===10||bp===14)&&Math.random()<0.22) this._snare(now);
 
     // Hi-hats densos — 16th notes a intensidad alta
     if(itx<=2){
-      if(bp%4===2) this._hat(0.08,0.010);
+      if(bp%4===2) this._hat(0.08,0.010,false,now);
     } else {
-      if(bp%2===1) this._hat(0.10,0.009);
-      if(bp%4===1&&Math.random()<0.5) this._hat(0.06,0.060,true); // open
+      if(bp%2===1) this._hat(0.10,0.009,false,now);
+      if(bp%4===1&&Math.random()<0.5) this._hat(0.06,0.060,true,now); // open
     }
 
     // Arpegio en todos los beats
     const arpSeq=[0,2,4,1,3,5,2,4,1,3,0,5,4,2,3,1];
-    this._arp(arpSeq[bp]);
+    this._arp(arpSeq[bp], now);
 
     // Lead de amenaza — desde beat 16, cada 2 beats
     if(this.beat>=16 && bp%2===0){
-      this._threatLead(Math.floor(this.beat/2));
+      this._threatLead(Math.floor(this.beat/2), now);
     }
 
     this.beat++;
@@ -49558,6 +49626,11 @@ function showScreen(s){
   if(typeof Lang!=='undefined'){
     if(s==='menu') Lang.showBtn(); else Lang.hideBtn();
   }
+  // Cursor personalizado de PC — solo activo en el menú principal, solo escritorio
+  try{
+    if(s==='menu'){ if(typeof PCCursor!=='undefined') PCCursor.show(); }
+    else{ if(typeof PCCursor!=='undefined') PCCursor.hide(); }
+  }catch(_){}
   // Aviso de notificaciones push: solo debe verse en el menú principal
   if(s!=='menu' && typeof PushNotifs!=='undefined' && PushNotifs.dismissPrompt) PushNotifs.dismissPrompt();
   const isGame=s==='playing'||s==='paused';
@@ -52578,8 +52651,8 @@ const _notifColors={
 const _notifSVGs = {
   // ⭐ Level up / achievements — star with inner glow rays
   '⭐': (c)=>`<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <defs><radialGradient id="sg1" cx="50%" cy="40%" r="55%"><stop offset="0%" stop-color="${c}" stop-opacity="1"/><stop offset="100%" stop-color="${c}" stop-opacity="0.3"/></radialGradient></defs>
-    <path d="M12 2.5l2.6 5.2 5.8.85-4.2 4.1.99 5.75L12 15.77l-5.19 2.63 1-5.75L3.6 8.55l5.8-.85z" fill="url(#sg1)" stroke="${c}" stroke-width="0.6" stroke-linejoin="round"/>
+    <defs><radialGradient id="notifStarG" cx="50%" cy="40%" r="55%"><stop offset="0%" stop-color="${c}" stop-opacity="1"/><stop offset="100%" stop-color="${c}" stop-opacity="0.3"/></radialGradient></defs>
+    <path d="M12 2.5l2.6 5.2 5.8.85-4.2 4.1.99 5.75L12 15.77l-5.19 2.63 1-5.75L3.6 8.55l5.8-.85z" fill="url(#notifStarG)" stroke="${c}" stroke-width="0.6" stroke-linejoin="round"/>
     <path d="M12 2.5l2.6 5.2 5.8.85-4.2 4.1.99 5.75L12 15.77l-5.19 2.63 1-5.75L3.6 8.55l5.8-.85z" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="0.3"/>
     <circle cx="12" cy="11" r="2.2" fill="rgba(255,255,255,0.55)"/>
   </svg>`,
@@ -61919,6 +61992,123 @@ const MenuPreview = {
   stop(){ cancelAnimationFrame(this._raf); this._raf=null; }
 };
 
+// ══ PC CURSOR — reticle personalizado, solo menú principal en escritorio ══
+// Activado/desactivado desde showScreen(). No corre nada en móvil (_IS_MOBILE)
+// ni durante gameplay — el canvas ya maneja su propio cursor:none ahí.
+const PCCursor = {
+  _el: null, _ringEl: null, _coreEl: null,
+  _active: false, _bound: false, _hover: false, _x: 0, _y: 0, _accentColor: null,
+
+  init(){
+    if(this._bound) return;
+    this._el = document.getElementById('pcCursor');
+    if(!this._el) return;
+    this._ringEl = document.getElementById('pcCursorRing');
+    this._coreEl = document.getElementById('pcCursorCore');
+    this._bound = true;
+    document.addEventListener('mousemove', (e)=>{
+      if(!this._active) return;
+      this._x = e.clientX; this._y = e.clientY;
+      this._render();
+    }, {passive:true});
+    // Delegación de hover — un solo listener, sin costo por-botón.
+    // Si el elemento (o un ancestro) trae data-cursor-accent con el color
+    // propio del botón (mismos colores ya usados en su diseño), el anillo
+    // del cursor toma el complementario/contrario de ese color para dar
+    // contraste vivo; si no hay accent, se usa el violeta por defecto (CSS).
+    document.addEventListener('mouseover', (e)=>{
+      if(!this._active) return;
+      const t = e.target;
+      if(!t || !t.closest) return;
+      const interactive = t.closest('button,.btn,a,[role="button"],[data-cursor-accent]');
+      if(!interactive) return;
+      const accentEl = t.closest('[data-cursor-accent]');
+      this._hover = true;
+      this._accentColor = accentEl ? this._complementary(accentEl.getAttribute('data-cursor-accent')) : null;
+      this._render();
+    }, {passive:true});
+    document.addEventListener('mouseout', (e)=>{
+      if(!this._active) return;
+      const t = e.target;
+      if(!t || !t.closest) return;
+      if(t.closest('button,.btn,a,[role="button"],[data-cursor-accent]')){
+        this._hover = false; this._accentColor = null; this._render();
+      }
+    }, {passive:true});
+  },
+
+  // ── Color complementario vía HSL (hue+180°), con leve boost de
+  // saturación/luminosidad para que "pop" contra el fondo oscuro del menú ──
+  _hexToHsl(hex){
+    hex = hex.replace('#','');
+    const r=parseInt(hex.substr(0,2),16)/255, g=parseInt(hex.substr(2,2),16)/255, b=parseInt(hex.substr(4,2),16)/255;
+    const max=Math.max(r,g,b), min=Math.min(r,g,b);
+    let h=0, s=0; const l=(max+min)/2;
+    if(max!==min){
+      const d=max-min;
+      s = l>0.5 ? d/(2-max-min) : d/(max+min);
+      if(max===r) h=(g-b)/d+(g<b?6:0);
+      else if(max===g) h=(b-r)/d+2;
+      else h=(r-g)/d+4;
+      h/=6;
+    }
+    return [h*360, s*100, l*100];
+  },
+  _hslToHex(h,s,l){
+    h/=360; s/=100; l/=100;
+    const hue2rgb=(p,q,t)=>{ if(t<0)t+=1; if(t>1)t-=1; if(t<1/6)return p+(q-p)*6*t; if(t<1/2)return q; if(t<2/3)return p+(q-p)*(2/3-t)*6; return p; };
+    let r,g,b;
+    if(s===0){ r=g=b=l; }
+    else{
+      const q = l<0.5 ? l*(1+s) : l+s-l*s;
+      const p = 2*l-q;
+      r=hue2rgb(p,q,h+1/3); g=hue2rgb(p,q,h); b=hue2rgb(p,q,h-1/3);
+    }
+    const toHex=x=>{ const v=Math.max(0,Math.min(255,Math.round(x*255))); return v.toString(16).padStart(2,'0'); };
+    return '#'+toHex(r)+toHex(g)+toHex(b);
+  },
+  _complementary(hex){
+    try{
+      const [h,s,l] = this._hexToHsl(hex);
+      const ch = (h+180)%360;
+      const cs = Math.min(100, s*1.05+10);
+      const cl = Math.min(78, Math.max(55, l+8));
+      return this._hslToHex(ch, cs, cl);
+    }catch(_){ return null; }
+  },
+
+  _render(){
+    if(!this._el) return;
+    const s = this._hover ? 0.82 : 1;
+    this._el.style.transform = `translate3d(${this._x}px,${this._y}px,0) translate3d(-50%,-50%,0) scale(${s})`;
+    document.body.classList.toggle('pc-cursor-hover', this._hover);
+    if(this._ringEl && this._coreEl){
+      if(this._hover && this._accentColor){
+        this._ringEl.style.stroke = this._accentColor;
+        this._coreEl.style.fill   = this._accentColor;
+      } else {
+        this._ringEl.style.stroke = '';
+        this._coreEl.style.fill   = '';
+      }
+    }
+  },
+
+  show(){
+    if(_IS_MOBILE) return; // solo escritorio
+    this.init();
+    if(!this._el) return;
+    this._active = true;
+    document.body.classList.add('pc-cursor-on');
+    this._render();
+  },
+
+  hide(){
+    this._active = false;
+    this._accentColor = null;
+    document.body.classList.remove('pc-cursor-on','pc-cursor-hover');
+  }
+};
+
 const MenuBg = {
   cvs: null, ctx: null, raf: null,
   W: 0, H: 0, t: 0,
@@ -64498,11 +64688,11 @@ const MenuBg = {
         {src:png192,sizes:'192x192',type:'image/png',purpose:'any'},
         {src:png180,sizes:'180x180',type:'image/png',purpose:'any'},
       ];
-      manifest.screenshots=[{
-        src:'https://nyxarion-ctrl.github.io/Debris-surge/',
-        sizes:'1080x1920',type:'image/png',
-        form_factor:'narrow',label:'Debris Surge'
-      }];
+      // FIX v380b: se quitó manifest.screenshots — src apuntaba a la URL del
+      // sitio (string, no una imagen real). Un screenshot inválido no rompe
+      // nada pero tampoco aporta al prompt de instalación; mejor omitirlo
+      // hasta tener capturas reales listas (ver lista de 6-7 screenshots
+      // para las tiendas) que agregar datos incorrectos al manifest.
       const blob=new Blob([JSON.stringify(manifest)],{type:'application/json'});
       const url=URL.createObjectURL(blob);
       const link=document.createElement('link');
