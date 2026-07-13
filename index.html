@@ -622,11 +622,24 @@ canvas.game-active{pointer-events:auto;cursor:none;}
   will-change:transform;
 }
 body.pc-cursor-on #pcCursor{display:block;}
+/* Regla global: pc-cursor-on SOLO se activa en showScreen('menu') y se
+   retira por completo (PCCursor.hide()) en cuanto arranca gameplay real
+   (playing/paused/gameover) — ver PCCursor.show()/hide() más abajo. Por
+   eso es seguro ocultar el cursor nativo en TODOS los descendientes del
+   body mientras la clase esté activa, en vez de listar cada modal/toast/
+   popup individualmente (nameModal, paypalModal, privacyModal, privacyBanner,
+   referralModal, shareModal, termsModal, veloEpilogueModal, profileNameEditorModal,
+   obWelcomeToast, obTooltipCard, newMissionToast, streakRewardPopup, pushPromptCard,
+   etc.) — cualquier overlay nuevo que se agregue a futuro queda cubierto
+   automáticamente sin tener que tocar este selector otra vez. */
 body.pc-cursor-on,
-body.pc-cursor-on #menuScreen,
-body.pc-cursor-on #menuScreen *,
-body.pc-cursor-on #audioSplash,
-body.pc-cursor-on #audioSplash *{cursor:none !important;}
+body.pc-cursor-on *{cursor:none !important;}
+/* Excepción: campos de texto editables (ej. nameInput, pneInput dentro de
+   nameModal/profileNameEditorModal) deben mostrar el I-beam nativo, no el
+   retículo — el retículo no comunica "esto es editable" tan claro como el
+   cursor de texto estándar. */
+body.pc-cursor-on input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+body.pc-cursor-on textarea{cursor:text !important;}
 @keyframes _pcCursorSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 @keyframes _pcCursorPulse{0%,100%{opacity:.85;r:2.6}50%{opacity:1;r:3.2}}
 #pcCursorRing{transform-origin:20px 20px;animation:_pcCursorSpin 5s linear infinite;transition:stroke .15s ease;}
@@ -62006,10 +62019,18 @@ const PCCursor = {
     this._ringEl = document.getElementById('pcCursorRing');
     this._coreEl = document.getElementById('pcCursorCore');
     this._bound = true;
+    this._raf = null;
+    this._dirty = false;
+    this._lastHoverApplied = false;
+    this._lastColorApplied = null;
+    // rAF-coalesced: los mousemove pueden disparar a cientos/miles de Hz en
+    // mice/monitores de alta frecuencia — escribir el DOM en cada evento
+    // satura el hilo principal y se percibe como lag. Aquí solo guardamos
+    // la posición más reciente y pintamos una vez por frame real.
     document.addEventListener('mousemove', (e)=>{
       if(!this._active) return;
       this._x = e.clientX; this._y = e.clientY;
-      this._render();
+      this._scheduleRender();
     }, {passive:true});
     // Delegación de hover — un solo listener, sin costo por-botón.
     // Si el elemento (o un ancestro) trae data-cursor-accent con el color
@@ -62025,16 +62046,22 @@ const PCCursor = {
       const accentEl = t.closest('[data-cursor-accent]');
       this._hover = true;
       this._accentColor = accentEl ? this._complementary(accentEl.getAttribute('data-cursor-accent')) : null;
-      this._render();
+      this._scheduleRender();
     }, {passive:true});
     document.addEventListener('mouseout', (e)=>{
       if(!this._active) return;
       const t = e.target;
       if(!t || !t.closest) return;
       if(t.closest('button,.btn,a,[role="button"],[data-cursor-accent]')){
-        this._hover = false; this._accentColor = null; this._render();
+        this._hover = false; this._accentColor = null; this._scheduleRender();
       }
     }, {passive:true});
+  },
+
+  _scheduleRender(){
+    if(this._dirty) return;
+    this._dirty = true;
+    this._raf = requestAnimationFrame(()=>{ this._dirty = false; this._render(); });
   },
 
   // ── Color complementario vía HSL (hue+180°), con leve boost de
@@ -62080,16 +62107,21 @@ const PCCursor = {
   _render(){
     if(!this._el) return;
     const s = this._hover ? 0.82 : 1;
+    // translate3d fuerza la capa GPU propia del cursor — el transform es lo
+    // único que se toca en el hot path de movimiento, sin leer layout.
     this._el.style.transform = `translate3d(${this._x}px,${this._y}px,0) translate3d(-50%,-50%,0) scale(${s})`;
-    document.body.classList.toggle('pc-cursor-hover', this._hover);
-    if(this._ringEl && this._coreEl){
-      if(this._hover && this._accentColor){
-        this._ringEl.style.stroke = this._accentColor;
-        this._coreEl.style.fill   = this._accentColor;
-      } else {
-        this._ringEl.style.stroke = '';
-        this._coreEl.style.fill   = '';
-      }
+    // Solo tocar classList/stroke/fill cuando el ESTADO cambió realmente —
+    // escribirlos en cada frame de movimiento (aunque el valor sea igual)
+    // dispara recalculo de estilos de todo #pcCursor sin necesidad.
+    if(this._hover !== this._lastHoverApplied){
+      document.body.classList.toggle('pc-cursor-hover', this._hover);
+      this._lastHoverApplied = this._hover;
+    }
+    const targetColor = (this._hover && this._accentColor) ? this._accentColor : '';
+    if(this._ringEl && this._coreEl && targetColor !== this._lastColorApplied){
+      this._ringEl.style.stroke = targetColor;
+      this._coreEl.style.fill   = targetColor;
+      this._lastColorApplied = targetColor;
     }
   },
 
@@ -62105,6 +62137,9 @@ const PCCursor = {
   hide(){
     this._active = false;
     this._accentColor = null;
+    this._lastHoverApplied = false;
+    this._lastColorApplied = null;
+    if(this._raf){ cancelAnimationFrame(this._raf); this._raf = null; this._dirty = false; }
     document.body.classList.remove('pc-cursor-on','pc-cursor-hover');
   }
 };
