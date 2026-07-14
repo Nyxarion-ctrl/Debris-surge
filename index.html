@@ -49302,7 +49302,7 @@ const LB = Leaderboard;
 // ═══════════════════════════════════════════════════════════════
 const GlobalLB = {
   // ── CONFIGURE THIS ────────────────────────────────────────────
-  ENDPOINT: 'https://mi-juego-backend-production.up.railway.app/leaderboard',   // Railway backend
+  ENDPOINT: 'https://mi-juego-backend.onrender.com/leaderboard',   // Railway backend
   // ─────────────────────────────────────────────────────────────
 
   _cache:     null,    // cached top-50 result
@@ -65257,7 +65257,7 @@ const GentleStart = {
 // All events are opt-in and privacy-safe (no PII).
 // ══════════════════════════════════════════════
 const Analytics = {
-  ENDPOINT: 'https://mi-juego-backend-production.up.railway.app/api/events',
+  ENDPOINT: 'https://mi-juego-backend.onrender.com/api/events',
   _queue: [],
   track(event, props){
     try{
@@ -82058,7 +82058,7 @@ const PayPalShop = {
         const uid  = typeof PlayerID !== 'undefined' ? PlayerID.getUid() : Store.get('orb_uid','');
         const name = typeof PlayerID !== 'undefined' ? PlayerID.getName() : 'Orbital';
         toUnlock.forEach(sid => {
-          fetch('https://mi-juego-backend-production.up.railway.app/skins', {
+          fetch('https://mi-juego-backend.onrender.com/skins', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ uid, name, skinId: sid })
@@ -82082,7 +82082,7 @@ const PayPalShop = {
       const uid = typeof PlayerID !== 'undefined' ? PlayerID.getUid() : Store.get('orb_uid','');
       if (!uid) return;
       if (st) { st.style.display = 'block'; st.style.color = 'rgba(255,255,255,0.5)'; st.textContent = _pplc2==='en'?'🔄 Checking...':_pplc2==='pt'?'🔄 Verificando...':_pplc2==='ja'?'🔄 確認中...':'🔄 Verificando...'; }
-      const res  = await fetch('https://mi-juego-backend-production.up.railway.app/skins?uid=' + encodeURIComponent(uid));
+      const res  = await fetch('https://mi-juego-backend.onrender.com/skins?uid=' + encodeURIComponent(uid));
       if (!res.ok) throw new Error('server error');
       const data = await res.json();
       if (!data.skins || !data.skins.length) {
@@ -82926,7 +82926,7 @@ document.getElementById('paypalModal').addEventListener('click', function(e) {
 if(typeof OrbitaDelDia === 'undefined') var OrbitaDelDia = { active:false, start:function(){}, stop:function(){}, onGameEnd:function(){}, updateMenuBtn:function(){} };
 OrbitaDelDia = Object.assign(OrbitaDelDia, {
   // ── Config ────────────────────────────────────────────────
-  ENDPOINT: 'https://mi-juego-backend-production.up.railway.app/leaderboard/daily',
+  ENDPOINT: 'https://mi-juego-backend.onrender.com/leaderboard/daily',
   STORAGE_KEY: 'orb_orbita_dia',
 
   // ── 1. DAILY SEED — deterministic from today's date ───────
@@ -83963,7 +83963,7 @@ window.addEventListener('load', function() {
             const q = JSON.parse(localStorage.getItem('orb_pp_queue') || '[]');
             if (q.length) {
               q.forEach(function(sid) {
-                fetch('https://mi-juego-backend-production.up.railway.app/skins', {
+                fetch('https://mi-juego-backend.onrender.com/skins', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ uid: uid, name: playerName, skinId: sid })
@@ -83979,7 +83979,7 @@ window.addEventListener('load', function() {
             }
           } catch(_) {}
 
-          fetch('https://mi-juego-backend-production.up.railway.app/skins?uid=' + encodeURIComponent(uid))
+          fetch('https://mi-juego-backend.onrender.com/skins?uid=' + encodeURIComponent(uid))
             .then(r => r.ok ? r.json() : null)
             .then(data => {
               if (!data || !data.skins || !data.skins.length) return;
@@ -84064,7 +84064,7 @@ window.addEventListener('load', function() {
   function _tryBackend(){
     // Solo muestra el contador si el backend responde con un número real y > 0.
     // Si falla o no hay datos, la barra queda oculta (opacity:0).
-    fetch('https://mi-juego-backend-production.up.railway.app/stats/today', {
+    fetch('https://mi-juego-backend.onrender.com/stats/today', {
       signal: AbortSignal.timeout ? AbortSignal.timeout(3000) : undefined
     })
       .then(r => r.ok ? r.json() : null)
@@ -84559,7 +84559,7 @@ const ReferralSystem = (function(){
         }catch(_){}
         // Try to notify referrer via backend (fire-and-forget, best-effort only —
         // la recompensa garantizada del referente ya se otorga localmente en _trackShareAndReward())
-        fetch('https://mi-juego-backend-production.up.railway.app/referral', {
+        fetch('https://mi-juego-backend.onrender.com/referral', {
           method:'POST', headers:{'Content-Type':'application/json'},
           body: JSON.stringify({refCode: ref, newUid: typeof PlayerID !== 'undefined' ? PlayerID.getUid() : 'anon'})
         }).catch(()=>{});
