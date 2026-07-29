@@ -19132,7 +19132,11 @@ var BlitzMode = {
     // decrecientes — jugar mejor sigue dando más, pero sin tocar un tope fijo
     // en cada partida (con 39-41k de score / 105 debris típicos, la fórmula
     // vieja basada en score llegaba al tope de 150 casi siempre).
-    const credits=(typeof G!=='undefined'&&G&&G._isTutorial)?0:Math.min(100, Math.round(Math.sqrt(finalDebris)*7));
+    // v413 REBALANCE #2: tope bajado a 15 (antes 50, originalmente 100) —
+    // pedido explícito porque Blitz no tiene riesgo real y se puede autoespamear
+    // para juntar fragmentos rápido; coeficiente escalado proporcionalmente
+    // (3.5 × 15/50) para conservar la misma curva de esfuerzo, solo más abajo.
+    const credits=(typeof G!=='undefined'&&G&&G._isTutorial)?0:Math.min(15, Math.round(Math.sqrt(finalDebris)*1.05));
     if(credits>0) GS.addCredits(credits);
     this.active=false;
     _dismissAllX25();
@@ -19297,7 +19301,7 @@ var BlitzMode = {
     try{ SkinAbility.reset(); }catch(_){}
     STATE='gameover';
     // Submit leaderboard & analytics silently
-    try{ Analytics.gameOver(adjScore, (G&&G.level)||1, finalDebris, 60); }catch(_){}
+    try{ Analytics.gameOver(adjScore, (G&&G.level)||1, finalDebris, 60, _lastDamageReason); }catch(_){}
     try{
       const uid=typeof PlayerID!=='undefined'?PlayerID.getUid():'anon';
       const name=typeof PlayerID!=='undefined'?PlayerID.getName():Lang.l('Orbitador','Pilot','Piloto','パイロット');
@@ -19371,6 +19375,7 @@ var ChaosMode = {
 
     // ── PARÁMETROS DE CAOS ──────────────────────────────────
     G._chaosMode  = true;
+    try{ Analytics.gameStart('caos'); }catch(_){}
     G._zenMode    = false;
     G.lives       = 1;              // 1 sola vida
     // v291: spawnI inicial diferenciado por plataforma — PC tiene más espacio de maniobra
@@ -19692,7 +19697,9 @@ var ChaosMode = {
     // XP — no se otorga si estamos en tutorial
     const xp = (typeof G!=='undefined'&&G&&G._isTutorial)?0:Math.round(survived * 8 + debris * 2 + (combo >= 5 ? 200 : 0));
     try{ if(xp>0) GS.addXP(xp); }catch(_){}
-    const credits = (typeof G!=='undefined'&&G&&G._isTutorial)?0:Math.min(150, Math.round(debris*0.8+Math.sqrt(score)*0.5));
+    // v413 REBALANCE: mitad de tasa y tope (antes 0.8/0.5, tope 150) — misma
+    // razón que en Blitz, mismo factor para no romper la proporción entre modos.
+    const credits = (typeof G!=='undefined'&&G&&G._isTutorial)?0:Math.min(75, Math.round(debris*0.4+Math.sqrt(score)*0.25));
     try{ if(credits>0) GS.addCredits(credits); }catch(_){}
 
     // Stop engine silently — no endGame(), no PARTIDA TERMINADA
@@ -19705,7 +19712,7 @@ var ChaosMode = {
     try{ BlackHole.reset(); }catch(_){}
     try{ SkinAbility.reset(); }catch(_){}
     STATE = 'gameover';
-    try{ Analytics.gameOver(score, (G&&G.level)||1, debris, survived); }catch(_){}
+    try{ Analytics.gameOver(score, (G&&G.level)||1, debris, survived, _lastDamageReason); }catch(_){}
     try{
       const uid=typeof PlayerID!=='undefined'?PlayerID.getUid():'anon';
       const name=typeof PlayerID!=='undefined'?PlayerID.getName():Lang.l('Orbitador','Pilot','Piloto','パイロット');
@@ -23083,6 +23090,10 @@ const Tut = (function(){
   // lectura garantizado antes de que el paso se vuelva interactivo.
   let _stepReady = false;
   let _stepReadyTimer = null;
+  // v413 ANALYTICS: distingue "completó los pasos" de "tocó Saltar" — ambos
+  // caminos terminan en la misma pantalla final y el mismo dismiss(), así
+  // que sin esta bandera no se puede saber cuál pasó realmente.
+  let _skippedEarly = false;
   // Tiempo de lectura por tipo de paso — ajustado a cuánto texto tiene cada
   // uno. El paso se activa (spawn + tracking) recién cuando la tarjeta se
   // colapsa, no en un tiempo fijo genérico para todos.
@@ -24148,11 +24159,14 @@ const Tut = (function(){
       if(_active){ return; }
 
       cancelAnimationFrame(_raf); _raf=null;
-      _done=false; _active=true; _step=0;
+      _done=false; _active=true; _step=0; _skippedEarly=false;
       _movedSat=false; _absorbed=false; _dodged=false; _demoHit=false; _postDemoSpawned=false;
       _comboReached=false; _powerUpUsed=false;
       _tutDangers=[]; _spawnPaused=false; _step1LockedDebris=null;
       _isEN = typeof Lang!=='undefined' && Lang.cur==='en'; // legacy compat
+      // v413 ANALYTICS: solo trackear el funnel real de usuarios nuevos, no
+      // los replays voluntarios desde el menú "Cómo Jugar".
+      if(!window._tutorialIsReplay){ try{ Analytics.track('tutorial_start',{}); }catch(_){} }
 
       // Cachear en closure — evita race conditions con el safety net setTimeout.
       _isReplay = !!window._tutorialIsReplay;
@@ -24191,6 +24205,11 @@ const Tut = (function(){
     dismiss(){
       if(!_active && _done) return;
       _done=true; _active=false;
+      // v413 ANALYTICS: cierra el funnel de tutorial iniciado en start() —
+      // mismo guard de "no replay" para no ensuciar los datos de usuarios nuevos.
+      if(!window._tutorialIsReplay){
+        try{ Analytics.track('tutorial_complete',{step:_step, totalSteps:STEPS.length, skipped:_skippedEarly}); }catch(_){}
+      }
       cancelAnimationFrame(_raf); _raf=null;
       clearTimeout(_spawnTimer);
       clearTimeout(_stepReadyTimer);
@@ -24243,6 +24262,7 @@ const Tut = (function(){
     // en lugar de ir directo al menú — el jugador elige qué hacer
     _skipToFinal(){
       if(!_active) return;
+      _skippedEarly = true;
       clearTimeout(_spawnTimer);
       clearTimeout(_stepReadyTimer);
       _clearTutDangers();
@@ -50437,6 +50457,7 @@ function _doZen(){
   Practice.stop();
   // Modo zen: sin peligros, vidas infinitas
   G._zenMode=true;
+  try{ Analytics.gameStart('zen'); }catch(_){}
   G.lives=99; // no mostraremos corazones reales
   // Badge de zen
   const pb=document.getElementById('practiceBadge');
@@ -53496,7 +53517,7 @@ function endGame(){
   // Audio — solo si no se reprodujo ya el sonido de destrucción de skin
   if(!window._satDeathSoundPlayed) try{Audio.gameOver();}catch(e){}
   window._satDeathSoundPlayed = false;
-  try{ Analytics.gameOver(finalScore, finalLevel, finalDebris, finalTime); }catch(_){}
+  try{ Analytics.gameOver(finalScore, finalLevel, finalDebris, finalTime, _lastDamageReason); }catch(_){}
   // Weekly LB submit
   try{
     const uid = typeof PlayerID!=='undefined'?PlayerID.getUid():'anon';
@@ -53681,7 +53702,9 @@ function endGame(){
         // sin datos reales de telemetría aún: pesa más el debris recolectado que el score
         // puro, para no favorecer solo a quien persigue combos altos. Tope por partida
         // para que una sesión maratónica de Zen no genere una cantidad desproporcionada.
-        const gameCredits=(G&&G._isTutorial)?0:Math.min(150, Math.round(finalDebris*0.8+Math.sqrt(finalScore)*0.5));
+        // v413 REBALANCE: mitad de tasa y tope respecto al valor original (ver
+        // Blitz/Caos/Órbita — mismo factor 0.5x en los 4 modos, a pedido explícito.
+        const gameCredits=(G&&G._isTutorial)?0:Math.min(75, Math.round(finalDebris*0.4+Math.sqrt(finalScore)*0.25));
         if(gameCredits>0){
           GS.addCredits(gameCredits);
           try{
@@ -55858,6 +55881,7 @@ const CreditShop = {
   },
 
   open(){
+    try{ Analytics.track('shop_opened',{panel:'credit_shop'}); }catch(_){}
     const _lc = typeof Lang!=='undefined' ? Lang.cur : 'es';
     const _t = (es,en,pt,ja) => _lc==='en'?en:_lc==='pt'?pt:_lc==='ja'?ja:es;
     this._ensureStyles();
@@ -56193,6 +56217,7 @@ const SkinPanel = {
   },
 
   open(){
+    try{ Analytics.track('shop_opened',{panel:'skins'}); }catch(_){}
     this._updatePremBadge();
     if(typeof Lang !== 'undefined'){ Lang._apply(); Lang.hideBtn(); }
     const p = document.getElementById('skinPanel');
@@ -67728,8 +67753,8 @@ const Analytics = {
   },
   // ── Key events to instrument ──────────────────
   gameStart(mode){ this.track('game_start',{mode:mode||'normal'}); },
-  gameOver(score,level,debris,time){
-    this.track('game_over',{score,level,debris,time:Math.floor(time)});
+  gameOver(score,level,debris,time,cause){
+    this.track('game_over',{score,level,debris,time:Math.floor(time),cause:cause||'unknown'});
     // Track funnel milestone for retention analysis
     if(level>=5)  this.track('reached_level_5',{score});
     if(level>=10) this.track('reached_level_10',{score});
@@ -85705,6 +85730,7 @@ OrbitaDelDia = Object.assign(OrbitaDelDia, {
 
   _doStart() {
     if (typeof stopLoop === 'function') stopLoop();
+    try{ Analytics.gameStart('orbita_dia'); }catch(_){}
     _sessionId++;
     _pendingEnd = false; _dmgLock = false;
     _meteorShakePending = null; _pendingShake = null; _pendingFlash = false;
@@ -85846,7 +85872,8 @@ OrbitaDelDia = Object.assign(OrbitaDelDia, {
     // diario), pero los créditos son puramente cosméticos, así que sí se otorgan.
     try{
       const _isTut = typeof G!=='undefined'&&G&&G._isTutorial;
-      const credits = _isTut?0:Math.min(150, Math.round(debris*0.8+Math.sqrt(score)*0.5));
+      // v413 REBALANCE: mitad de tasa y tope, mismo factor 0.5x que el resto de modos.
+      const credits = _isTut?0:Math.min(75, Math.round(debris*0.4+Math.sqrt(score)*0.25));
       if(credits>0) GS.addCredits(credits);
     }catch(_){}
     const pb = document.getElementById('practiceBadge');
