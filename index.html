@@ -64587,7 +64587,23 @@ const MenuBg = {
     this.show();
     const loop = (ts)=>{
       this.t = ts * 0.001;
-      this._draw();
+      try{
+        this._draw();
+      }catch(_dbgErr){
+        // ═══ DIAGNÓSTICO TEMPORAL — sacar una vez identificado el bug ═══
+        try{
+          let box=document.getElementById('_menuBgDbg');
+          if(!box){
+            box=document.createElement('div');
+            box.id='_menuBgDbg';
+            box.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;background:#c00;color:#fff;font:12px monospace;padding:8px;white-space:pre-wrap;max-height:40vh;overflow:auto;';
+            document.body.appendChild(box);
+          }
+          box.textContent='MenuBg draw error: '+(_dbgErr&&_dbgErr.stack?_dbgErr.stack:_dbgErr);
+        }catch(_){}
+        this.raf=null;
+        return; // no reprogramar el loop para no spamear el mismo error cada frame
+      }
       this.raf = requestAnimationFrame(loop);
     };
     this.raf = requestAnimationFrame(loop);
@@ -64628,7 +64644,20 @@ const MenuBg = {
   // recalcula 1 de cada 2 frames; el canvas visible siempre hace apenas un
   // drawImage barato en vez de repetir toda la geometría.
   _draw(){
-    if(!this.cvs || !this.ctx || !this.W || !this.H) return;
+    if(!this.cvs || !this.ctx || !this.W || !this.H){
+      // ═══ DIAGNÓSTICO TEMPORAL ═══
+      try{
+        let box=document.getElementById('_menuBgDbg');
+        if(!box){
+          box=document.createElement('div');
+          box.id='_menuBgDbg';
+          box.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;background:#c00;color:#fff;font:12px monospace;padding:8px;white-space:pre-wrap;max-height:40vh;overflow:auto;';
+          document.body.appendChild(box);
+        }
+        box.textContent='MenuBg guard bloqueó el dibujo — cvs:'+(!!this.cvs)+' ctx:'+(!!this.ctx)+' W:'+this.W+' H:'+this.H;
+      }catch(_){}
+      return;
+    }
     if(!this._cacheCvs || this._cacheCvs.width!==this.cvs.width || this._cacheCvs.height!==this.cvs.height){
       this._cacheCvs = document.createElement('canvas');
       this._cacheCvs.width  = this.cvs.width;
