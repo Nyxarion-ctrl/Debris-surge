@@ -6944,7 +6944,11 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
 .mi-browser #menuScreen{
   backdrop-filter:none !important;
   -webkit-backdrop-filter:none !important;
-  background:rgba(4,4,14,0.97) !important;
+  /* FIX: 0.97 dejaba el fondo casi opaco y tapaba el canvas #menuBg (planetas/
+     estrellas) que vive detrás — se usa la misma opacidad baja que la regla
+     base de #menuScreen (línea ~2990) para mantener el ahorro de backdrop-filter
+     sin ocultar el fondo animado. */
+  background:rgba(4,4,14,0.38) !important;
 }
 .mi-browser #skinPanel{
   background:linear-gradient(160deg,#03030e 0%,#060614 40%,#080820 100%) !important;
@@ -6986,7 +6990,10 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
 .mobile-perf #menuScreen{
   backdrop-filter:none !important;
   -webkit-backdrop-filter:none !important;
-  background:rgba(4,4,14,0.97) !important;
+  /* FIX: igual que arriba — 0.97 tapaba por completo el canvas #menuBg animado
+     del menú principal en TODO móvil (esta clase se aplica a cualquier
+     navegador móvil desde v413). Bajado a la misma opacidad que la regla base. */
+  background:rgba(4,4,14,0.38) !important;
 }
 .mobile-perf #skinPanel{
   background:linear-gradient(160deg,#03030e 0%,#060614 40%,#080820 100%) !important;
@@ -7016,7 +7023,8 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
   -webkit-filter:none !important;
 }
 .samsung-browser #menuScreen{
-  background:rgba(4,4,14,0.96) !important;
+  /* FIX: mismo bug — tapaba el canvas #menuBg animado del menú principal */
+  background:rgba(4,4,14,0.38) !important;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -67377,6 +67385,20 @@ try{
 try{ CreditShop.applyEquipped(); CreditShop.applyReticleEquipped(); CreditShop.applyHudEquipped(); CreditShop.applyRankEquipped(); CreditShop.applyBgEquipped(); CreditShop.applyArchiveEquipped(); CreditShop.applyReticleShapeEquipped(); CreditShop._refreshVfxCache(); CreditShop._refreshTrailCache(); }catch(_){}
 MenuBg.start();
 try{ MenuPreview.init(); }catch(_){}
+// Mobile fix: mismo problema que MenuPreview (comentario debajo) pero nunca
+// se aplicó acá — MenuBg._resize() puede leer W/H en 0 si el layout del
+// navegador móvil todavía no terminó cuando corre este script. Si eso pasa,
+// el canvas queda en 0x0 para siempre y _drawHeavy() se corta en cada frame
+// sin dibujar nada, dejando el fondo del menú negro/vacío indefinidamente.
+setTimeout(()=>{
+  try{
+    if(!MenuBg.W || !MenuBg.H || MenuBg.W<10 || MenuBg.H<10){
+      MenuBg._resize();
+      MenuBg._genStars();
+      MenuBg._genFloaters();
+    }
+  }catch(_){}
+}, 350);
 // Mobile fix: canvas offsetWidth may be 0 at init time — reinit after layout settles
 setTimeout(()=>{ try{ if(MenuPreview._canvases.length===0||(MenuPreview._canvases[0]&&MenuPreview._canvases[0].W<10)){ MenuPreview.stop(); MenuPreview.init(); } }catch(_){} }, 350);
 startLoop();
