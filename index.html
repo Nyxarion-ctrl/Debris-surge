@@ -541,7 +541,19 @@ body{-webkit-tap-highlight-color:transparent;touch-action:none;overscroll-behavi
 // './sw.js' (incluido junto a este HTML — ver sw.js), con rutas relativas en
 // vez de la URL de GitHub Pages hardcodeada, para que funcione igual en
 // localhost, en otro dominio, o en GitHub Pages.
-if('serviceWorker' in navigator){
+// FIX (portales v414): si el juego corre embebido en un iframe de terceros
+// (CrazyGames, Poki, etc.) no tiene sentido registrar el Service Worker ni
+// el manifest de instalación — son solo útiles en el dominio propio del
+// juego. Muchos navegadores además bloquean o restringen SW en iframes
+// cross-origin, así que evitamos el intento por completo ahí.
+var _IS_EMBEDDED_IFRAME = (function(){ try{ return window.self !== window.top; }catch(_){ return true; } })();
+// FIX (portales v414): clase en <html> para poder ocultar por CSS, con un
+// solo punto de control, cualquier elemento que no tenga sentido (o que
+// viole las guías de calidad de portales de terceros) cuando el juego corre
+// embebido — por ejemplo los botones de compartir/duelo que apuntan a la
+// URL de itch.io (ver regla de "no linkear a otra versión jugable").
+if(_IS_EMBEDDED_IFRAME){ try{ document.documentElement.classList.add('cg-embed'); }catch(_){} }
+if('serviceWorker' in navigator && !_IS_EMBEDDED_IFRAME){
   window.addEventListener('load',function(){
     navigator.serviceWorker.register('./sw.js',{scope:'./'})
       .then(function(reg){
@@ -558,6 +570,15 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
+<style>
+/* FIX (portales v414): ocultar botones de compartir/duelo (apuntan a la URL
+   de itch.io) cuando el juego corre embebido en un portal de terceros
+   (CrazyGames, Poki, etc.) — ver guías de calidad sobre no linkear a otra
+   versión jugable del juego. */
+.cg-embed #shareBtn, .cg-embed #goShareBtn, .cg-embed #goDuelBtn, .cg-embed #orbitaShareBtn, .cg-embed #menuInviteBtn, .cg-embed #cloudLinkBtn, .cg-embed #cloudLinkBtn_d, .cg-embed #ppLinkReminderBtn{
+  display:none !important;
+}
+</style>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none;}
 /* touch-action:none SOLO en canvas — nunca en * porque rompe botones en iOS */
@@ -15201,7 +15222,7 @@ canvas[data-shk-skin="titan"][data-shk="h"]{animation:shk-titan-h 0.52s cubic-be
 <canvas id="menuBg" style="position:fixed;inset:0;z-index:19;pointer-events:none;opacity:0;transition:opacity 1.2s ease;"></canvas>
 
 <!-- ══ AUDIO UNLOCK SPLASH — desbloquea audio en el primer toque ══ -->
-<div id="audioSplash" style="position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at 40% 55%,#0d0a2e 0%,#0a0724 45%,#0a0818 100%);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;">
+<div id="audioSplash" style="position:fixed;inset:0;z-index:20000;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at 40% 55%,#0d0a2e 0%,#0a0724 45%,#0a0818 100%);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;">
   <!-- Stars layer — animated -->
   <canvas id="splashStars" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;"></canvas>
   <!-- Nebula glow -->
@@ -22643,21 +22664,21 @@ const SKINS = {
     id:'shadow_mirror', name:'Shadow Mirror', descEn:'A sentient obsidian sphere that reflects the void between stars. Its crystalline shards orbit in perfect silence, bending light into colors that do not exist.', descPt:'Esfera de obsidiana sensível que reflete o vazio entre estrelas. Seus fragmentos cristalinos orbitam em silêncio perfeito, dobrando a luz em cores que não existem.', descJa:'星々の間の虚空を映す感覚を持つ黒曜石の球体。結晶の破片は完全な静寂の中で軌道を描き、存在しない色に光を曲げる。', desc:'Esfera de obsidiana sensible que refleja el vacío entre estrellas. Sus fragmentos cristalinos orbitan en silencio perfecto, doblando la luz en colores que no existen.',
     color:'#c084fc', glow:'#e879f9', accent:'#7c3aed',
     diff:4, rarity:'Mystic', type:'Espejo',
-    reqs:['Absorb 80 Ancient debris in one game','Reach Level 18 in one game'], rid:'shadow_mirror', renderer:'renderShadowMirror'
+    reqs:['Absorb 80 Ancient debris in one game','Reach Level 18 in one game'], rid:'shadow_mirror', renderer:'renderShadowMirror', priceCredits:3000
  ,
     ability:{id:'mirror_veil',icon:'🪞',name:'Velo Espejo',nameEn:'Mirror Veil',desc:'Duplica los puntos de todo debris absorbido durante 8 segundos. Los fragmentos cristalinos orbitan y desvían meteoros.',descEn:'Doubles points from all debris for 8 seconds. Crystalline shards orbit and deflect meteors.', namePt:'Véu Espelho', nameJa:'ミラーベール', descPt:'Dobra os pontos de todos os destroços por 8s. Fragmentos cristalinos deflectem meteoros.', descJa:'8秒間全デブリのポイント2倍。結晶の破片が隕石を偏向させる。', descPt:'Esfera de obsidiana sensível que reflete o vazio entre estrelas. Seus fragmentos cristalinos orbitam em silêncio perfeito, dobrando a luz em cores que não existem.', descJa:'星々の間の虚空を映す感覚を持つ黒曜石の球体。結晶の破片は完全な静寂の中で軌道を描き、存在しない色に光を曲げる。',effect:'mirror_veil',dur:8} },
   quantum: {
     id:'quantum', name:'Quantum Void', descEn:'Scientific quantum research station. Torus confinement field and rotating lab modules for precise debris analysis.', descPt:'Entidade que existe simultaneamente em múltiplos estados quânticos. O toro de confinamento mantém sua massa colapsada numa dimensão estável.', descJa:'複数の量子状態に同時に存在する実体。閉じ込めトーラスが崩壊した質量を安定した次元に保持する。', desc:'Entidad que existe simultáneamente en múltiples estados cuánticos. El toro de confinamiento mantiene su masa colapsada en una dimensión estable.',
     color:'#e879f9', glow:'#f0abfc', accent:'#c026d3',
     diff:5, rarity:'Legendary', type:'Experimental',
-    reqs:['Reach Combo x10 in 20 different games','Surpass Level 22'], rid:'quantum', renderer:'renderQuantum'
+    reqs:['Reach Combo x10 in 20 different games','Surpass Level 22'], rid:'quantum', renderer:'renderQuantum', priceCredits:4500
  ,
     ability:{id:'quantum_shift',icon:'🌀',name:'Colapso Cuántico',nameEn:'Quantum Collapse',desc:'Congela todos los debris 6 segundos y los absorbe en cadena.',descEn:'Freezes all debris for 6 seconds then auto-absorbs.', namePt:'Colapso Quântico', nameJa:'量子崩壊', descPt:'Congela todos os destroços por 6s e absorve em cadeia.', descJa:'6秒間全デブリを凍らせて連鎖吸収。', descPt:'Entidade que existe simultaneamente em múltiplos estados quânticos. O toro de confinamento mantém sua massa colapsada numa dimensão estável.', descJa:'複数の量子状態に同時に存在する実体。閉じ込めトーラスが崩壊した質量を安定した次元に保持する。',effect:'quantum_shift',dur:6} },
   celestial: {
     id:'celestial', name:'Celestial Divine', descEn:'Divine solar entity. 16-ray corona, sacred orbital rings and a stellar nucleus of pure stellar energy.', descPt:'Chassi sagrado que contém o núcleo de uma anã branca capturada. Os 8 orbitais de energia são fragmentos de sua antiga coroa solar.', descJa:'捕獲した白色矮星の核を収める神聖な筐体。8つのエネルギー軌道体は古い太陽冠の破片。', desc:'Chasis sagrado que contiene el núcleo de una estrella enana blanca capturada. Los 8 orbitales de energía son fragmentos de su antigua corona solar.',
     color:'#fcd34d', glow:'#fef08a', accent:'#f59e0b',
     diff:5, rarity:'Legendary', type:'Divine',
-    reqs:['Survive 100 meteor waves','Score 500,000 pts in one game','Have all other skins unlocked'], rid:'celestial', renderer:'renderCelestial'
+    reqs:['Survive 100 meteor waves','Score 500,000 pts in one game','Have all other skins unlocked'], rid:'celestial', renderer:'renderCelestial', priceCredits:6000
  ,
     ability:{id:'celestial_nova',icon:'✨',name:'Corona Divina',nameEn:'Divine Corona',desc:'Absorción automática de todo el debris visible y puntos x6 por 10 segundos.',descEn:'Auto-absorbs all debris and x6 points for 10 seconds.', namePt:'Coroa Divina', nameJa:'ディバインコロナ', descPt:'Absorção automática de todo o debris visível e x6 pts por 10s.', descJa:'10秒間画面上の全デブリを自動吸収してx6ポイント。', descPt:'Chassi sagrado que contém o núcleo de uma anã branca capturada. Os 8 orbitais de energia são fragmentos de sua antiga coroa solar.', descJa:'捕獲した白色矮星の核を収める神聖な筐体。8つのエネルギー軌道体は古い太陽冠の破片。',effect:'celestial_nova',dur:10} },
   void_specter: {
@@ -22987,7 +23008,12 @@ const Missions={
         m.done=true;
         const sk=Store.get('orb_skins',['default']);
         const _premiumIds=['void_specter','aurora_prism','chrono_bastion'];
-        if(m.rid && !_premiumIds.includes(m.rid) && !sk.includes(m.rid)){
+        const _creditPriceIds=(typeof Skin!=='undefined'&&Skin.CREDIT_PRICE_SKINS)?Skin.CREDIT_PRICE_SKINS:['shadow_mirror','quantum','celestial'];
+        if(m.rid && _creditPriceIds.includes(m.rid) && !sk.includes(m.rid)){
+          // Mystic/Legendary gratuitas: el requisito solo la marca elegible;
+          // hay que comprarla con créditos en el Hangar para poseerla.
+          try{ Skin.markEligible(m.rid); }catch(_){}
+        } else if(m.rid && !_premiumIds.includes(m.rid) && !sk.includes(m.rid)){
           sk.push(m.rid); Store.set('orb_skins',sk);
           // Persist to earned skins so Skin.load() doesn't strip it on next session
           const _mEarned=Store.get('orb_earned_skins',[]);
@@ -23070,6 +23096,34 @@ const Skin={
     this.cur = clean.includes(s) ? s : 'default';
   },
   get(){return SKINS[this.cur]||SKINS.default;},
+
+  // ── Skins Mystic/Legendary gratuitas con precio en créditos ──
+  // Cumplir el requisito ya no las otorga automáticamente: solo las marca
+  // "elegibles" (orb_skins_eligible). El jugador debe comprarlas con los
+  // créditos ganados jugando desde el Hangar. Las 3 skins Premium (PayPal)
+  // no forman parte de este sistema — esas siguen siendo solo dinero real.
+  CREDIT_PRICE_SKINS: ['shadow_mirror','quantum','celestial'],
+  isEligible(id){
+    return Store.get('orb_skins_eligible', []).includes(id);
+  },
+  markEligible(id){
+    if(this.CREDIT_PRICE_SKINS.indexOf(id)===-1) return;
+    const el = Store.get('orb_skins_eligible', []);
+    if(!el.includes(id)){ el.push(id); Store.set('orb_skins_eligible', el); }
+  },
+  // Descuenta créditos y otorga la skin. Devuelve true si la compra se realizó.
+  buy(id){
+    const sk = SKINS[id];
+    if(!sk || !sk.priceCredits) return false;
+    if(!this.isEligible(id)) return false;
+    const owned = Store.get('orb_skins', ['default']);
+    if(owned.includes(id)) return false;
+    if(typeof GS==='undefined' || !GS.spendCredits(sk.priceCredits)) return false;
+    owned.push(id); Store.set('orb_skins', owned);
+    const earned = Store.get('orb_earned_skins', []);
+    if(!earned.includes(id)){ earned.push(id); Store.set('orb_earned_skins', earned); }
+    return true;
+  },
 };
 Skin.load();
 
@@ -29091,6 +29145,50 @@ let _dynQTier = _QTIER;   // tier dinámico, puede subir de _QTIER
 // v253d: Mi Browser arranca en tier 2 inmediatamente — no esperar al FPS probe
 // v253e: todos los WebViews OEM arrancan en tier 2
 if(_IS_OEM_WEBVIEW && _dynQTier < 2) _dynQTier = 2;
+// ── BENCHMARK DE ARRANQUE ─────────────────────────────────────────────
+// Hasta acá, el tier inicial en PC siempre arrancaba en 0 (máxima calidad
+// sin excepción) y solo se corregía DESPUÉS, si el jugador ya sentía lag
+// real en partida (_probePerf, más abajo). Esto mide el costo REAL de
+// dibujar en canvas (gradientes + arcos + sombras, el mismo tipo de
+// trabajo que hace el juego) en ESTE equipo concreto — móvil o PC — y
+// calibra el tier de arranque ANTES de que el jugador llegue al menú.
+// Corre una sola vez, durante la barra de carga inicial (que de por sí
+// dura varios segundos por su propia animación), así que no le suma
+// espera perceptible a nadie. Solo puede SUBIR el tier respecto al ya
+// calculado arriba — nunca lo baja — y cualquier fallo se ignora en
+// silencio, dejando el comportamiento de siempre sin ningún riesgo.
+(function _benchmarkStartupTier(){
+  try{
+    const _bc = document.createElement('canvas');
+    _bc.width = 200; _bc.height = 200;
+    const _bx = _bc.getContext('2d');
+    if(!_bx) return;
+    const _N = 60;
+    const _t0 = performance.now();
+    for(let i=0;i<_N;i++){
+      const g = _bx.createRadialGradient(100,100,0,100,100,90);
+      g.addColorStop(0,'rgba(100,80,220,0.8)');
+      g.addColorStop(0.5,'rgba(60,40,160,0.4)');
+      g.addColorStop(1,'rgba(0,0,0,0)');
+      _bx.fillStyle = g;
+      _bx.shadowColor = 'rgba(6,182,212,0.6)';
+      _bx.shadowBlur = 12;
+      _bx.beginPath();
+      _bx.arc(100,100,80,0,Math.PI*2);
+      _bx.fill();
+      _bx.shadowBlur = 0;
+    }
+    const _perIter = (performance.now() - _t0) / _N; // ms por operación representativa
+    // Umbrales deliberadamente conservadores — solo sube el tier cuando el
+    // costo medido es varias veces el de un equipo normal, para nunca
+    // sacrificar calidad visual de más en un equipo que en la práctica va bien.
+    let _benchTier = 0;
+    if(_perIter > 0.9) _benchTier = 3;
+    else if(_perIter > 0.5) _benchTier = 2;
+    else if(_perIter > 0.25) _benchTier = 1;
+    if(_benchTier > _dynQTier) _dynQTier = _benchTier;
+  }catch(_){ /* cualquier fallo: se queda con el tier ya calculado arriba */ }
+})();
 let _fpsProbe = { frames:0, elapsed:0, lastCheck:0, degraded:false, lowStreak:0, avg:0 };
 // v209: FPS target realista para móvil — 60 es inalcanzable en gama media, apuntar a 55/48/42
 // v253d: Mi Browser apunta a 40fps — su WebView es más lento que Chrome estándar
@@ -53774,16 +53872,29 @@ function endGame(){
             {id:'celestial',test:waves>=100&&bestEver>=500000&&allOther},
           ];
           let anyNew2=false;
+          const _creditPriceIds2=(typeof Skin!=='undefined'&&Skin.CREDIT_PRICE_SKINS)?Skin.CREDIT_PRICE_SKINS:['shadow_mirror','quantum','celestial'];
           for(const c of checks){
-            if(c.test&&!sk.includes(c.id)){
-              sk.push(c.id);anyNew2=true;
-              const idx=checks.indexOf(c);
-              setTimeout(()=>{notify('🔓',Lang.cur==='en'?'Skin unlocked!':Lang.cur==='pt'?'Skin desbloqueada!':Lang.cur==='ja'?'スキン解除！':'¡Skin desbloqueada!',SKINS[c.id]?.name||c.id);},1200+idx*800);
-              try{ Analytics.skinUnlocked(c.id); }catch(_){}
-              // Registrar como skin ganada legítimamente (persiste tras reinicios)
-              const _earned = Store.get('orb_earned_skins', []);
-              if(!_earned.includes(c.id)){ _earned.push(c.id); Store.set('orb_earned_skins', _earned); }
+            if(!c.test||sk.includes(c.id)) continue;
+            if(_creditPriceIds2.includes(c.id)){
+              // Mystic/Legendary gratuitas: requisito cumplido → elegible para
+              // comprar con créditos en el Hangar, ya no se otorga directo.
+              const _wasEligible=(typeof Skin!=='undefined')&&Skin.isEligible(c.id);
+              try{ Skin.markEligible(c.id); }catch(_){}
+              if(!_wasEligible){
+                const idx=checks.indexOf(c);
+                const _skPrice=(SKINS[c.id]&&SKINS[c.id].priceCredits)||0;
+                setTimeout(()=>{notify('🔓',Lang.cur==='en'?'Requirement met!':Lang.cur==='pt'?'Requisito cumprido!':Lang.cur==='ja'?'条件達成！':'¡Requisito cumplido!',(SKINS[c.id]?.name||c.id)+' — '+(Lang.cur==='en'?'available in the Hangar for '+_skPrice.toLocaleString()+' credits':Lang.cur==='pt'?'disponível no Hangar por '+_skPrice.toLocaleString()+' créditos':Lang.cur==='ja'?'ハンガーで'+_skPrice.toLocaleString()+'クレジットで購入可能':'disponible en el Hangar por '+_skPrice.toLocaleString()+' créditos'));},1200+idx*800);
+                try{ Analytics.skinUnlocked(c.id); }catch(_){}
+              }
+              continue;
             }
+            sk.push(c.id);anyNew2=true;
+            const idx=checks.indexOf(c);
+            setTimeout(()=>{notify('🔓',Lang.cur==='en'?'Skin unlocked!':Lang.cur==='pt'?'Skin desbloqueada!':Lang.cur==='ja'?'スキン解除！':'¡Skin desbloqueada!',SKINS[c.id]?.name||c.id);},1200+idx*800);
+            try{ Analytics.skinUnlocked(c.id); }catch(_){}
+            // Registrar como skin ganada legítimamente (persiste tras reinicios)
+            const _earned = Store.get('orb_earned_skins', []);
+            if(!_earned.includes(c.id)){ _earned.push(c.id); Store.set('orb_earned_skins', _earned); }
           }
           if(anyNew2) Store.set('orb_skins',sk);
           // Show next closest skin to unlock in the hook panel
@@ -56592,6 +56703,7 @@ const SkinPanel = {
       btn.style.background='rgba(16,185,129,0.15)'; btn.style.color='#10b981'; btn.style.border='1px solid rgba(16,185,129,0.3)';
       btn.setAttribute('disabled','');
       btn.dataset.paypal='0';
+      btn.dataset.buyCredits='0';
       const bundleBtn=document.getElementById('skinBundleBtn');
       if(bundleBtn) bundleBtn.style.display='none';
     } else if(unlocked){
@@ -56600,6 +56712,7 @@ const SkinPanel = {
       btn.style.color='#fff'; btn.style.boxShadow=sk?`0 0 22px ${hexAlpha(sk.color,0.38)}`:'';
       btn.removeAttribute('disabled');
       btn.dataset.paypal='0';
+      btn.dataset.buyCredits='0';
       const bundleBtn=document.getElementById('skinBundleBtn');
       if(bundleBtn) bundleBtn.style.display='none';
     } else if(id==='void_specter'||id==='aurora_prism'||id==='chrono_bastion'){
@@ -56612,6 +56725,7 @@ const SkinPanel = {
       btn.removeAttribute('disabled');
       btn.dataset.paypal='1';
       btn.dataset.paypalSkin=id;
+      btn.dataset.buyCredits='0';
       // Show bundle button if user doesn't own all three premium skins
       const ownedSkins=Store.get('orb_skins',['default']);
       const bundleBtn=document.getElementById('skinBundleBtn');
@@ -56619,11 +56733,28 @@ const SkinPanel = {
         const bothOwned=ownedSkins.includes('void_specter')&&ownedSkins.includes('aurora_prism')&&ownedSkins.includes('chrono_bastion');
         bundleBtn.style.display=bothOwned?'none':'block';
       }
+    } else if((typeof Skin!=='undefined'&&Skin.CREDIT_PRICE_SKINS&&Skin.CREDIT_PRICE_SKINS.includes(id))&&Skin.isEligible(id)&&sk&&sk.priceCredits){
+      const _lcb=typeof Lang!=='undefined'?Lang.cur:'es';
+      const _bal=(typeof GS!=='undefined'&&GS.data&&GS.data.credits)||0;
+      const _canBuy=_bal>=sk.priceCredits;
+      const _buyLabel=_lcb==='en'?'Buy — ':_lcb==='pt'?'Comprar — ':_lcb==='ja'?'購入 — ':'Comprar — ';
+      btn.innerHTML=_buyLabel+_creditIcon(13)+' '+sk.priceCredits.toLocaleString();
+      btn.style.background=_canBuy?'linear-gradient(135deg,#c2703d,#e0925c)':'rgba(255,255,255,0.04)';
+      btn.style.color=_canBuy?'#000':'var(--tx3)';
+      btn.style.border=_canBuy?'1px solid rgba(224,146,92,0.4)':'1px solid rgba(255,255,255,0.08)';
+      btn.style.boxShadow=_canBuy?'0 0 18px rgba(194,112,61,0.30)':'';
+      if(_canBuy) btn.removeAttribute('disabled'); else btn.setAttribute('disabled','');
+      btn.dataset.paypal='0';
+      btn.dataset.buyCredits='1';
+      btn.dataset.buySkin=id;
+      const bundleBtn=document.getElementById('skinBundleBtn');
+      if(bundleBtn) bundleBtn.style.display='none';
     } else {
       btn.textContent='🔒 '+(typeof Lang!=='undefined'?Lang.t('locked'):'BLOQUEADA');
       btn.style.background='rgba(255,255,255,0.04)'; btn.style.color='var(--tx3)'; btn.style.border='1px solid rgba(255,255,255,0.08)';
       btn.setAttribute('disabled','');
       btn.dataset.paypal='0';
+      btn.dataset.buyCredits='0';
       const bundleBtn=document.getElementById('skinBundleBtn');
       if(bundleBtn) bundleBtn.style.display='none';
     }
@@ -58747,17 +58878,21 @@ const SkinPanel = {
       const card=document.createElement('div');
       // Locked premium skins never get skin-sel glow — they always look locked
       const isPremLocked=(id==='void_specter'||id==='aurora_prism'||id==='chrono_bastion')&&!isUnlocked;
-      card.className='skin-card'+(isSel&&!isPremLocked?' skin-sel':'')+(!isUnlocked?' skin-locked':'')+(isPremLocked?' skin-prem-cta':'');
+      const isCreditLocked=(typeof Skin!=='undefined'&&Skin.CREDIT_PRICE_SKINS&&Skin.CREDIT_PRICE_SKINS.includes(id))&&!isUnlocked&&Skin.isEligible(id);
+      card.className='skin-card'+(isSel&&!isPremLocked&&!isCreditLocked?' skin-sel':'')+(!isUnlocked?' skin-locked':'')+((isPremLocked||isCreditLocked)?' skin-prem-cta':'');
       card.style.setProperty('--sk-card-c', skColor);
       if(isActive&&!isPremLocked){card.style.borderColor=hexAlpha(skColor,0.45);card.style.boxShadow='0 0 16px '+hexAlpha(skColor,0.15);}
       card.onclick=()=>this._showPreview(id);
       card.style.webkitTouchCallout='none';
 
-      // Badge estado — locked premium gets the animated "buy" jewel instead of a flat lock
+      // Badge estado — locked premium/credit skins get the animated "buy" jewel instead of a flat lock
       const badge=document.createElement('div');
       if(isPremLocked){
         badge.className='skin-card-badge skins-buy-badge skin-card-buy-badge';
         badge.textContent='💎';
+      } else if(isCreditLocked){
+        badge.className='skin-card-badge skins-buy-badge skin-card-buy-badge';
+        badge.textContent='🪙';
       } else {
         badge.className='skin-card-badge';
         badge.textContent=isActive?'●':isUnlocked?'✓':'🔒';
@@ -58863,6 +58998,13 @@ const SkinPanel = {
         const reqWord3=lang==='ja'?'件':'req.';
         miniBar.innerHTML=`<div style="height:2px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;"><div style="height:100%;width:${pct3}%;background:${skColor};border-radius:2px;"></div></div><div style="font-size:10px;color:rgba(255,255,255,0.65);margin-top:2px;text-align:center;">${done3}/${sk.reqs.length} ${reqWord3}</div>`;
         body.appendChild(miniBar);
+      }
+      // Precio en créditos para Mystic/Legendary gratuitas ya elegibles (requisito cumplido)
+      if(isCreditLocked && sk.priceCredits){
+        const priceBadge=document.createElement('div');
+        priceBadge.style.cssText='margin-top:4px;text-align:center;font-size:11px;font-weight:800;color:#e0925c;';
+        priceBadge.innerHTML=_creditIcon(11)+' '+sk.priceCredits.toLocaleString();
+        body.appendChild(priceBadge);
       }
 
       card.appendChild(body);
@@ -63135,6 +63277,19 @@ wire('skinEquipBtn', function(){
   if(btn && btn.dataset.paypal==='1'){
     const skinId = btn.dataset.paypalSkin;
     if(typeof PayPalShop!=='undefined') PayPalShop.open(skinId);
+  } else if(btn && btn.dataset.buyCredits==='1'){
+    const skinId = btn.dataset.buySkin;
+    const _lcc = typeof Lang!=='undefined'?Lang.cur:'es';
+    if(Skin.buy(skinId)){
+      const sk2 = SKINS[skinId];
+      notify('🎨', typeof Lang!=='undefined'?Lang.t('skins'):'Skins',
+        (sk2?sk2.name:skinId)+' '+(_lcc==='pt'?'comprada!':_lcc==='ja'?'を購入した！':_lcc==='en'?'purchased!':'¡comprada!'));
+      SkinPanel._buildGrid();
+      SkinPanel._showPreview(skinId);
+    } else {
+      notify('⚠️', typeof Lang!=='undefined'?Lang.t('skins'):'Skins',
+        _lcc==='pt'?'Créditos insuficientes':_lcc==='ja'?'クレジット不足':_lcc==='en'?'Not enough credits':'Créditos insuficientes');
+    }
   } else {
     SkinPanel._equipSkin();
   }
@@ -64585,25 +64740,40 @@ const MenuBg = {
     if(!this.cvs || !this.ctx){ this.init(); } // reinit si el canvas fue recreado
     if(!this.W || !this.H) this._resize(); // asegurar dimensiones válidas
     this.show();
+    // ── AUTO-AJUSTE PROPIO DEL MENÚ ──────────────────────────────────────
+    // El _dynQTier global solo se mide durante la partida (STATE==='playing'),
+    // así que un menú lento nunca lo activaba por sí solo. Este medidor es
+    // independiente: mide el FPS real que el propio loop del menú está
+    // logrando y, solo si detecta que de verdad no llega, espacía más el
+    // redibujo del fondo pesado (mismo mecanismo ya usado en _draw()). En un
+    // equipo fluido nunca se activa y el comportamiento es el de siempre.
+    this._bgTier = 0;
+    this._bgFpsFrames = 0; this._bgFpsElapsed = 0; this._bgFpsStreak = 0;
+    let _bgWarm = 0; // ignora el arranque del loop (primer frame siempre cuesta más)
+    let _lastTs = null;
     const loop = (ts)=>{
       this.t = ts * 0.001;
-      try{
-        this._draw();
-      }catch(_dbgErr){
-        // ═══ DIAGNÓSTICO TEMPORAL — sacar una vez identificado el bug ═══
-        try{
-          let box=document.getElementById('_menuBgDbg');
-          if(!box){
-            box=document.createElement('div');
-            box.id='_menuBgDbg';
-            box.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;background:#c00;color:#fff;font:12px monospace;padding:8px;white-space:pre-wrap;max-height:40vh;overflow:auto;';
-            document.body.appendChild(box);
+      this._draw();
+      if(_lastTs !== null){
+        const dt = ts - _lastTs;
+        if(_bgWarm < 20){ _bgWarm++; } // ~20 frames de calentamiento
+        else{
+          this._bgFpsFrames++; this._bgFpsElapsed += dt;
+          if(this._bgFpsElapsed >= 800){ // ventana de medición ~800ms
+            const avgFps = this._bgFpsFrames / (this._bgFpsElapsed/1000);
+            this._bgFpsFrames = 0; this._bgFpsElapsed = 0;
+            if(avgFps < 40 && this._bgTier < 2){
+              this._bgFpsStreak++; // exige 2 lecturas malas seguidas — evita falsos positivos por un pico puntual
+              if(this._bgFpsStreak >= 2){ this._bgFpsStreak = 0; this._bgTier++; }
+            } else if(avgFps >= 52 && this._bgTier > 0){
+              this._bgFpsStreak = 0; this._bgTier--;
+            } else{
+              this._bgFpsStreak = 0;
+            }
           }
-          box.textContent='MenuBg draw error: '+(_dbgErr&&_dbgErr.stack?_dbgErr.stack:_dbgErr);
-        }catch(_){}
-        this.raf=null;
-        return; // no reprogramar el loop para no spamear el mismo error cada frame
+        }
       }
+      _lastTs = ts;
       this.raf = requestAnimationFrame(loop);
     };
     this.raf = requestAnimationFrame(loop);
@@ -64644,20 +64814,7 @@ const MenuBg = {
   // recalcula 1 de cada 2 frames; el canvas visible siempre hace apenas un
   // drawImage barato en vez de repetir toda la geometría.
   _draw(){
-    if(!this.cvs || !this.ctx || !this.W || !this.H){
-      // ═══ DIAGNÓSTICO TEMPORAL ═══
-      try{
-        let box=document.getElementById('_menuBgDbg');
-        if(!box){
-          box=document.createElement('div');
-          box.id='_menuBgDbg';
-          box.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;background:#c00;color:#fff;font:12px monospace;padding:8px;white-space:pre-wrap;max-height:40vh;overflow:auto;';
-          document.body.appendChild(box);
-        }
-        box.textContent='MenuBg guard bloqueó el dibujo — cvs:'+(!!this.cvs)+' ctx:'+(!!this.ctx)+' W:'+this.W+' H:'+this.H;
-      }catch(_){}
-      return;
-    }
+    if(!this.cvs || !this.ctx || !this.W || !this.H) return;
     if(!this._cacheCvs || this._cacheCvs.width!==this.cvs.width || this._cacheCvs.height!==this.cvs.height){
       this._cacheCvs = document.createElement('canvas');
       this._cacheCvs.width  = this.cvs.width;
@@ -64665,16 +64822,53 @@ const MenuBg = {
       this._cacheCtx = this._cacheCvs.getContext('2d');
       const _dpr = Math.min(window.devicePixelRatio||1, 2);
       this._cacheCtx.setTransform(_dpr,0,0,_dpr,0,0);
+      // FIX (fluidez v415): segunda capa de caché, solo para el Planeta 4,
+      // compuesta por separado (fondo transparente) para poder dibujar las
+      // estrellas EN VIVO justo debajo suyo cada frame sin alterar el orden
+      // visual original (estrellas detrás del planeta 4, como siempre fue).
+      this._cacheCvs2 = document.createElement('canvas');
+      this._cacheCvs2.width  = this.cvs.width;
+      this._cacheCvs2.height = this.cvs.height;
+      this._cacheCtx2 = this._cacheCvs2.getContext('2d');
+      this._cacheCtx2.setTransform(_dpr,0,0,_dpr,0,0);
       this._cacheFrame = 0; // fuerza redibujo inmediato tras (re)crear el cache
     }
     this._cacheFrame = (this._cacheFrame||0) + 1;
-    if(this._cacheFrame % 2 === 1){
+    // Intervalo de redibujo del fondo pesado. Se usa el tier MÁS ALTO entre
+    // el propio del menú (medido en tiempo real, ver start()) y el global de
+    // partida (_dynQTier) — así reacciona tanto a un menú lento por sí solo
+    // como a un dispositivo que ya venía degradado desde el gameplay. En un
+    // equipo fluido ambos quedan en 0 y el comportamiento es EXACTAMENTE
+    // igual que antes: cada 2 frames, sin ningún cambio visual.
+    const _gTier = (typeof _dynQTier!=='undefined') ? _dynQTier : 0;
+    const _tier = Math.max(this._bgTier||0, _gTier>=2?2:_gTier>=1?1:0);
+    // FIX (fluidez v416): un equipo tier 0 (fluido) ya tiene margen de sobra
+    // para dibujar los planetas en CADA frame sin costo real — el ahorro de
+    // saltar frames tiene sentido para equipos que ya vienen lentos, no para
+    // uno que anda bien. Con esto el giro de los planetas deja de sentirse
+    // "a pasos" en cualquier equipo capaz; solo tier 1/2 (detectados como
+    // realmente lentos) siguen espaciando el redibujo, igual que antes.
+    const _bgInterval = _tier>=2?3:_tier>=1?2:1;
+    if(_bgInterval<=1 || this._cacheFrame % _bgInterval === 1){
       const _realCtx = this.ctx;
       this.ctx = this._cacheCtx; // _drawHeavy y _drawOrbs usan this.ctx — se redirige al cache
       try{ this._drawHeavy(); } finally { this.ctx = _realCtx; }
+      this.ctx = this._cacheCtx2;
+      try{ this._drawPlanet4Layer(); } finally { this.ctx = _realCtx; }
     }
+    // FIX (fluidez v415): composición — mismo orden visual de siempre (fondo
+    // + nebulosas + órbitas + planetas 1-3 → estrellas → planeta 4 →
+    // satélite → debris → polvo → cometas). Lo único que cambió es QUÉ se
+    // recalcula cada frame: el fondo pesado (gradientes de planetas/
+    // nebulosas) se actualiza cada _bgInterval frames — imperceptible, es
+    // deriva lenta — mientras que todo lo que tiene movimiento propio y
+    // visible (estrellas, satélite, debris, cometas) se dibuja SIEMPRE en
+    // vivo, cada frame, sin excepción, para que nunca se sienta a saltos.
     this.ctx.clearRect(0,0,this.W,this.H);
     this.ctx.drawImage(this._cacheCvs, 0, 0, this.W, this.H);
+    this._drawStars();
+    this.ctx.drawImage(this._cacheCvs2, 0, 0, this.W, this.H);
+    this._drawMotionFG();
   },
 
   _drawHeavy(){
@@ -66264,71 +66458,43 @@ const MenuBg = {
       c.beginPath();c.arc(p3X,p3Y,p3R*1.24,0,Math.PI*2);c.fillStyle=atm3r;c.fill();
     }
 
-    // ── ESTRELLAS — 3 capas parallax + shooting stars + destellos mejorados ──
-    for(const s of this.stars){
-      const tw=0.35+0.65*Math.sin(t*s.sp+s.tw);
-      const px=[0.0022,0.0072,0.0135][s.layer];
-      const sx=(s.x+t*s.sp*9*px)%W;
-      const sy=(s.y+t*s.sp*3.5*px)%H;
-      const al=Math.min(1, s.br*tw*1.55);
-      c.beginPath();c.arc(sx,sy,s.r,0,Math.PI*2);
-      c.fillStyle=hexAlpha(s.color,al);c.fill();
-      // Cruz brillante para estrellas grandes
-      if(s.r>0.85&&tw>0.52){
-        const fl=s.r*(s.layer===2?6.5:4.5)*tw;
-        c.strokeStyle=hexAlpha(s.color,al*0.6);c.lineWidth=s.layer===2?0.9:0.6;
-        c.beginPath();c.moveTo(sx-fl,sy);c.lineTo(sx+fl,sy);c.stroke();
-        c.beginPath();c.moveTo(sx,sy-fl*0.65);c.lineTo(sx,sy+fl*0.65);c.stroke();
-        // Diagonales sutiles en estrellas muy grandes
-        if(s.layer===2&&tw>0.75){
-          const fd=fl*0.4;
-          c.strokeStyle=hexAlpha(s.color,al*0.25);c.lineWidth=0.4;
-          c.beginPath();c.moveTo(sx-fd,sy-fd);c.lineTo(sx+fd,sy+fd);c.stroke();
-          c.beginPath();c.moveTo(sx+fd,sy-fd);c.lineTo(sx-fd,sy+fd);c.stroke();
-        }
-      }
-    }
-    // ── SHOOTING STARS ──
-    if(!this._shoots) this._shoots=[];
-    if(!this._shootTimer) this._shootTimer=0;
-    this._shootTimer+=0.016;
-    if(this._shootTimer>2.8+Math.random()*2.2){
-      this._shootTimer=0;
-      if(this._shoots.length<2){
-        this._shoots.push({
-          x:Math.random()*W*0.75, y:Math.random()*H*0.45,
-          vx:3.5+Math.random()*4, vy:1.2+Math.random()*2.5,
-          len:70+Math.random()*90, life:1.0,
-          decay:0.016+Math.random()*0.010
-        });
-      }
-    }
-    for(let si=this._shoots.length-1;si>=0;si--){
-      const sh=this._shoots[si];
-      sh.life-=sh.decay;
-      if(sh.life<=0){this._shoots.splice(si,1);continue;}
-      // v403 FIX: mismo bug y mismo rediseño que la versión de gameplay — cola
-      // detrás del movimiento (no adelante) + forma de cometa afinado.
-      const tx=sh.x-sh.vx*sh.len*sh.life;
-      const ty=sh.y-sh.vy*sh.len*sh.life;
-      const _ang2=Math.atan2(sh.vy,sh.vx);
-      const _perpX2=-Math.sin(_ang2), _perpY2=Math.cos(_ang2);
-      const _headW2=2.6*sh.life;
-      const sg=c.createLinearGradient(sh.x,sh.y,tx,ty);
-      sg.addColorStop(0,`rgba(255,255,255,${sh.life.toFixed(2)})`);
-      sg.addColorStop(0.30,`rgba(180,240,255,${(sh.life*0.55).toFixed(2)})`);
-      sg.addColorStop(1,'rgba(255,255,255,0)');
-      c.beginPath();
-      c.moveTo(sh.x+_perpX2*_headW2, sh.y+_perpY2*_headW2);
-      c.lineTo(sh.x-_perpX2*_headW2, sh.y-_perpY2*_headW2);
-      c.lineTo(tx,ty);
-      c.closePath();
-      c.fillStyle=sg; c.fill();
-      c.beginPath();c.arc(sh.x,sh.y,2.2*sh.life,0,Math.PI*2);
-      c.fillStyle=`rgba(255,255,255,${(sh.life*0.9).toFixed(2)})`;c.fill();
-      sh.x+=sh.vx;sh.y+=sh.vy;
-    }
+  },
 
+  // FIX (fluidez v415): Planeta 4 aislado en su propia capa de caché
+  // (fondo transparente) para poder intercalar las estrellas EN VIVO
+  // justo debajo suyo cada frame, sin alterar el orden visual original
+  // (estrellas detrás del planeta 4, como siempre fue).
+  _drawPlanet4Layer(){
+    const c=this.ctx,W=this.W,H=this.H,t=this.t;
+    if(!c || !W || !H) return;
+    c.clearRect(0,0,W,H);
+
+    // ── ROTACIÓN ESFÉRICA REAL — proyecta un punto (ox,oy) fijo del diseño
+    // como si estuviera pegado a una esfera girando sobre su eje vertical.
+    // oy (latitud) no cambia con el giro; ox (longitud) se desliza y se
+    // comprime hacia el limbo. vis>0 = cara visible, vis<=0 = cara oculta
+    // (se desvanece dejando ver el color base del planeta). ──
+    const sphRot=(ox,oy,ang)=>{
+      const oyc=Math.max(-0.995,Math.min(0.995,oy));
+      const lat=Math.asin(oyc);
+      const Rlat=Math.max(0.02,Math.cos(lat));
+      const s=Math.max(-1,Math.min(1,ox/Rlat));
+      const long0=Math.asin(s);
+      const long=long0+ang;
+      const vis0=Math.sqrt(Math.max(0,1-s*s));
+      return { x:Rlat*Math.sin(long), vis:Math.cos(long), vis0 };
+    };
+    // Suaviza la desaparición cerca del limbo (evita corte brusco)
+    const sphVis=(vis)=>Math.max(0,Math.min(1,(vis+0.12)/0.30));
+    // Rota un elemento como bloque rígido alrededor de su propio centro (cx,cy)
+    // — evita tener que transformar cada vértice individualmente.
+    const sphRigid=(pX,pY,pR,cx,cy,ang)=>{
+      const r=sphRot(cx,cy,ang);
+      const fs=Math.max(-2.2,Math.min(2.2, r.vis/Math.max(0.10,r.vis0)));
+      return { oldX:pX+pR*cx, oldY:pY+pR*cy, newX:pX+pR*r.x, newY:pY+pR*cy, fs, vis:r.vis };
+    };
+    // Ángulos de rotación continua — uno por planeta, velocidades distintas
+    const rot1=t*0.070, rot2=t*0.085, rot3=t*0.078, rot4=t*0.095;
     // ── PLANETA 4 — "EDÉN ESMERALDA" — Mundo oceánico, diseño alto contraste para tamaño pequeño ──
     {
       const p4X=W*0.06, p4Y=H*0.18, p4R=Math.min(W,H)*(W>=1024?0.090:0.072); // +25% más grande
@@ -66650,6 +66816,91 @@ const MenuBg = {
 
     // ── ÓRBITAS ELÍPTICAS — ELIMINADAS (se veían mal visualmente) ──
 
+  },
+
+  // FIX (fluidez v415): estrellas — antes vivían dentro de _drawHeavy y
+  // solo se recalculaban junto con el fondo pesado (cada 2-4 frames según
+  // el tier), lo que hacía que su parpadeo/parallax se viera a saltos. Ahora
+  // se dibujan EN VIVO cada frame sobre el fondo ya compuesto — el fondo en
+  // sí sigue cacheado (es deriva lenta, no se nota), pero el movimiento
+  // visible de las estrellas ya no se salta frames nunca.
+  _drawStars(){
+    const c=this.ctx,W=this.W,H=this.H,t=this.t;
+    if(!c || !W || !H) return;
+    // ── ESTRELLAS — 3 capas parallax + shooting stars + destellos mejorados ──
+    for(const s of this.stars){
+      const tw=0.35+0.65*Math.sin(t*s.sp+s.tw);
+      const px=[0.0022,0.0072,0.0135][s.layer];
+      const sx=(s.x+t*s.sp*9*px)%W;
+      const sy=(s.y+t*s.sp*3.5*px)%H;
+      const al=Math.min(1, s.br*tw*1.55);
+      c.beginPath();c.arc(sx,sy,s.r,0,Math.PI*2);
+      c.fillStyle=hexAlpha(s.color,al);c.fill();
+      // Cruz brillante para estrellas grandes
+      if(s.r>0.85&&tw>0.52){
+        const fl=s.r*(s.layer===2?6.5:4.5)*tw;
+        c.strokeStyle=hexAlpha(s.color,al*0.6);c.lineWidth=s.layer===2?0.9:0.6;
+        c.beginPath();c.moveTo(sx-fl,sy);c.lineTo(sx+fl,sy);c.stroke();
+        c.beginPath();c.moveTo(sx,sy-fl*0.65);c.lineTo(sx,sy+fl*0.65);c.stroke();
+        // Diagonales sutiles en estrellas muy grandes
+        if(s.layer===2&&tw>0.75){
+          const fd=fl*0.4;
+          c.strokeStyle=hexAlpha(s.color,al*0.25);c.lineWidth=0.4;
+          c.beginPath();c.moveTo(sx-fd,sy-fd);c.lineTo(sx+fd,sy+fd);c.stroke();
+          c.beginPath();c.moveTo(sx+fd,sy-fd);c.lineTo(sx-fd,sy+fd);c.stroke();
+        }
+      }
+    }
+    // ── SHOOTING STARS ──
+    if(!this._shoots) this._shoots=[];
+    if(!this._shootTimer) this._shootTimer=0;
+    this._shootTimer+=0.016;
+    if(this._shootTimer>2.8+Math.random()*2.2){
+      this._shootTimer=0;
+      if(this._shoots.length<2){
+        this._shoots.push({
+          x:Math.random()*W*0.75, y:Math.random()*H*0.45,
+          vx:3.5+Math.random()*4, vy:1.2+Math.random()*2.5,
+          len:70+Math.random()*90, life:1.0,
+          decay:0.016+Math.random()*0.010
+        });
+      }
+    }
+    for(let si=this._shoots.length-1;si>=0;si--){
+      const sh=this._shoots[si];
+      sh.life-=sh.decay;
+      if(sh.life<=0){this._shoots.splice(si,1);continue;}
+      // v403 FIX: mismo bug y mismo rediseño que la versión de gameplay — cola
+      // detrás del movimiento (no adelante) + forma de cometa afinado.
+      const tx=sh.x-sh.vx*sh.len*sh.life;
+      const ty=sh.y-sh.vy*sh.len*sh.life;
+      const _ang2=Math.atan2(sh.vy,sh.vx);
+      const _perpX2=-Math.sin(_ang2), _perpY2=Math.cos(_ang2);
+      const _headW2=2.6*sh.life;
+      const sg=c.createLinearGradient(sh.x,sh.y,tx,ty);
+      sg.addColorStop(0,`rgba(255,255,255,${sh.life.toFixed(2)})`);
+      sg.addColorStop(0.30,`rgba(180,240,255,${(sh.life*0.55).toFixed(2)})`);
+      sg.addColorStop(1,'rgba(255,255,255,0)');
+      c.beginPath();
+      c.moveTo(sh.x+_perpX2*_headW2, sh.y+_perpY2*_headW2);
+      c.lineTo(sh.x-_perpX2*_headW2, sh.y-_perpY2*_headW2);
+      c.lineTo(tx,ty);
+      c.closePath();
+      c.fillStyle=sg; c.fill();
+      c.beginPath();c.arc(sh.x,sh.y,2.2*sh.life,0,Math.PI*2);
+      c.fillStyle=`rgba(255,255,255,${(sh.life*0.9).toFixed(2)})`;c.fill();
+      sh.x+=sh.vx;sh.y+=sh.vy;
+    }
+
+  },
+
+  // FIX (fluidez v415): satélite, debris flotante, polvo cósmico y
+  // cometas — mismo motivo que _drawStars(): todo lo que tiene movimiento
+  // propio y visible ahora se dibuja en vivo cada frame, nunca cacheado.
+  _drawMotionFG(){
+    const c=this.ctx,W=this.W,H=this.H,t=this.t;
+    if(!c || !W || !H) return;
+    const _bgPal = this._bgColors, _bgMo = this._bgMotion || 'steady';
     // ── SATÉLITE ÚNICO — cruza la pantalla, propulsores animados ──
     {
       const sv=this.sat;
@@ -67199,7 +67450,7 @@ const MenuBg = {
       }catch(e){ return ''; }
     }
     var manifestData=document.getElementById('pwa-manifest-data');
-    if(manifestData){
+    if(manifestData && !_IS_EMBEDDED_IFRAME){
       var manifest=JSON.parse(manifestData.textContent);
       var png512=_mkIcon(512); var png192=_mkIcon(192); var png180=_mkIcon(180);
       if(png512) manifest.icons=[
@@ -91584,6 +91835,19 @@ html[lang="ja"] #orbitaDiaStats_d > span[style*="font-size:8px"] {
       if(typeof notify==='function') notify('⚠️',
         lc==='en'?'Cloud save not configured':lc==='pt'?'Salvamento na nuvem não configurado':lc==='ja'?'クラウド保存が未設定です':'Guardado en la nube no configurado',
         lc==='en'?'Ask the developer to set up Firebase':lc==='pt'?'Peça ao desenvolvedor para configurar o Firebase':lc==='ja'?'開発者にFirebaseの設定を依頼してください':'Pídele al desarrollador que configure Firebase');
+      return;
+    }
+    // FIX (portales v414): el popup de Google Sign-In no completa el
+    // handshake dentro de un iframe sandboxeado de terceros (CrazyGames,
+    // Poki, etc.) — se abre y se cierra solo al instante, confirmado en
+    // pruebas reales. En vez de dejar que falle en silencio, avisamos al
+    // jugador y no lo intentamos; el progreso sigue guardándose de forma
+    // anónima vía el backend propio.
+    if(typeof _IS_EMBEDDED_IFRAME!=='undefined' && _IS_EMBEDDED_IFRAME){
+      const lce=typeof Lang!=='undefined'?Lang.cur:'es';
+      if(typeof notify==='function') notify('⚠️',
+        lce==='en'?'Google sign-in unavailable here':lce==='pt'?'Login com Google indisponível aqui':lce==='ja'?'ここではGoogleログインは使用できません':'Inicio con Google no disponible acá',
+        lce==='en'?'Play the web version to link your account':lce==='pt'?'Jogue a versão web para vincular sua conta':lce==='ja'?'アカウントをリンクするにはWeb版でプレイしてください':'Jugá la versión web para vincular tu cuenta');
       return;
     }
     const provider=new firebase.auth.GoogleAuthProvider();
